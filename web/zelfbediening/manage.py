@@ -9,8 +9,7 @@ import sys
 # Packages
 from flask import *
 # Project
-from zelfbediening import create_app
-from zelfbediening.elastic import Elastic
+from app import app
 
 
 def shell():
@@ -18,27 +17,26 @@ def shell():
     os.environ['PYTHONINSPECT'] = 'True'
 
 def run_server():
-    app = create_app()
     app.run(debug=True, host='0.0.0.0', port=8000)
 
 def run_server_prod():
     # Starts the server with prod settings
-    from datapunt_geosearch import config
-    app = create_app(config)
     app.run(host='0.0.0.0', port=8000)
 
 def create_index():
-    es = Elastic()
-    es.create_index()
+    #es = Elastic()
+    #es.create_index()
+    pass
 
 def recreate_index():
     # Deleting the current index and recreating it
-    es = Elastic()
-    success = es.delete_index()
-    if success:
-        success = es.create_index()
-    if not success:
-        print ("Failed to delete index and recreate index")
+    #es = Elastic()
+    #success = es.delete_index()
+    #if success:
+    #    success = es.create_index()
+    #if not success:
+    #    print ("Failed to delete index and recreate index")
+    pass
 
 def help_txt():
     print ("run - start dev server\nshell - start an interactive shell\ncreate - create the geoindex in elastic\nrecreate - drop the old index and create a new one in elastic")
@@ -66,4 +64,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main():
+    main()
