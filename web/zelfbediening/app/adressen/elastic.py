@@ -1,9 +1,8 @@
-# Python
 """
 Handles creating the mapping for elastic
 and generating the index
 """
-
+# Python
 import json
 # Packages
 import elasticsearch_dsl as es

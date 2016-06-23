@@ -1,5 +1,2 @@
-from zelfbediening import create_app
-from zelfbediening import config
+from app import app
 
-
-app = create_app(config=config)
