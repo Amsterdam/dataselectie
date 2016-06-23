@@ -1,0 +1,31 @@
+database:
+  image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
+  ports:
+    - "5434:5432"
+  environment:
+    POSTGRES_PASSWORD: insecure
+    POSTGRES_DB: atlas
+
+elasticsearch:
+  image: admin.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+  command: elasticsearch -Des.network.host=0.0.0.0
+  ports:
+    - "9200:9200"
+    - "9300:9300"
+  #volumes:
+  #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+
+atlas:
+  build: .
+  links:
+    - database:database
+    - elasticsearch:elasticsearch
+  ports:
+    - "8888:8080"
+  volumes:
+    - $PWD/reports:/app/reports
+  environment:
+    DJANGO_SECRET_KEY: 893ufuih328hc82o3jfioh23o8jfi23bf32hvoh32fho23ury82o3hkj2
+    SECRET_KEY: hoi
+    DATABASE_NAME: atlas
+    DATABASE_PASSWORD: insecure
