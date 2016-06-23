@@ -1,3 +1,4 @@
 flask
 flask-sqlalchemy
-elasticsearch_dsl 
+elasticsearch_dsl
+Psycopg2
