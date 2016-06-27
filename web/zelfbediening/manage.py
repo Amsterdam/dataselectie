@@ -1,67 +1,10 @@
 #!/usr/bin/env python
-
-# Python
-import datetime
 import os
-from pprint import pprint
-import readline
 import sys
-# Packages
-from flask import *
-# Project
-from app import app
 
+if __name__ == "__main__":
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "zelfbediening.settings")
 
-def shell():
-    """Start app shell"""
-    os.environ['PYTHONINSPECT'] = 'True'
+    from django.core.management import execute_from_command_line
 
-def run_server():
-    app.run(debug=True, host='0.0.0.0', port=8000)
-
-def run_server_prod():
-    # Starts the server with prod settings
-    app.run(host='0.0.0.0', port=8000)
-
-def create_index():
-    #es = Elastic()
-    #es.create_index()
-    pass
-
-def recreate_index():
-    # Deleting the current index and recreating it
-    #es = Elastic()
-    #success = es.delete_index()
-    #if success:
-    #    success = es.create_index()
-    #if not success:
-    #    print ("Failed to delete index and recreate index")
-    pass
-
-def help_txt():
-    print ("run - start dev server\nshell - start an interactive shell\ncreate - create the geoindex in elastic\nrecreate - drop the old index and create a new one in elastic")
-
-def main():
-    # Parsing args
-    if len(sys.argv) == 1:
-        shell()
-    else:
-        if sys.argv[1] == 'run':
-            run_server()
-        elif sys.argv[1] =='run_prod':
-            run_server_prod()
-        elif sys.argv[1] == 'shell':
-            shell()
-        elif sys.argv[1] == 'recreate':
-            recreate_index()
-        elif sys.argv[1] == 'create':
-            create_index()
-        elif sys.argv[1] == 'help':
-            help_txt()
-        else:
-            print('Unkown command, options:')
-            help_txt()
-
-
-if __name__ == '__main__':
-    main()
+    execute_from_command_line(sys.argv)

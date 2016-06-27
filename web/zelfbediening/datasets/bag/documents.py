@@ -1,7 +1,3 @@
-"""
-Handles creating the mapping for elastic
-and generating the index
-"""
 # Python
 import json
 # Packages
@@ -9,6 +5,7 @@ import elasticsearch_dsl as es
 # Project
 from . import models
 from datasets.generic import analyzers
+from django.conf import settings
 
 
 class NummeraanduidingMeta(es.DocType):
@@ -53,7 +50,6 @@ class NummeraanduidingMeta(es.DocType):
     stadsdeel_code = es.String()
     stadsdeel_naam = es.String()
 
-
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
     doc = NummeraanduidingMeta()
@@ -74,13 +70,21 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     if obj:
         wijk = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
         ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
-        res['buurt_naam'] = obj.buurt.naam
-        res['buurt_code'] = '%s%s%s' % (str(obj.buurt.stadsdeel.code), str(wijk.code), str(obj.buurt.code))
-        res['stadsdeel_code'] = obj.buurt.stadsdeel.code
-        res['stadsdeel_naam'] = obj.buurt.stadsdeel.naam
-        res['wijk_code'] = '%s%s' % (obj.buurt.stadsdeel.code, str(wijk.code))
-        res['wijk_naam'] = wijk.naam
-        res['ggw_code'] = ggw.code
-        res['ggw_naam'] = ggw.naam
-
-
+        try:
+            doc.buurt_naam = obj.buurt.naam
+            doc.buurt_code = '%s%s' % (str(obj.buurt.stadsdeel.code), str(obj.buurt.code))
+            doc.stadsdeel_code = obj.buurt.stadsdeel.code
+            doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
+        except:
+            pass
+        if wijk:
+            doc.wijk_naam = wijk.naam
+            try:
+                doc.wijk_code = '%s%s' % (obj.buurt.stadsdeel.code, str(wijk.code))
+            except:
+                pass
+        if ggw:
+            doc.ggw_code = ggw.code
+            doc.ggw_naam = ggw.naam
+        return doc
+ 
