@@ -95,11 +95,11 @@ class TableSearchView(JSONResponseMixin, ListView):
         q = self.elastic_query(term, query)
         elastic = Elasticsearch(
             hosts=settings.ELASTIC_SEARCH_HOSTS,
-            # sniff_on_start=True,
             retry_on_timeout=True,
             refresh=True
         )
-        s = Search().using(elastic).query(q['Q'])
+        print(elastic)
+        s = Search().from_dict(q['Q']).using(elastic)
         # Adding filters
         filters = {}
         for filter_keyword in self.keywords:

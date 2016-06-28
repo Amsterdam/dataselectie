@@ -17,7 +17,11 @@ from elasticsearch_dsl import A, Q
 
 def meta_Q(term, query):
     return {
-        'Q': Q({'match': {'query': query, 'field': term}})
+        'Q': {
+            'query': {
+                'match': {term: query}
+            }
+        }
     }
 
 def address_Q(query):
