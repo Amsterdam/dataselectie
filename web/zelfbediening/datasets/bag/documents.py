@@ -54,7 +54,11 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
     doc = NummeraanduidingMeta()
     doc.nummeraanduiding_id = item.id
-    doc.naam = item.openbare_ruimte.naam
+    try:
+        doc.naam = item.openbare_ruimte.naam
+    except Exception as e:
+        print('1', repr(e))
+        doc.naam = ''
     doc.woonplaats = 'Amsterdam'
     # Identifing the spatial object
     if item.verblijfsobject:
@@ -68,23 +72,28 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     for key in headers:
          setattr(doc, key, getattr(item, key, None))
     if obj:
-        wijk = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
-        ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
+        try:
+            wijk = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
+            ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
+        except Exception as e:
+            print ('2:', repr(e))
+            wijk = None
+            ggw = None
         try:
             doc.buurt_naam = obj.buurt.naam
             doc.buurt_code = '%s%s' % (str(obj.buurt.stadsdeel.code), str(obj.buurt.code))
             doc.stadsdeel_code = obj.buurt.stadsdeel.code
             doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
-        except:
-            pass
+        except Exception as e:
+            print('3:', repr(e))
         if wijk:
             doc.wijk_naam = wijk.naam
             try:
                 doc.wijk_code = '%s%s' % (obj.buurt.stadsdeel.code, str(wijk.code))
-            except:
-                pass
+            except Exception as e:
+                print('4:', repr(e))
         if ggw:
             doc.ggw_code = ggw.code
             doc.ggw_naam = ggw.naam
-        return doc
- 
+    return doc
+

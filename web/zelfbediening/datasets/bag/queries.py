@@ -9,16 +9,16 @@
 """
 
 # Python
-import logging
-import re
-
 from collections import OrderedDict
+import re
 # Packages
-# from elasticsearch_dsl import Search, Q, A
-from elasticsearch_dsl import Q, A
+from elasticsearch_dsl import A, Q 
 
-log = logging.getLogger('bag_Q')
 
+def meta_Q(term, query):
+    return {
+        'Q': Q({'match': {'query': query, 'field': term}})
+    }
 
 def address_Q(query):
     """Create query/aggregation for complete address search"""

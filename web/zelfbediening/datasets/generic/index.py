@@ -134,7 +134,7 @@ class ImportIndexTask(object):
                 )
 
             log.debug(progres_msg)
-            print(qs)
+
             helpers.bulk(
                 client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),

@@ -1,22 +1,44 @@
 # Packages
+from django.http import JsonResponse
+from django.conf import settings
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
 # Project
-from zelfbediening.datasets.bag import models
+from datasets.bag import models
+from datasets.bag.queries import meta_Q
 
 
-class TableSearchView(ListView):
+class JSONResponseMixin(object):
+    """
+    Render response to json
+    """
+    def render_to_json_response(self, context, **response_kwargs):
+        return JsonResponse(
+            self.get_data(context),
+            **response_kwargs
+        )
+
+    def get_data(self, context):
+        """
+        Return a serialzieable object
+        This function should probably be overwritten
+        """
+        return context
+
+
+class TableSearchView(JSONResponseMixin, ListView):
     """
     A base class to generate tables from search results
     """
 
-    # Required attributes:
+    #attributes:
     #---------------------
     model = None  # The model class to use
     index = ''  # The name of the index to search in
     db = None  # The DB to use for the query This allws usage of different dbs
+    keywords = []  # A set of optional keywords to filter the results further
 
     # ListView inherintance functions
     def get_queryset(self):
@@ -31,14 +53,15 @@ class TableSearchView(ListView):
         qs = self.create_queryset()
         return qs
 
+    def render_to_response(self, context, **response_kwargs):
+        print(context)
+        context = {}
+        return self.render_to_json_response(context, **response_kwargs)
+
     def query_elastic(self, query):
         """
         Perform the query to elastic
         """
-        elastic = Elasticsearch()
-        s = Search().using(client).query(query)
-
-        return s.execute()
 
     # Functions to implement by subclass
     def load_from_elastic(self):
@@ -49,15 +72,55 @@ class TableSearchView(ListView):
         the search term as well as a list of possible filters, based on
         aggregates search results. The results are set in the class
 
-        This function must be overwritten by subclasses as it requires
+        query - the search string
+        term - what type of term this is
+
+        The folowing parameters are optional and can be used
+        to further filter the results
+        postcode - A postcode to limit the results to
         """
-        raise NotImplementedError
+        self.elastic = {
+            'ids': None,
+            'filters': [],
+        }
+        # Looking for keywords
+        query = self.request.GET.get('query', None)
+        term = self.request.GET.get('term', None)
+        if query and term:
+            print('Search: %s = %s' % (term, query))
+        else:
+            print('No query and term given')
+            return
+        # Performing the search
+        q = self.elastic_query(term, query)
+        elastic = Elasticsearch(
+            hosts=settings.ELASTIC_SEARCH_HOSTS,
+            # sniff_on_start=True,
+            retry_on_timeout=True,
+            refresh=True
+        )
+        s = Search().using(elastic).query(q['Q'])
+        # Adding filters
+        filters = {}
+        for filter_keyword in self.keywords:
+            val = self.request.GET.get(filter_keyword, None)
+            if val:
+                filters[filter_keyword] = val
+        # IF any filters were given, add them
+        if filters:
+            s = s.filters('terms', **filters)
+        # Adding aggregations if given
+        if 'A' in q:
+            for key, aggregatie in q['A']:
+                s.aggs.bucket(key, val)
+        print('Query:', repr(s.to_dict()))
+        response = s.execute()
+        print(response)
 
     def create_queryset(self):
         """
         Generates a query set based on the ids retrieved from elastic
         """
-        raise NotImplementedError
         ids = self.elastic.get('ids', None)
         if ids:
             return self.model.objects.filter(id__in=ids)
@@ -66,72 +129,16 @@ class TableSearchView(ListView):
             return self.model.objects.none()
 
 
-class BagSearch(ListView):
+class BagSearch(TableSearchView):
 
-    model = models.NummeraanduiduingMeta
+    model = models.Nummeraanduiding
     index = 'ZB_BAG'
+    q_func = meta_Q
 
-    def load_from_elastic(self):
-        """
-        This is the first part of where the magic happens.
-        Using the keywords in the get parameter to form a query
-        for elastic to retrieve ids and filters.
-        possible keywords:
+    def elastic_query(self, term, query):
+        return meta_Q(term, query)
 
-        search - the actual search term
-        possbile values:
-        """
-        # Looking for keywords
-        search_term = self.request.GET.get(search_term, None)
-        if search_term:
-            print('Search term:', search_term)
-        #else:
-        self.elastic = {
-            'ids': None,
-            'filters': [],
-        }
-
-class NummeraanduidingViewSet(rest.AtlasViewSet):
-    """
-    Nummeraanduiding
-
-    Een nummeraanduiding, in de volksmond ook wel adres genoemd,
-    is een door het bevoegde gemeentelijke orgaan als
-    zodanig toegekende aanduiding van een verblijfsobject,
-    standplaats of ligplaats.
-
-    [Stelselpedia](http://www.amsterdam.nl/stelselpedia/bag-index/catalogus-bag/objectklasse-2/)
-    """
-
-    metadata_class = ExpansionMetadata
-    queryset = models.Nummeraanduiding.objects.all()
-    queryset_detail = models.Nummeraanduiding.objects.prefetch_related(
-        Prefetch('verblijfsobject__panden',
-                 queryset=models.Pand.objects.select_related('bouwblok'))
-    ).select_related(
-        'status',
-        'openbare_ruimte',
-        'openbare_ruimte__woonplaats',
-        'verblijfsobject',
-        'verblijfsobject__buurt',
-        'verblijfsobject__buurt__buurtcombinatie',
-        'verblijfsobject__buurt__stadsdeel',
-    )
-    serializer_detail_class = serializers.NummeraanduidingDetail
-    serializer_class = serializers.Nummeraanduiding
-    filter_class = NummeraanduidingFilter
-
-    def retrieve(self, request, *args, **kwargs):
-        """
-        retrieve NummeraanduidingDetail
-
-        ---
-
-        serializer: serializers.NummeraanduidingDetail
-
-        """
-
-        return super().retrieve(
-            request, *args, **kwargs)
+    def create_queryset(self):
+        return self.model.objects.none()
 
 

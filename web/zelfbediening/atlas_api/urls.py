@@ -1,10 +1,8 @@
-from rest_framework import routers
-
+# Project
 from datasets.bag import views as bagViews
-from . import views as searchviews
 
 
-class BagRouter(routers.DefaultRouter):
+class ZBRouter(routers.DefaultRouter):
     """
     In Amsterdam is een systeem gerealiseerd voor het monitoren van deformatie (zakkingen). De oudere, vooroorlogse
     panden in Amsterdam zijn gebouwd op houten palen. De kwaliteit van deze fundering op houten palen verschilt sterk.
@@ -29,8 +27,7 @@ class BagRouter(routers.DefaultRouter):
         return Meetbouten.as_view()
 
 
-meetbouten = MeetboutenRouter()
+bag = ZBRouter()
 
-meetbouten.register(r'adressen', AdressenViewSet)
-meetbouten.register(r'search', searchviews.SearchMeetboutViewSet, base_name='search')
+bag.register(r'adressen', bagViews.BagSearch, base_name='adressen')
 

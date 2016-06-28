@@ -1,0 +1,10 @@
+# Package
+from django.conf.urls import url
+# Project
+from . import views
+
+
+urlpatterns = (
+    url(r'^$', views.BagSearch.as_view()),
+)
+

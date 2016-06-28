@@ -1,12 +1,9 @@
+#Python
 import logging
 from collections import OrderedDict
-
+# Packages
 from django.conf import settings
-
 from elasticsearch_dsl import Search, Q
-
-from zelfbediening.generic import searchviews
-from zelfbediening.generic import rest
 
 
 log = logging.getLogger('search')
