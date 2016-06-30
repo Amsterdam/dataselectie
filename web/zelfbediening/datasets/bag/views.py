@@ -3,8 +3,6 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
-from elasticsearch_dsl import Search
-
 # Project
 from datasets.bag import models
 from datasets.bag.queries import meta_Q
@@ -84,10 +82,10 @@ class TableSearchView(JSONResponseMixin, ListView):
             'filters': [],
         }
         # Looking for keywords
-        query = self.request.GET.get('query', None)
+        query_string = self.request.GET.get('query', None)
         term = self.request.GET.get('term', None)
-        if query and term:
-            print('Search: %s = %s' % (term, query))
+        if query_string and term:
+            print('Search: %s = %s' % (term, query_string))
         else:
             print('No query and term given')
             return
@@ -98,7 +96,8 @@ class TableSearchView(JSONResponseMixin, ListView):
             retry_on_timeout=True,
             refresh=True
         )
-        s = Search().from_dict(q['Q']).using(elastic).index('zb_bag')
+        # Building the query
+        query = q['Q']
         # Adding filters
         filters = {}
         for filter_keyword in self.keywords:
@@ -107,13 +106,17 @@ class TableSearchView(JSONResponseMixin, ListView):
                 filters[filter_keyword] = val
         # IF any filters were given, add them
         if filters:
-            s = s.filters('terms', **filters)
+            query['filters'] = filters
         # Adding aggregations if given
         if 'A' in q:
             for key, aggregatie in q['A']:
-                s.aggs.bucket(key, val)
-        print('Query:', repr(s.to_dict()))
-        response = s.execute()
+                query['aggs'] = {
+                    'bucket': {
+                        key: val
+                    }
+                }
+        print('Query:', repr(query))
+        response = elastic.search(index='zb_bzg', body=query)
         print(response)
 
     def create_queryset(self):
