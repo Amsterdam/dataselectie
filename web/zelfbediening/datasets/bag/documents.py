@@ -52,7 +52,7 @@ class NummeraanduidingMeta(es.DocType):
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
-    doc = NummeraanduidingMeta()
+    doc = NummeraanduidingMeta(_id=item.id)
     doc.nummeraanduiding_id = item.id
     try:
         doc.naam = item.openbare_ruimte.naam
