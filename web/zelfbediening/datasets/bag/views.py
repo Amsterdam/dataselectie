@@ -1,6 +1,7 @@
 # Packages
-from django.http import JsonResponse
 from django.conf import settings
+from django.core import serializers
+from django.http import HttpResponse
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 # Project
@@ -13,8 +14,9 @@ class JSONResponseMixin(object):
     Render response to json
     """
     def render_to_json_response(self, context, **response_kwargs):
-        return JsonResponse(
+        return HttpResponse(
             self.get_data(context),
+            content_type='application/json',
             **response_kwargs
         )
 
@@ -40,6 +42,7 @@ class TableSearchView(JSONResponseMixin, ListView):
     elastic = Elasticsearch(
         hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
     )
+
     # ListView inherintance functions
     def get_queryset(self):
         """
@@ -48,14 +51,13 @@ class TableSearchView(JSONResponseMixin, ListView):
         return a queryset based on the ids
         """
         # Loading data from elastic. See function for details
-        self.load_from_elastic()
+        elastic_data = self.load_from_elastic()
         # Creating a queryset
-        qs = self.create_queryset()
+        qs = self.create_queryset(elastic_data)
         return qs
 
     def render_to_response(self, context, **response_kwargs):
-        print(context)
-        context = {}
+        context = context['object_list']
         return self.render_to_json_response(context, **response_kwargs)
 
     def query_elastic(self, query):
@@ -79,23 +81,21 @@ class TableSearchView(JSONResponseMixin, ListView):
         to further filter the results
         postcode - A postcode to limit the results to
         """
-        self.elastic = {
-            'ids': None,
-            'filters': [],
-        }
-        # Looking for keywords
+        # Creating empty result set. Just in case
+        elastic_data = {'ids': [], 'filters': {}}
+        # looking for a query
         query_string = self.request.GET.get('query', None)
         term = self.request.GET.get('term', None)
         if query_string and term:
             print('Search: %s = %s' % (term, query_string))
         else:
             print('No query and term given')
-            return
-        # Performing the search
-        q = self.elastic_query(term, query)
-       
+            return elastic_data
+
         # Building the query
+        q = self.elastic_query(term, query_string)
         query = q['Q']
+
         # Adding filters
         filters = {}
         for filter_keyword in self.keywords:
@@ -105,6 +105,8 @@ class TableSearchView(JSONResponseMixin, ListView):
         # IF any filters were given, add them
         if filters:
             query['filters'] = filters
+            self.elastic_data['filters'] = filters
+
         # Adding aggregations if given
         if 'A' in q:
             for key, aggregatie in q['A']:
@@ -114,14 +116,18 @@ class TableSearchView(JSONResponseMixin, ListView):
                     }
                 }
         print('Query:', repr(query))
-        response = self.elastic.search(index='zb_bzg', body=query)
+        # Performing the search
+        response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
         print(response)
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
+        return elastic_data
 
-    def create_queryset(self):
+    def create_queryset(self, elastic_data):
         """
         Generates a query set based on the ids retrieved from elastic
         """
-        ids = self.elastic.get('ids', None)
+        ids = elastic_data.get('ids', None)
         if ids:
             return self.model.objects.filter(id__in=ids)
         else:
@@ -138,7 +144,11 @@ class BagSearch(TableSearchView):
     def elastic_query(self, term, query):
         return meta_Q(term, query)
 
-    def create_queryset(self):
-        return self.model.objects.none()
+    def get_data(self, object_list):
+        # Returns the list of objects
+        print(object_list)
+        data = serializers.serialize('json', object_list, fields=('id', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging', 'postcode', 'hoofdadres'))
+        print(data)
+        return data
 
 
