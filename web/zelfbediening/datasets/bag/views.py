@@ -37,7 +37,9 @@ class TableSearchView(JSONResponseMixin, ListView):
     index = ''  # The name of the index to search in
     db = None  # The DB to use for the query This allws usage of different dbs
     keywords = []  # A set of optional keywords to filter the results further
-
+    elastic = Elasticsearch(
+        hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
+    )
     # ListView inherintance functions
     def get_queryset(self):
         """
@@ -91,11 +93,7 @@ class TableSearchView(JSONResponseMixin, ListView):
             return
         # Performing the search
         q = self.elastic_query(term, query)
-        elastic = Elasticsearch(
-            hosts=settings.ELASTIC_SEARCH_HOSTS,
-            retry_on_timeout=True,
-            refresh=True
-        )
+       
         # Building the query
         query = q['Q']
         # Adding filters
@@ -116,7 +114,7 @@ class TableSearchView(JSONResponseMixin, ListView):
                     }
                 }
         print('Query:', repr(query))
-        response = elastic.search(index='zb_bzg', body=query)
+        response = self.elastic.search(index='zb_bzg', body=query)
         print(response)
 
     def create_queryset(self):
