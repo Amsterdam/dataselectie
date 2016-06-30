@@ -98,8 +98,7 @@ class TableSearchView(JSONResponseMixin, ListView):
             retry_on_timeout=True,
             refresh=True
         )
-        print(elastic)
-        s = Search().from_dict(q['Q']).using(elastic)
+        s = Search().from_dict(q['Q']).using(elastic).index('zb_bag')
         # Adding filters
         filters = {}
         for filter_keyword in self.keywords:
