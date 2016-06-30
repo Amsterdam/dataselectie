@@ -32,18 +32,20 @@ class TableSearchView(JSONResponseMixin, ListView):
     """
     A base class to generate tables from search results
     """
-
     #attributes:
     #---------------------
     model = None  # The model class to use
     index = ''  # The name of the index to search in
     db = None  # The DB to use for the query This allws usage of different dbs
     keywords = []  # A set of optional keywords to filter the results further
-    elastic = Elasticsearch(
-        hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
-    )
 
-    # ListView inherintance functions
+    def __init__(self):
+        self.elastic = Elasticsearch(
+            hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
+        )
+        self.extra_context_data = None  # Used to store data from elastic used in context
+
+    # Listview methods overloading
     def get_queryset(self):
         """
         This function is called by list view to generate the query set
@@ -60,12 +62,39 @@ class TableSearchView(JSONResponseMixin, ListView):
         context = context['object_list']
         return self.render_to_json_response(context, **response_kwargs)
 
-    def query_elastic(self, query):
+    # Tableview methods
+    def build_elastic_query(self, q):
         """
-        Perform the query to elastic
+        Builds the dictionary query to send to elastic
+        Parameters:
+        q - The q dict returned from the queries file
+        Returns:
+        The query dict to send to elastic
         """
+        query = q['Q']
 
-    # Functions to implement by subclass
+        # Adding filters
+        filters = {}
+        for filter_keyword in self.keywords:
+            val = self.request.GET.get(filter_keyword, None)
+            if val:
+                filters[filter_keyword] = val
+        # If any filters were given, add them
+        if filters:
+            query['filters'] = filters
+            self.elastic_data['filters'] = filters
+
+        # Adding aggregations if given
+        if 'A' in q:
+            for key, aggregatie in q['A']:
+                query['aggs'] = {
+                    'bucket': {
+                        key: val
+                    }
+                }
+        print('Query:', repr(query))
+        return query
+
     def load_from_elastic(self):
         """
         Loads the data from elastic.
@@ -86,41 +115,20 @@ class TableSearchView(JSONResponseMixin, ListView):
         # looking for a query
         query_string = self.request.GET.get('query', None)
         term = self.request.GET.get('term', None)
-        if query_string and term:
-            print('Search: %s = %s' % (term, query_string))
-        else:
+        if not (query_string and term):
             print('No query and term given')
             return elastic_data
 
         # Building the query
         q = self.elastic_query(term, query_string)
-        query = q['Q']
-
-        # Adding filters
-        filters = {}
-        for filter_keyword in self.keywords:
-            val = self.request.GET.get(filter_keyword, None)
-            if val:
-                filters[filter_keyword] = val
-        # IF any filters were given, add them
-        if filters:
-            query['filters'] = filters
-            self.elastic_data['filters'] = filters
-
-        # Adding aggregations if given
-        if 'A' in q:
-            for key, aggregatie in q['A']:
-                query['aggs'] = {
-                    'bucket': {
-                        key: val
-                    }
-                }
-        print('Query:', repr(query))
+        query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
         print(response)
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
+        # Enrich result data with neede info
+        save_context_data(response)
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -129,10 +137,29 @@ class TableSearchView(JSONResponseMixin, ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            return self.model.objects.filter(id__in=ids)
+            return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam')[:20]
         else:
             # No ids where found
             return self.model.objects.none()
+
+    #===============================================
+    # Context altering functions to be overwritten
+    #===============================================
+    def save_context_data(self, response):
+        """
+        Can be used by the subclass to save extra data to be used
+        later to correct context data
+
+        Parameter:
+        response - the elastic response dict
+        """
+        pass
+
+    def update_context_data(self, context):
+        """
+        Enables the subclasses to update/change the object list
+        """
+        return context
 
 
 class BagSearch(TableSearchView):
@@ -143,6 +170,10 @@ class BagSearch(TableSearchView):
 
     def elastic_query(self, term, query):
         return meta_Q(term, query)
+
+    def update_context_data(self, context):
+        # Adding the wijk, ggw, stadsdeel info to the result
+        object_list = self.get_context_object_name()
 
     def get_data(self, object_list):
         # Returns the list of objects
