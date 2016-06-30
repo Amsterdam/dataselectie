@@ -9,26 +9,7 @@ from datasets.bag import models
 from datasets.bag.queries import meta_Q
 
 
-class JSONResponseMixin(object):
-    """
-    Render response to json
-    """
-    def render_to_json_response(self, context, **response_kwargs):
-        return HttpResponse(
-            self.get_data(context),
-            content_type='application/json',
-            **response_kwargs
-        )
-
-    def get_data(self, context):
-        """
-        Return a serialzieable object
-        This function should probably be overwritten
-        """
-        return context
-
-
-class TableSearchView(JSONResponseMixin, ListView):
+class TableSearchView(ListView):
     """
     A base class to generate tables from search results
     """
@@ -59,8 +40,15 @@ class TableSearchView(JSONResponseMixin, ListView):
         return qs
 
     def render_to_response(self, context, **response_kwargs):
-        context = context['object_list']
-        return self.render_to_json_response(context, **response_kwargs)
+        # The get_data should take care of all the serialization
+        # Extra data is then added and the response is returned
+        context = self.get_data(context)
+        context = self.update_context_data(context)
+        return HttpResponse(
+            self.get_data(context),
+            content_type='application/json',
+            **response_kwargs
+        )
 
     # Tableview methods
     def build_elastic_query(self, q):
@@ -128,7 +116,7 @@ class TableSearchView(JSONResponseMixin, ListView):
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
         # Enrich result data with neede info
-        save_context_data(response)
+        self.save_context_data(response)
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -161,6 +149,13 @@ class TableSearchView(JSONResponseMixin, ListView):
         """
         return context
 
+    def get_data(self, context):
+        """
+        Takes care of preparing the data for a json response
+        by serializing and filtering
+        This should probably be overwritten
+        """
+        return context
 
 class BagSearch(TableSearchView):
 
@@ -171,15 +166,29 @@ class BagSearch(TableSearchView):
     def elastic_query(self, term, query):
         return meta_Q(term, query)
 
+    def save_context_data(self, response):
+        """
+        Save the relevant wijk, buurt, ggw and stadsdeel to be used
+        later to enrich the results
+        """
+        self.extra_context_data = {}
+        fields = ('buurt_naam', 'buurt_code', 'wijk_code', 'wijk_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code')
+        for item in response['hits']['hits']:
+            self.extra_context_data[item['_id']] = {}
+            for field in fields:
+                self.extra_context_data[item['_id']][field] = item['_source'][field]
+
     def update_context_data(self, context):
         # Adding the wijk, ggw, stadsdeel info to the result
         object_list = self.get_context_object_name()
+        for item in context[object_list]:
+            print(item)
 
-    def get_data(self, object_list):
+    def get_data(self, context):
         # Returns the list of objects
-        print(object_list)
-        data = serializers.serialize('json', object_list, fields=('id', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging', 'postcode', 'hoofdadres'))
-        print(data)
-        return data
+        print(context)
+        context = serializers.serialize('json', context[self.get_context_object_name()], fields=('id', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging', 'postcode', 'hoofdadres'))
+        print(context)
+        return context
 
 
