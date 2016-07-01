@@ -65,6 +65,7 @@ class TableSearchView(ListView):
     index = ''  # The name of the index to search in
     db = None  # The DB to use for the query This allws usage of different dbs
     keywords = []  # A set of optional keywords to filter the results further
+    preview_size = settings.SEARCH_PREVIEW_SIZE
 
     def __init__(self):
         self.elastic = Elasticsearch(
@@ -87,7 +88,8 @@ class TableSearchView(ListView):
 
     def render_to_response(self, context, **response_kwargs):
         # this can probably be replaced by the json response mixing I had earlier
-        # Need to make sure object list is ready for viewing
+        # Serializing the object list
+        context['object_list'] = json.dumps(list(context['object_list']))
         return HttpResponse(
             context['object_list'],
             content_type='application/json',
@@ -124,7 +126,10 @@ class TableSearchView(ListView):
                         key: val
                     }
                 }
-        #print('Query:', repr(query))
+        # Adding sizing if not given
+        if 'size' not in query:
+            query['size'] = self.preview_size
+        print('Query:', repr(query))
         return query
 
     def load_from_elastic(self):
@@ -201,3 +206,11 @@ class TableSearchView(ListView):
         return context
 
 
+class Echo(object):
+        """
+        An object that implements just the write method of the file-like
+        interface, for csv file streaming
+        """
+        def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+            return value

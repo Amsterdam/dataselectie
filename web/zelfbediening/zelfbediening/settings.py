@@ -111,6 +111,8 @@ ELASTIC_INDICES = {
     'ZB_BAG': 'zb_bag',
 }
 
+# The size of the preview to fetch from elastic
+SEARCH_PREVIEW_SIZE = 20
 # Batch processing
 BATCH_SETTINGS = {
     'batch_size': 4000,

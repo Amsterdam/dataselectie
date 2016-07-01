@@ -1,10 +1,11 @@
 # Python
 from datetime import date, datetime
-import json
-# Project 
+# Packages
+from django.http import StreamingHttpResponse
+# Project
 from datasets.bag import models
 from datasets.bag.queries import meta_Q
-from datasets.generic.mixins import TableSearchView
+from datasets.generic.mixins import Echo, TableSearchView
 
 
 class BagSearch(TableSearchView):
@@ -52,7 +53,7 @@ class BagSearch(TableSearchView):
         elif value is None:
             value = ''
         else:
-            # Trying repr, otherwise trying 
+            # Trying repr, otherwise trying
             try:
                 value = repr(value)
             except:
@@ -71,7 +72,29 @@ class BagSearch(TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data[context['object_list'][i]['id']])
-        # Finally serializing the object list
-        context['object_list'] = json.dumps(list(context['object_list']))
         return context
+
+
+class BagCSV(BagSearch):
+    """
+    Output CSV
+    See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
+    """
+    preview_size = 10000  # Setting result to 10000 records
+
+    def render_to_response(self, context, **response_kwargs):
+        # Returning a CSV
+        rows = context['object_list']
+        if len(rows) > 0:
+            headers = list(rows[0].keys())
+        else:
+            rows = {}
+        # Creating a wrapper filelike
+        pseudo_buffer = Echo()
+        # Creating the writer
+        writer = csv.DictWriter(pseudo_buffer, headers)
+        # Streaming!
+        response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename="export.csv"'
+        return response
 
