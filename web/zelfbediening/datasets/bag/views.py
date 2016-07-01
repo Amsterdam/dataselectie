@@ -81,11 +81,12 @@ class BagCSV(BagSearch):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    preview_size = 10000  # Setting result to 10000 records
+    preview_size = 9999  # Setting result to 9999 records
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         rows = context['object_list']
+        print('Render:', len(rows))
         if len(rows) > 0:
             headers = list(rows[0].keys())
         else:

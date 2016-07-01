@@ -161,6 +161,8 @@ class TableSearchView(ListView):
         query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
+        print('response total:', response['hits']['total'])
+        print('response len:', len(response['hits']['hits']))
         #print(response)
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
@@ -174,7 +176,7 @@ class TableSearchView(ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:20]
+            return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()
