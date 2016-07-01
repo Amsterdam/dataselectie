@@ -86,7 +86,6 @@ class BagCSV(BagSearch):
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         rows = context['object_list']
-        print('Render:', len(rows))
         if len(rows) > 0:
             headers = list(rows[0].keys())
         else:

@@ -129,7 +129,7 @@ class TableSearchView(ListView):
         # Adding sizing if not given
         if 'size' not in query:
             query['size'] = self.preview_size
-        print('Query:', repr(query))
+        #print('Query:', repr(query))
         return query
 
     def load_from_elastic(self):
@@ -161,9 +161,6 @@ class TableSearchView(ListView):
         query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
-        print('response total:', response['hits']['total'])
-        print('response len:', len(response['hits']['hits']))
-        #print(response)
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
         # Enrich result data with neede info
