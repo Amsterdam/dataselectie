@@ -1,4 +1,5 @@
 # Python
+import csv
 from datetime import date, datetime
 # Packages
 from django.http import StreamingHttpResponse
@@ -94,6 +95,7 @@ class BagCSV(BagSearch):
         # Creating the writer
         writer = csv.DictWriter(pseudo_buffer, headers)
         # Streaming!
+        # @FIXME writer.writeheader()
         response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
         response['Content-Disposition'] = 'attachment; filename="export.csv"'
         return response

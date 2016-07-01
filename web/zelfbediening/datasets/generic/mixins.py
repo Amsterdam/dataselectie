@@ -212,5 +212,5 @@ class Echo(object):
         interface, for csv file streaming
         """
         def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
+            """Write the value by returning it, instead of storing in a buffer."""
             return value
