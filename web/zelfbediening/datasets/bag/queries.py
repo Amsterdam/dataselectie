@@ -12,7 +12,7 @@
 from collections import OrderedDict
 import re
 # Packages
-from elasticsearch_dsl import A, Q 
+from elasticsearch_dsl import A, Q
 
 
 def meta_Q(term, query):
