@@ -6,6 +6,7 @@ from django.contrib.gis.geos import GEOSGeometry, Polygon, MultiPolygon
 from django.core import serializers
 from django.db import models
 from django.http import HttpResponse, JsonResponse
+from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 
@@ -89,9 +90,16 @@ class TableSearchView(ListView):
     def render_to_response(self, context, **response_kwargs):
         # this can probably be replaced by the json response mixing I had earlier
         # Serializing the object list
-        context['object_list'] = json.dumps(list(context['object_list']))
+        # Checking if pretty and debug
+        resp = {}
+        if self.request.GET.get('pretty', False) and settings.DEBUG:
+            return render(self.request, "pretty_elastic.html", context=context) 
+        resp['object_list'] = list(context['object_list'])
+        # Cleaning all but the objects and aggregations
+        resp['aggs_list'] = context['aggs_list']
+
         return HttpResponse(
-            context['object_list'],
+            json.dumps(resp),
             content_type='application/json',
             **response_kwargs
         )
@@ -117,15 +125,7 @@ class TableSearchView(ListView):
         if filters:
             query['filters'] = filters
             self.elastic_data['filters'] = filters
-
-        # Adding aggregations if given
-        if 'A' in q:
-            for key, aggregatie in q['A']:
-                query['aggs'] = {
-                    'bucket': {
-                        key: val
-                    }
-                }
+ 
         # Adding sizing if not given
         if 'size' not in query:
             query['size'] = self.preview_size
@@ -151,7 +151,6 @@ class TableSearchView(ListView):
         aggregates search results. The results are set in the class
 
         query - the search string
-        term - what type of term this is
 
         The folowing parameters are optional and can be used
         to further filter the results
@@ -161,13 +160,9 @@ class TableSearchView(ListView):
         elastic_data = {'ids': [], 'filters': {}}
         # looking for a query
         query_string = self.request.GET.get('query', None)
-        term = self.request.GET.get('term', None)
-        if not (query_string and term):
-            print('No query and term given')
-            return elastic_data
 
         # Building the query
-        q = self.elastic_query(term, query_string)
+        q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])

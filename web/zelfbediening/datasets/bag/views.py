@@ -15,20 +15,21 @@ class BagSearch(TableSearchView):
     index = 'ZB_BAG'
     q_func = meta_Q
 
-    def elastic_query(self, term, query):
-        return meta_Q(term, query)
+    def elastic_query(self, query):
+        return meta_Q(query)
 
     def save_context_data(self, response):
         """
         Save the relevant wijk, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        self.extra_context_data = {}
+        self.extra_context_data = {'items': {}}
         fields = ('buurt_naam', 'buurt_code', 'wijk_code', 'wijk_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code')
         for item in response['hits']['hits']:
-            self.extra_context_data[item['_id']] = {}
+            self.extra_context_data['items'][item['_id']] = {}
             for field in fields:
-                self.extra_context_data[item['_id']][field] = item['_source'][field]
+                self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
+        self.extra_context_data['aggs_list'] = response.get('aggregations', {})
 
     def stringify_item_value(self, value):
         """
@@ -72,7 +73,8 @@ class BagSearch(TableSearchView):
                 {k: self.stringify_item_value(v) for k, v in context['object_list'][i].items() if not isinstance(v, str)}
             )
             # Adding the extra context
-            context['object_list'][i].update(self.extra_context_data[context['object_list'][i]['id']])
+            context['object_list'][i].update(self.extra_context_data['items'][context['object_list'][i]['id']])
+            context['aggs_list'] = self.extra_context_data['aggs_list']
         return context
 
 
