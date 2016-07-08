@@ -1,0 +1,79 @@
+<html>
+<head>
+<style>
+html {
+    font-family: sans-serif;
+    font-weight: normal;
+    font-size: 10px;
+}
+section {
+    font-size: 1.6em;
+}
+ul {
+    list-style-type: none;
+    list-style-position: inside;
+}
+label {
+    font-size: 1.4em;
+}
+.list {
+    width: 30em;
+}
+.key {
+    font-weight: bold;
+}
+.grey {
+    background-color: rgb(230, 230, 230);
+}
+[id^="entry"],                        /* HIDE CHECKBOX */
+[id^="entry"] ~ .list,                /* HIDE LIST */
+[id^="entry"] + label i + i,   /* HIDE "Collapse" */
+[id^="entry"]:checked + label i{   /* HIDE "Expand" (IF CHECKED) */
+      display:none;
+}
+[id^="entry"]:checked + label i + i{
+    display:inline-block;                 /* SHOW "Collapse" (IF CHECKED) */
+}
+[id^="entry"]:checked ~ .list{
+    display:block;                        /* SHOW LIST (IF CHECKED) */
+}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
+</head>
+<body>
+<section id="aggs">
+    <h2>Aggregations</h2>
+    {% for key, item in aggs_list.items %}
+    <div class="row">
+        <h4>{{ key }}</h4>
+        <input id="entryagg{{ forloop.counter}}" type="checkbox">
+        <label for="entryagg{{ forloop.counter }}">
+            <i class="fa fa-caret-square-o-down" aria-hidden="true"></i>
+            <i class="fa fa-caret-square-o-up" aria-hidden="true"></i>
+            <span>{{ forloop.counter }}</span>
+        </label>
+        <div class="list">
+            {% include "pretty_elastic_snippet.html" with obj=item %}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+<section id="preview">
+    <h2>Preview</h2>
+    {% for item in object_list %}
+    <div class="row">
+        <input id="entry{{ forloop.counter}}" type="checkbox">
+        <label for="entry{{ forloop.counter}}">
+            <i class="fa fa-caret-square-o-down" aria-hidden="true"></i>
+            <i class="fa fa-caret-square-o-up" aria-hidden="true"></i>
+            <span>{{ forloop.counter }}</span>
+        </label>
+        <div class="list">
+            {% include "pretty_elastic_snippet.html" with obj=item %}
+        </div>
+    </div>
+    {% endfor %}
+</section>
+</body>
+</html>
+
