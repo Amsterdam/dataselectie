@@ -19,7 +19,7 @@ def meta_Q(term, query):
     return {
         'Q': {
             'query': {
-                'match': {term: query}
+                'match': {'_all': query}
             }
         }
     }
