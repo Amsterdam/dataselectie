@@ -15,11 +15,39 @@ import re
 from elasticsearch_dsl import A, Q
 
 
-def meta_Q(term, query):
+def meta_Q(query):
+    if query is None:
+        q = {'match_all': {}}
+    else:
+        q = {'match': {'_all': query}}
     return {
         'Q': {
-            'query': {
-                'match': {'_all': query}
+            'query': q,
+            'aggs': {
+                'postcode': {
+                    'terms': {
+                        'field': 'postcode',
+                        'size': 50,
+                    },
+                },
+                'straatnamen': {
+                    'terms': {
+                        'field': 'naam.raw',
+                        'size': 50,
+                    }
+                },
+                'wijken': {
+                    'terms': {
+                        'field': 'wijk_naam',
+                        'size': 50,
+                    },
+                },
+                'buurt_codes': {
+                    'terms': {
+                        'field': 'buurt_code',
+                        'size': 50,
+                    },
+                },
             }
         }
     }
