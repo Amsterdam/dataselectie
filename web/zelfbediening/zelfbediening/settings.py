@@ -70,7 +70,7 @@ ROOT_URLCONF = 'zelfbediening.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['%s/datasets/generic/templates' % BASE_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
