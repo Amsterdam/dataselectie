@@ -29,26 +29,28 @@ class NummeraanduidingMeta(es.DocType):
     toevoeging = es.String()
     huisletter = es.String()
     postcode = es.String(analyzer=analyzers.postcode)
-    straatnaam = es.String(
-        analyzer=analyzers.adres,
-        fields={
-            'raw': es.String(index='not_analyzed'),
-            'ngram_edge': es.String(
-                analyzer=analyzers.autocomplete, search_analyzer='standard'
-            ),
-            'keyword': es.String(analyzer=analyzers.subtype),
-        }
+    woonplaats = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
     )
-    woonplaats = es.String()
     hoofdadres = es.Boolean()
     buurt_code = es.String()
-    buurt_naam = es.String()
-    wijk_code = es.String()
-    wijk_naam = es.String()
+    buurt_naam = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
+    )
+    wijk_code = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
+    )
+    wijk_naam = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
+    )
     ggw_code = es.String()
     ggw_naam = es.String()
+        fields={'raw': es.String(index='not_analyzed')}
+    )
     stadsdeel_code = es.String()
-    stadsdeel_naam = es.String()
+    stadsdeel_naam = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
+    )
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
