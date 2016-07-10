@@ -44,7 +44,7 @@ class NummeraanduidingMeta(es.DocType):
         fields={'raw': es.String(index='not_analyzed')}
     )
     ggw_code = es.String()
-    ggw_naam = es.String()
+    ggw_naam = es.String(
         fields={'raw': es.String(index='not_analyzed')}
     )
     stadsdeel_code = es.String()

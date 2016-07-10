@@ -113,19 +113,19 @@ class TableSearchView(ListView):
         Returns:
         The query dict to send to elastic
         """
-        query = q['Q']
+        query = q
 
         # Adding filters
-        filters = {}
+        filters = []
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
             if val:
-                filters[filter_keyword] = val
-        # If any filters were given, add them
+                filters.append({'term': {filter_keyword: val}})
+        # If any filters were given, add them, creating a bool query
         if filters:
-            query['filters'] = filters
-            self.elastic_data['filters'] = filters
- 
+            query['query'] = {'bool': {'must': [query['query']]}}
+            query['query']['bool']['filter'] = filters
+
         # Adding sizing if not given
         if 'size' not in query:
             query['size'] = self.preview_size
@@ -139,7 +139,7 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
-        #print('Query:', repr(query))
+        print('Query:', repr(query))
         return query
 
     def load_from_elastic(self):

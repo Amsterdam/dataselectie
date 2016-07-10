@@ -15,42 +15,63 @@ import re
 from elasticsearch_dsl import A, Q
 
 
-def meta_Q(query):
-    if query is None:
-        q = {'match_all': {}}
-    else:
-        q = {'match': {'_all': query}}
-    return {
-        'Q': {
-            'query': q,
-            'aggs': {
-                'postcode': {
-                    'terms': {
-                        'field': 'postcode',
-                        'size': 50,
-                    },
+def meta_all_Q():
+    """Match all query for no selection and for loading aggs"""
+    return  {
+        'query': {'match_all': {}},
+        'aggs': {
+             'postcode': {
+                  'terms': {
+                     'field': 'postcode',
+                     'size': 50,
+                'order': {'_term': 'asc'},
+                 },
+             },
+             'straatnamen': {
+                'terms': {
+                    'field': 'naam.raw',
+                    'size': 50,
+                    'order': {'_term': 'asc'},
+                }
+             },
+             'wijken': {
+                 'terms': {
+                     'field': 'wijk_naam.raw',
+                     'size': 50,
+                     'order': {'_term': 'asc'},
                 },
-                'straatnamen': {
-                    'terms': {
-                        'field': 'naam.raw',
-                        'size': 50,
-                    }
+            },
+            'wijk_codes': {
+                'terms': {
+                    'field': 'wijk_code',
+                    'size': 50,
+                    'order': {'_term': 'asc'},
                 },
-                'wijken': {
-                    'terms': {
-                        'field': 'wijk_naam',
-                        'size': 50,
-                    },
+            },
+            'buurt_codes': {
+                'terms': {
+                    'field': 'buurt_code',
+                    'size': 50,
+                    'order': {'_term': 'asc'},
                 },
-                'buurt_codes': {
-                    'terms': {
-                        'field': 'buurt_code',
-                        'size': 50,
-                    },
+            },
+            'buurten': {
+                'terms': {
+                    'field': 'buurt_naam.raw',
+                    'size': 50,
+                    'order': {'_term': 'asc'},
                 },
-            }
+            },
         }
     }
+
+def meta_Q(query):
+    if query:
+        return {
+            'query': {'match': {'_all': query}},
+        }
+    else:
+        return meta_all_Q()
 
 def address_Q(query):
     """Create query/aggregation for complete address search"""
