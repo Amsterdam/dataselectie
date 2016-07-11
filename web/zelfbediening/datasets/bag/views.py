@@ -14,7 +14,7 @@ class BagSearch(TableSearchView):
     model = models.Nummeraanduiding
     index = 'ZB_BAG'
     q_func = meta_Q
-    keywords = ['buurt_code']
+    keywords = ('buurt_naam', 'buurt_code', 'wijk_code', 'wijk_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
 
     def elastic_query(self, query):
         return meta_Q(query)
