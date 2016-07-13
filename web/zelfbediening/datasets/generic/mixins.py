@@ -300,10 +300,10 @@ class CSVExportView(TableSearchView):
             # Stop the run
             if len(items) < batch_size:
                 more = False
-            print(counter, ': ', len(items))
             # Retriving the database data
             qs = self.model.objects.filter(id__in=list(items.keys())).values()
             # Pairing the data
+            print(items)
             data = self._combine_data(qs, items)
             for item in data:
                 # Only returning fields from the headers
@@ -320,7 +320,7 @@ class CSVExportView(TableSearchView):
                 {k: self.stringify_item_value(v) for k, v in item.items() if not isinstance(v, str)}
             )
             # Adding the elastic context
-            item.update(es[item['id']])
+            item.update(es[item['id']]['_source'])
         return data
 
 class Echo(object):
