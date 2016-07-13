@@ -15,63 +15,67 @@ import re
 from elasticsearch_dsl import A, Q
 
 
-def meta_all_Q():
-    """Match all query for no selection and for loading aggs"""
-    return  {
-        'query': {'match_all': {}},
-        'aggs': {
+def meta_Q(query, add_aggs=True):
+    # @TODO change to setting
+    agg_size = 100
+    aggs = {
+         'aggs': {
              'postcode': {
                   'terms': {
                      'field': 'postcode',
-                     'size': 50,
+                     'size': agg_size,
                 'order': {'_term': 'asc'},
                  },
              },
              'straatnamen': {
                 'terms': {
                     'field': 'naam.raw',
-                    'size': 50,
+                    'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
              },
              'wijken': {
                  'terms': {
                      'field': 'wijk_naam.raw',
-                     'size': 50,
+                     'size': agg_size,
                      'order': {'_term': 'asc'},
                 },
             },
             'wijk_codes': {
                 'terms': {
                     'field': 'wijk_code',
-                    'size': 50,
+                    'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'buurt_codes': {
                 'terms': {
                     'field': 'buurt_code',
-                    'size': 50,
+                    'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'buurten': {
                 'terms': {
                     'field': 'buurt_naam.raw',
-                    'size': 50,
+                    'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
         }
     }
-
-def meta_Q(query):
     if query:
-        return {
+        q =  {
             'query': {'match': {'_all': query}},
         }
     else:
-        return meta_all_Q()
+        q = {
+            'query': {'match_all': {} }
+        }
+    if add_aggs:
+        q.update(aggs)
+    return q
+
 
 def address_Q(query):
     """Create query/aggregation for complete address search"""
@@ -134,7 +138,7 @@ def postcode_huisnummer_Q(query, tokens=None, num=None):
             ]
         ),
         'sorting': postcode_huisnummer_sorting,
-        'size': 50  # sample size for custom sort
+        'size': agg_size  # sample size for custom sort
     }
 
 

@@ -1,4 +1,5 @@
 # Python
+from datetime import date, datetime
 import json
 # Packages
 from django.conf import settings
@@ -9,7 +10,7 @@ from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
-
+from elasticsearch.helpers import scan
 
 class ImportStatusMixin(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
@@ -69,10 +70,46 @@ class TableSearchView(ListView):
     preview_size = settings.SEARCH_PREVIEW_SIZE
 
     def __init__(self):
+        super(ListView, self).__init__()
         self.elastic = Elasticsearch(
             hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
         )
         self.extra_context_data = None  # Used to store data from elastic used in context
+
+    def stringify_item_value(self, value):
+        """
+        Makes sure that the dict contains only strings for easy jsoning of the dict
+        Following actions are taken:
+        - None is replace by empty string
+        - Boolean is converted to strinf
+        - Numbers are converted to string
+        - Datetime and Dates are converted to EU norm dates
+
+        Important!
+        If no conversion van be found the same value is returned
+        This may, or may not break the jsoning of the object list
+
+        @Parameter:
+        value - a value to convert to string
+
+        @Returns:
+        The string representation of the value
+        """
+        if (isinstance(value, date) or isinstance(value, datetime)):
+            value = value.strftime('%d-%m-%Y')
+        elif value is None:
+            value = ''
+        else:
+            # Trying repr, otherwise trying
+            try:
+                value = repr(value)
+            except:
+                try:
+                    value = str(value)
+                except:
+                    pass
+        return value
+
 
     # Listview methods overloading
     def get_queryset(self):
@@ -127,7 +164,7 @@ class TableSearchView(ListView):
             query['query']['bool']['filter'] = filters
 
         # Adding sizing if not given
-        if 'size' not in query:
+        if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
         # Adding offset in case of paging
         offset = self.request.GET.get('page', None)
@@ -139,7 +176,7 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
-        print('Query:', repr(query))
+        print(query)
         return query
 
     def load_from_elastic(self):
@@ -209,6 +246,82 @@ class TableSearchView(ListView):
         """
         return context
 
+class CSVExportView(TableSearchView):
+    """
+    A base class to generate csv exports
+    """
+
+    preview_size = None  # This is not relevant for csv export
+    headers = []  # The headers of the csv
+
+    def get_context_data(self, **kwargs):
+        """
+        Overwrite the context retrital
+        """
+        context = super(TableSearchView, self).get_context_data(**kwargs)
+        return context
+
+    def get_queryset(self):
+        """
+        Instead of an actual queryset, it returns an elastic scroll api generator
+        """
+        query_string = self.request.GET.get('query', None)
+        # Building the query
+        q = self.elastic_query(query_string)
+        query = self.build_elastic_query(q)
+        # Making sure there is no pagination
+        if 'from' in query:
+            del(query['from'])
+        # Returning the elastic generator
+        return scan(self.elastic, query=query)
+
+    def result_generator(self, headers, es_generator, batch_size=100):
+        """
+        Generate the result set for the CSV eport
+        """
+        # Als eerst geef de headers terug
+        header_dict = {}
+        for h in headers:
+            header_dict[h] = h
+        yield header_dict
+        more = True
+        counter = 0
+        # Yielding results in batches
+        while more:
+            counter += 1
+            items = {}
+            ids = []
+            for item in es_generator:
+                # Collecting items for batch
+                items[item['_id']] = item
+                # Breaking on batch size
+                if len(items) == batch_size:
+                    break
+            # Stop the run
+            if len(items) < batch_size:
+                more = False
+            print(counter, ': ', len(items))
+            # Retriving the database data
+            qs = self.model.objects.filter(id__in=list(items.keys())).values()
+            # Pairing the data
+            data = self._combine_data(qs, items)
+            for item in data:
+                # Only returning fields from the headers
+                resp = {}
+                for key in headers:
+                    resp[key] = item.get(key, '')
+                yield resp
+
+    def _combine_data(self, qs, es):
+        data = list(qs)
+        for item in data:
+            # Converting datetime to a eu normal date
+            item.update(
+                {k: self.stringify_item_value(v) for k, v in item.items() if not isinstance(v, str)}
+            )
+            # Adding the elastic context
+            item.update(es[item['id']])
+        return data
 
 class Echo(object):
         """

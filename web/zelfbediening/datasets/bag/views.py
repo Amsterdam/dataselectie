@@ -1,20 +1,24 @@
 # Python
 import csv
-from datetime import date, datetime
 # Packages
 from django.http import StreamingHttpResponse
 # Project
 from datasets.bag import models
 from datasets.bag.queries import meta_Q
-from datasets.generic.mixins import Echo, TableSearchView
+from datasets.generic.mixins import CSVExportView, Echo, TableSearchView
 
 
-class BagSearch(TableSearchView):
-
+class BagBase(object):
+    """
+    Base class mixing for data settings
+    """
     model = models.Nummeraanduiding
     index = 'ZB_BAG'
     q_func = meta_Q
     keywords = ('buurt_naam', 'buurt_code', 'wijk_code', 'wijk_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+
+
+class BagSearch(BagBase, TableSearchView):
 
     def elastic_query(self, query):
         return meta_Q(query)
@@ -31,40 +35,8 @@ class BagSearch(TableSearchView):
             for field in fields:
                 self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
         self.extra_context_data['aggs_list'] = response.get('aggregations', {})
-
-    def stringify_item_value(self, value):
-        """
-        Makes sure that the dict contains only strings for easy jsoning of the dict
-        Following actions are taken:
-        - None is replace by empty string
-        - Boolean is converted to strinf
-        - Numbers are converted to string
-        - Datetime and Dates are converted to EU norm dates
-
-        Important!
-        If no conversion van be found the same value is returned
-        This may, or may not break the jsoning of the object list
-
-        @Parameter:
-        value - a value to convert to string
-
-        @Returns:
-        The string representation of the value
-        """
-        if (isinstance(value, date) or isinstance(value, datetime)):
-            value = value.strftime('%d-%m-%Y')
-        elif value is None:
-            value = ''
-        else:
-            # Trying repr, otherwise trying
-            try:
-                value = repr(value)
-            except:
-                try:
-                    value = str(value)
-                except:
-                    pass
-        return value
+        print ('BOOO!!!!')
+        print(self.extra_context_data)
 
     def update_context_data(self, context):
         # Adding the wijk, ggw, stadsdeel info to the result
@@ -75,31 +47,28 @@ class BagSearch(TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][context['object_list'][i]['id']])
-            context['aggs_list'] = self.extra_context_data['aggs_list']
+        context['aggs_list'] = self.extra_context_data['aggs_list']
         return context
 
 
-class BagCSV(BagSearch):
+class BagCSV(BagBase, CSVExportView):
     """
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    preview_size = 9999  # Setting result to 9999 records
+    headers = ('id', '_openbare_ruimte_naam', 'huisnummer', 'stadsdeel_naam', 'huisnummer_toevoeging', 'ggw_code', 'document_nummer', 'buurt_code', 'huisletter', 'hoofdadres True', 'vervallen False', 'begin_geldigheid', 'buurt_naam', 'einde_geldigheid', 'landelijk_id', 'stadsdeel_code', 'ggw_naam', 'wijk_naam', 'wijk_code', 'adres_nummer', 'postcode', 'type', 'document_mutatie', 'date_modified', 'openbare_ruimte_id', 'vervallen', 'mutatie_gebruiker', 'hoofdadres', 'standplaats_id', 'landelijk_id', 'verblijfsobject_id', 'ligplaats_id', 'status_id')
+
+    def elastic_query(self, query):
+        return meta_Q(query, add_aggs=False)
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
-        rows = context['object_list']
-        if len(rows) > 0:
-            headers = list(rows[0].keys())
-        else:
-            rows = {}
-        # Creating a wrapper filelike
         pseudo_buffer = Echo()
         # Creating the writer
-        writer = csv.DictWriter(pseudo_buffer, headers)
+        writer = csv.DictWriter(pseudo_buffer, self.headers)
         # Streaming!
-        # @FIXME writer.writeheader()
-        response = StreamingHttpResponse((writer.writerow(row) for row in rows), content_type="text/csv")
+        gen = self.result_generator(self.headers, context['object_list'])
+        response = StreamingHttpResponse((writer.writerow(row) for row in gen), content_type="text/csv")
         response['Content-Disposition'] = 'attachment; filename="export.csv"'
         return response
 
