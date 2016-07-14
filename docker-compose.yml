@@ -1,7 +1,13 @@
+elasticsearch:
+    image: admin.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+    command: elasticsearch -Des.network.host=0.0.0.0
+    ports:
+        - "9200:9200"
+        - "9300:9300"
+
 atlas:
   build: ./web
   links:
-    - database:database
     - elasticsearch:elasticsearch
   ports:
     - "8888:8080"
