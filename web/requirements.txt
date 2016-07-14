@@ -1,0 +1,8 @@
+Django==1.9.7
+elasticsearch==2.3.0
+elasticsearch-dsl==2.1.0
+psycopg2==2.6.2
+python-dateutil==2.5.3
+requests==2.10.0
+six==1.10.0
+urllib3==1.16
