@@ -5,7 +5,7 @@ from django.http import StreamingHttpResponse
 # Project
 from datasets.bag import models
 from datasets.bag.queries import meta_Q
-from datasets.generic.mixins import CSVExportView, Echo, TableSearchView
+from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
 
 
 class BagBase(object):
@@ -41,9 +41,9 @@ class BagSearch(BagBase, TableSearchView):
     def update_context_data(self, context):
         # Adding the wijk, ggw, stadsdeel info to the result
         for i in range(len(context['object_list'])):
-            # Converting datetime to a eu normal date
+            # Making sure all the data is in string form
             context['object_list'][i].update(
-                {k: self.stringify_item_value(v) for k, v in context['object_list'][i].items() if not isinstance(v, str)}
+                {k: self._stringify_item_value(v) for k, v in context['object_list'][i].items() if not isinstance(v, str)}
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][context['object_list'][i]['id']])
