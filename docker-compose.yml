@@ -10,7 +10,7 @@ atlas:
   links:
     - elasticsearch:elasticsearch
   ports:
-    - "8888:8080"
+    - "8085:8000"
   volumes:
     - $PWD/reports:/app/reports
 

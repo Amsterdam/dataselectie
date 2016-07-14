@@ -22,5 +22,5 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 USER datapunt
-COPY atlas_import /app/
+COPY zelfbediening /app/
 CMD /app/docker-entrypoint.sh
