@@ -16,7 +16,7 @@ elasticsearch:
   #  - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
 
 atlas:
-  build: .
+  build: ./web
   links:
     - database:database
     - elasticsearch:elasticsearch
@@ -25,7 +25,7 @@ atlas:
   volumes:
     - $PWD/reports:/app/reports
   environment:
-    DJANGO_SECRET_KEY: 893ufuih328hc82o3jfioh23o8jfi23bf32hvoh32fho23ury82o3hkj2
+    DJANGO_SECRET_KEY: insecure
     SECRET_KEY: hoi
     DATABASE_NAME: atlas
     DATABASE_PASSWORD: insecure
