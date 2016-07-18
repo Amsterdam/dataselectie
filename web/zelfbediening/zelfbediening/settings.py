@@ -89,9 +89,17 @@ WSGI_APPLICATION = 'zelfbediening.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
-# @TODO rename the default bag.
 DATABASES = {
     'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('ZB_DATABASE_NAME', 'zelfbediening'),
+        'USER': os.getenv('ZB_DATABASE_USER', 'zb'),
+        'PASSWORD': os.getenv('ZB_DATABASE_PASSWORD', 'insecure'),
+        'HOST': os.getenv('ZB_DATABASE_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PORT': os.getenv('ZB_DATABASE_PORT_5432_TCP_PORT', 5434),
+        'CONN_MAX_AGE': 60,
+    },
+    'BAG': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('BAG_DATABASE_NAME', 'atlas'),
         'USER': os.getenv('BAG_DATABASE_USER', 'atlas'),
