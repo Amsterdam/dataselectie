@@ -34,16 +34,16 @@ def meta_Q(query, add_aggs=True):
                     'order': {'_term': 'asc'},
                 }
              },
-             'wijken': {
+             'buurtcombinaties': {
                  'terms': {
-                     'field': 'wijk_naam.raw',
+                     'field': 'buurtcombinatie_naam.raw',
                      'size': agg_size,
                      'order': {'_term': 'asc'},
                 },
             },
-            'wijk_codes': {
+            'buurtcombinatie_codes': {
                 'terms': {
-                    'field': 'wijk_code',
+                    'field': 'buurtcombinatie_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },

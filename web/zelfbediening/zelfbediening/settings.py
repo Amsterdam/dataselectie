@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'atlas',
     'atlas_api',
     # Datasets
-    'datasets.bag',
+    #'datasets.bag',
 
 ]
 
