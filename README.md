@@ -10,7 +10,7 @@ De zelfbediening service is een indexeren en zoeken service boven op data van an
 ### Project setup
 De zelfbediening gebruikt data van de andere services en heeft daarom geen eigen import process. Zelfbediening maakt wel een eigen indices in elastic.
 
-Om lokaal via docker te kunnen starten 
+Op dit moment wordt de DB van de bag project gebruikt, omdat daar zit alle data. Die moet ook via docker compose starten 
 
 ### Lokaal setup
 Hoe het in elkaar krijgen
