@@ -5,12 +5,22 @@ elasticsearch:
         - "9200:9200"
         - "9300:9300"
 
-atlas:
-  build: ./web
-  links:
-    - elasticsearch:elasticsearch
-  ports:
-    - "8085:8000"
-  volumes:
-    - $PWD/reports:/app/reports
+database:
+    image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+        - "5438:5432"
+    environment:
+        POSTGRES_PASSWORD: insecure
+        POSTRES_USER: zb
+        POSTGRES_DB: zelfbediening
+
+zelfbediening:
+    build: ./web
+    links:
+        - elasticsearch:elasticsearch
+        - database:database
+    ports:
+        - "8085:8000"
+    volumes:
+        - $PWD/reports:/app/reports
 
