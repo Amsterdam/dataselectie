@@ -142,6 +142,8 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
+# Django site
+SITE_ID = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
