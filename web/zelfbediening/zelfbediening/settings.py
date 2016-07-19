@@ -94,8 +94,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_ZELFBEDIENING_NAME', 'zelfbediening'),
-        'USER': os.getenv('DATABASE_ZELFBEDIENING_USER', 'zelfbediening'),
-        'PASSWORD': os.getenv('DATABASE_ZELFBEDIENING_PASSWORD', 'insecure'),
+        'USER': os.getenv('DATABASE_ZELFBEDIENING_ENV_POSTRES_USER', 'zelfbediening'),
+        'PASSWORD': os.getenv('DATABASE_ZELFBEDIENING_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_ZELFBEDIENING_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_ZELFBEDIENING_PORT_5432_TCP_PORT', 5434),
         'CONN_MAX_AGE': 60,
@@ -104,8 +104,8 @@ DATABASES = {
 'BAG': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_BAG_NAME', 'atlas'),
-        'USER': os.getenv('DATABASE_BAG_USER', 'atlas'),
-        'PASSWORD': os.getenv('DATABASE_BAG_PASSWORD', 'insecure'),
+        'USER': os.getenv('DATABASE_BAG_ENV_POSTRES_USER', 'atlas'),
+        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5434),
         'CONN_MAX_AGE': 60,
