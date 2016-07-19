@@ -1,12 +1,20 @@
 import string
 
 import factory
-import faker
 from factory import fuzzy
+import faker
 
 from .. import models
 
 f = faker.Factory.create(locale='nl_NL')
+
+
+# Creating a Point
+class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
+
+    def fuzz(self):
+        return Point(random.uniform(-180.0, 180.0),
+            random.uniform(-90.0, 90.0))
 
 
 class EigendomsverhoudingFactory(factory.DjangoModelFactory):
@@ -104,16 +112,6 @@ class BuurtFactory(factory.DjangoModelFactory):
     code = fuzzy.FuzzyText(length=3, chars=string.digits)
     stadsdeel = factory.SubFactory(StadsdeelFactory)
     buurtcombinatie = factory.SubFactory(BuurtcombinatieFactory)
-
-
-class BouwblokFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = models.Bouwblok
-        django_get_or_create = ('code',)
-
-    id = fuzzy.FuzzyText(length=14, chars=string.digits)
-    code = fuzzy.FuzzyText(length=4, chars=string.digits)
-    buurt = factory.SubFactory(BuurtFactory)
 
 
 class LigplaatsFactory(factory.DjangoModelFactory):
