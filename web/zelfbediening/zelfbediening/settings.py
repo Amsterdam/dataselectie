@@ -50,7 +50,7 @@ INSTALLED_APPS = [
     'atlas',
     'atlas_api',
     # Datasets
-    #'datasets.bag',
+    'datasets.bag',
 
 ]
 
@@ -92,20 +92,20 @@ WSGI_APPLICATION = 'zelfbediening.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('ZB_DATABASE_NAME', 'zelfbediening'),
-        'USER': os.getenv('ZB_DATABASE_USER', 'zb'),
-        'PASSWORD': os.getenv('ZB_DATABASE_PASSWORD', 'insecure'),
-        'HOST': os.getenv('ZB_DATABASE_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('ZB_DATABASE_PORT_5432_TCP_PORT', 5434),
+        'NAME': os.getenv('ZELFBEDIENING_DB_NAME', 'zelfbediening'),
+        'USER': os.getenv('ZELFBEDIENING_DB_USER', 'zelfbediening'),
+        'PASSWORD': os.getenv('ZELFBEDIENING_DATABASE_PASSWORD', 'insecure'),
+        'HOST': os.getenv('ZELFBEDIENING_DB_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PORT': os.getenv('ZELFBEDIENING_DB_PORT_5432_TCP_PORT', 5434),
         'CONN_MAX_AGE': 60,
     },
     'BAG': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('BAG_DATABASE_NAME', 'atlas'),
-        'USER': os.getenv('BAG_DATABASE_USER', 'atlas'),
-        'PASSWORD': os.getenv('BAG_DATABASE_PASSWORD', 'insecure'),
-        'HOST': os.getenv('BAG_DATABASE_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('BAG_DATABASE_PORT_5432_TCP_PORT', 5434),
+        'NAME': os.getenv('BAG_DB_NAME', 'atlas'),
+        'USER': os.getenv('BAG_DB_USER', 'atlas'),
+        'PASSWORD': os.getenv('BAG_DB_PASSWORD', 'insecure'),
+        'HOST': os.getenv('BAG_DB_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PORT': os.getenv('BAG_DB_PORT_5432_TCP_PORT', 5434),
         'CONN_MAX_AGE': 60,
     }
 }
@@ -134,18 +134,10 @@ PARTIAL_IMPORT = {
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 
