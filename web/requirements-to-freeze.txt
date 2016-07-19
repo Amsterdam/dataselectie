@@ -2,3 +2,5 @@ django
 elasticsearch_dsl
 Psycopg2
 requests
+django-jenkins
+

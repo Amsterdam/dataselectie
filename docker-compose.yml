@@ -23,4 +23,7 @@ zelfbediening:
         - "8085:8000"
     volumes:
         - $PWD/reports:/app/reports
+    environment:
+        ZELFBEDIENING_DB_PORT_5432_TCP_PORT: 5432
+        BAG_DB_PORT_5432_TCP_PORT: 5432
 
