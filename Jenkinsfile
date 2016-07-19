@@ -17,6 +17,7 @@ node {
             sh "docker-compose up -d"
             sh "sleep 20"
             sh "docker-compose up -d"
+            sh "docker-compose run -u root zelfbediening python manage.py jenkins"
 
         }
         finally {
