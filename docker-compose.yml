@@ -10,7 +10,7 @@ database_zelfbediening:
     ports:
         - "5432"
     environment:
-        POSTRES_USER: zelfbediening
+        POSTGRES_USER: zelfbediening
         POSTGRES_DB: zelfbediening
         POSTGRES_PASSWORD: insecure
 
@@ -19,7 +19,7 @@ database_BAG:
     ports:
         - "5432"
     environment:
-        POSTRES_USER: atlas
+        POSTGRES_USER: atlas
         POSTGRES_DB: atlas
         POSTGRES_PASSWORD: insecure
 
