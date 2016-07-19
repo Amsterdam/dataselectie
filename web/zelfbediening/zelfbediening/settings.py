@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     # Zelfbediging
+    'django_jenkins',
     'batch',
     'atlas',
     'atlas_api',
