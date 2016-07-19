@@ -17,7 +17,6 @@ node {
             sh "docker-compose up -d"
             sh "sleep 20"
             sh "docker-compose up -d"
-            sh "docker-compose run -u root zelfbediening python manage.py jenkins"
 
         }
         finally {
@@ -29,7 +28,7 @@ node {
 
     stage "Build"
 
-        def image = docker.build("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${BRANCH}")
+        def image = docker.build("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${BRANCH}", "web")
         image.push()
 
         if (BRANCH == "master") {
