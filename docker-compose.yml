@@ -19,6 +19,7 @@ zelfbediening:
     links:
         - elasticsearch:elasticsearch
         - database:database
+        - database:db
     ports:
         - "8085:8000"
     volumes:
