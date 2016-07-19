@@ -5,7 +5,7 @@ elasticsearch:
         - "9200:9200"
         - "9300:9300"
 
-database_1:
+database_zelfbediening:
     image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
         - "5434:5432"
@@ -14,7 +14,7 @@ database_1:
         POSTRES_USER: zelfbediening
         POSTGRES_DB: zelfbediening
 
-database_2:
+database_BAG:
     image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
         - "5435:5432"
@@ -28,14 +28,9 @@ zelfbediening:
     build: ./web
     links:
         - elasticsearch:elasticsearch
-        - database_1:database_1
-        - database_2:database_2
+        - database_zelfbediening:database_zelfbediening
+        - database_BAG:database_BAG
     ports:
         - "8085:8000"
     volumes:
         - $PWD/reports:/app/reports
-    environment:
-        ZELFBEDIENING_DB_PORT_5432_TCP_PORT: 5432
-        ZELFBEDIENING_DB_PORT_5432_TCP_ADDR: 172.0.0.3
-        ATLAS_DB_PORT_5432_TCP_PORT: 5432
-        ATLAS_DB_PORT_5432_TCP_ADDR: 172.0.0.4
