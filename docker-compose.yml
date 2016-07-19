@@ -2,16 +2,16 @@ elasticsearch:
     image: admin.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
     command: elasticsearch -Des.network.host=0.0.0.0
     ports:
-        - "9200:9200"
-        - "9300:9300"
+        - "9200"
+        - "9300"
 
 database:
     image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
-        - "5434:5432"
+        - "5432"
     environment:
         POSTGRES_PASSWORD: insecure
-        POSTRES_USER: zb
+        POSTRES_USER: zelfbediening
         POSTGRES_DB: zelfbediening
 
 zelfbediening:
@@ -20,7 +20,7 @@ zelfbediening:
         - elasticsearch:elasticsearch
         - database:database
     ports:
-        - "8085:8000"
+        - "8000"
     volumes:
         - $PWD/reports:/app/reports
 
