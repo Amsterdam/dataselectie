@@ -34,7 +34,7 @@ SECRET_KEY = os.getenv('ZELFBEDIENING_SECRET_KEY', 'insecure')
 DEBUG = True
 
 ALLOWED_HOSTS = []
-
+SITE_ID = 1
 
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites'
     # Zelfbediging
     'django_jenkins',
     'batch',
@@ -141,9 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-# Django site
-SITE_ID = 1
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
