@@ -26,13 +26,12 @@ node {
 
     stage "Test"
     tryStep "Test",  {
-            sh "docker-compose build"
-            sh "docker-compose up -d"
+            sh "docker-compose up -d --build"
             sh "sleep 20"
             sh "docker-compose up -d"
-            sh "docker-compose run -u root zelfbediening python manage.py elastic_indices --build"
             sh "docker-compose run -u root zelfbediening python manage.py jenkins"
     }, {
+            step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
 
             sh "docker-compose stop"
             sh "docker-compose rm -f"
