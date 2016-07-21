@@ -30,6 +30,7 @@ class DeleteBagIndexTask(index.DeleteIndexTask):
 class IndexBagTask(index.ImportIndexTask):
     name = "index bag data"
     queryset = models.Nummeraanduiding.objects.\
+        using('BAG').\
         prefetch_related('verblijfsobject').\
         prefetch_related('standplaats').\
         prefetch_related('ligplaats').\
