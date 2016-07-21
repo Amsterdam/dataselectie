@@ -59,7 +59,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     try:
         doc.naam = item.openbare_ruimte.naam
     except Exception as e:
-        print('1', repr(e))
         doc.naam = ''
     doc.woonplaats = 'Amsterdam'
     # Identifing the spatial object
@@ -75,10 +74,9 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
          setattr(doc, key, getattr(item, key, None))
     if obj:
         try:
-            buurtcombinatie = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
-            ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
+            buurtcombinatie = models.Buurtcombinatie.objects.using('BAG').filter(geometrie__contains=obj.geometrie).first()
+            ggw = models.Gebiedsgerichtwerken.objects.using('BAG').filter(geometrie__contains=obj.geometrie).first()
         except Exception as e:
-            print ('2:', repr(e))
             buurtcombinatie = None
             ggw = None
         try:
@@ -87,13 +85,13 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
             doc.stadsdeel_code = obj.buurt.stadsdeel.code
             doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
         except Exception as e:
-            print('3:', repr(e))
+            print(repr(e))
         if buurtcombinatie:
             doc.buurtcombinatie_naam = buurtcombinatie.naam
             try:
                 doc.buurtcombinatie_code = '%s%s' % (obj.buurt.stadsdeel.code, str(buurtcombinatie.code))
             except Exception as e:
-                print('4:', repr(e))
+                print(repr(e))
         if ggw:
             doc.ggw_code = ggw.code
             doc.ggw_naam = ggw.naam
