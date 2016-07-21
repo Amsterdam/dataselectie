@@ -26,7 +26,8 @@ node {
 
     stage "Test"
     tryStep "Test",  {
-            sh "docker-compose up -d --build"
+            sh "docker-compose build"
+            sh "docker-compose up -d"
             sh "sleep 20"
             sh "docker-compose up -d"
             sh "docker-compose run -u root zelfbediening python manage.py jenkins"
