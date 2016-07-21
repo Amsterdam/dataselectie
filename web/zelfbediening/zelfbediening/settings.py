@@ -20,9 +20,9 @@ def _get_docker_host():
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
     return '0.0.0.0'
 
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
@@ -87,7 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'zelfbediening.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
@@ -98,17 +97,17 @@ DATABASES = {
         'USER': os.getenv('DATABASE_ZELFBEDIENING_ENV_POSTGRES_USER', 'zelfbediening'),
         'PASSWORD': os.getenv('DATABASE_ZELFBEDIENING_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_ZELFBEDIENING_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_ZELFBEDIENING_PORT_5432_TCP_PORT', 5434),
+        'PORT': os.getenv('DATABASE_ZELFBEDIENING_PORT_5432_TCP_PORT', 5435),
         'CONN_MAX_AGE': 60,
     },
 
-'BAG': {
+    'BAG': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_BAG_NAME', 'atlas'),
         'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5434),
+        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
         'CONN_MAX_AGE': 60,
     }
 }
@@ -116,7 +115,6 @@ DATABASES = {
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
-
 
 ELASTIC_INDICES = {
     'ZB_BAG': 'zb_bag',
@@ -151,7 +149,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/

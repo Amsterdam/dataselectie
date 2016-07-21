@@ -8,7 +8,7 @@ elasticsearch:
 database_zelfbediening:
     image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
-        - "5432"
+        - "5435:5432"
     environment:
         POSTGRES_USER: zelfbediening
         POSTGRES_DB: zelfbediening
@@ -17,7 +17,7 @@ database_zelfbediening:
 database_BAG:
     image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
-        - "5432"
+        - "5436:5432"
     environment:
         POSTGRES_USER: atlas
         POSTGRES_DB: atlas
