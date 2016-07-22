@@ -137,7 +137,7 @@ class VerblijfsobjectFactory(factory.DjangoModelFactory):
         model = models.Verblijfsobject
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
-    landelijk_id = id
+    landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
     reden_afvoer = factory.SubFactory(RedenAfvoerFactory)
     reden_opvoer = factory.SubFactory(RedenOpvoerFactory)
     buurt = factory.SubFactory(BuurtFactory)
@@ -172,6 +172,7 @@ class OpenbareRuimteFactory(factory.DjangoModelFactory):
     code = fuzzy.FuzzyText(length=5, chars=string.digits)
     woonplaats = factory.SubFactory(WoonplaatsFactory)
     naam = factory.LazyAttribute(lambda o: f.street_name())
+    # @TODO make it an optional value
     type = '01'  # weg
 
 
