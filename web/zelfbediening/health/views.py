@@ -32,9 +32,6 @@ def health(request):
         log.exception("Elasticsearch connectivity failed")
         message += "\nElasticsearch connectivity failed."
         status = 500
-        return HttpResponse(
-            ,
-            content_type="text/plain", status=500)
 
     if not message:
         message = "Connectivity OK"
@@ -57,8 +54,8 @@ def check_data(request):
     # check elastic
     try:
         client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
-        assert Search().using(client)
-                .index(settings.ELASTIC_INDICES['ZB_BAG'])
+        assert Search().using(client)\
+                .index(settings.ELASTIC_INDICES['ZB_BAG'])\
                 .query("match_all", size=0)
     except:
         log.exception("Autocomplete failed")
