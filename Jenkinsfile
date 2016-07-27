@@ -17,8 +17,8 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 }
 
 
-String BRANCH = "${env.BRANCH_NAME}"
-String INVENTORY = (BRANCH == "master" ? "production" : "acceptance")
+    String BRANCH = "${env.BRANCH_NAME}"
+    String INVENTORY = (BRANCH == "master" ? "production" : "acceptance")
 
 node {
     stage "Checkout"
