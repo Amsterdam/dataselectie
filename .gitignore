@@ -87,3 +87,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+.idea/
+reports/
+web/reports/
+web/web.iml
+zelfbediening.iml

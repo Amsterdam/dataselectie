@@ -1,0 +1,6 @@
+django
+elasticsearch_dsl
+Psycopg2
+requests
+django-jenkins==0.18.1
+

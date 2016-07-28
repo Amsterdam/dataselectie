@@ -1,0 +1,36 @@
+elasticsearch:
+    image: admin.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+    command: elasticsearch -Des.network.host=0.0.0.0
+    ports:
+        - "9200:9200"
+        - "9300:9300"
+
+database_zelfbediening:
+    image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+        - "5435:5432"
+    environment:
+        POSTGRES_USER: zelfbediening
+        POSTGRES_DB: zelfbediening
+        POSTGRES_PASSWORD: insecure
+
+database_BAG:
+    image: admin.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+        - "5436:5432"
+    environment:
+        POSTGRES_USER: atlas
+        POSTGRES_DB: atlas
+        POSTGRES_PASSWORD: insecure
+
+
+zelfbediening:
+    build: ./web
+    links:
+        - elasticsearch:elasticsearch
+        - database_zelfbediening:database_zelfbediening
+        - database_BAG:database_BAG
+    ports:
+        - "8100:8080"
+    volumes:
+        - $PWD/reports:/app/reports
