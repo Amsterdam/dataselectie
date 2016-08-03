@@ -32,5 +32,3 @@ zelfbediening:
         - database_BAG:database_BAG
     ports:
         - "8100:8080"
-    volumes:
-        - $PWD/reports:/app/reports

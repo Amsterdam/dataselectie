@@ -26,20 +26,15 @@ node {
 
     stage "Test"
     tryStep "Test",  {
-            sh "docker-compose build"
-            sh "docker-compose up -d"
-            sh "sleep 20"
-            sh "docker-compose up -d"
-            sh "docker-compose run -u root zelfbediening python manage.py jenkins"
+        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
     }, {
-            step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
+        step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
 
-            sh "docker-compose stop"
-            sh "docker-compose rm -f"
-        }
+        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
+    }
 
     stage "Build"
-
+    tryStep "build", {
         def image = docker.build("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${BRANCH}", "web")
         image.push()
 
@@ -47,6 +42,7 @@ node {
             image.push("latest")
         }
     }
+}
 
 node {
     stage name: "Deploy", concurrency: 1

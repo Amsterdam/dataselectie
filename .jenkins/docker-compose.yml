@@ -34,6 +34,20 @@ database_BAG:
         POSTGRES_DB: atlas
         POSTGRES_PASSWORD: insecure
 
+tests:
+  build: ../web
+  links:
+    - database_zelfbediening:database_zelfbediening
+    - elasticsearch:elasticsearch
+    - database_BAG:database_BAG
+  volumes:
+    - ../reports:/app/reports
+  environment:
+    DATABASE_NAME: zelfbediening
+    DATABASE_USER: zelfbediening
+    DATABASE_PASSWORD: insecure
+  command: bash -c "/app/docker-wait.sh && python manage.py jenkins"
+
 
 importer:
     build: ../web
