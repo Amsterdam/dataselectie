@@ -6,10 +6,10 @@ set -u
 DIR="$(dirname $0)"
 
 dc() {
-	docker-compose -p zelfbediening -f ${DIR}/docker-compose.yml $*
+	docker-compose -f ${DIR}/docker-compose.yml $*
 }
 
-#trap 'dc kill ; dc rm -f' EXIT
+trap 'dc kill ; dc rm -f' EXIT
 
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
