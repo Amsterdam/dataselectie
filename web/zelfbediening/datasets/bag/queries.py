@@ -76,7 +76,6 @@ def meta_Q(query, add_aggs=True):
                     'order': {'_term': 'asc'},
                 }
             },
-            stadsdeel_naam
             'stadsdeel_naam': {
                 'terms': {
                     'field': 'stadsdeel_naam.raw',
