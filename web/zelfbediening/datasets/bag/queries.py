@@ -27,40 +27,69 @@ def meta_Q(query, add_aggs=True):
                 'order': {'_term': 'asc'},
                  },
              },
-             'straatnamen': {
+             'naam': {
                 'terms': {
                     'field': 'naam.raw',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
              },
-             'buurtcombinaties': {
+             'buurtcombinatie_naam': {
                  'terms': {
                      'field': 'buurtcombinatie_naam.raw',
                      'size': agg_size,
                      'order': {'_term': 'asc'},
                 },
             },
-            'buurtcombinatie_codes': {
+            'buurtcombinatie_code': {
                 'terms': {
                     'field': 'buurtcombinatie_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurt_codes': {
+            'buurt_code': {
                 'terms': {
                     'field': 'buurt_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurten': {
+            'buurt_naam': {
                 'terms': {
                     'field': 'buurt_naam.raw',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
+            },
+            'ggw_naam': {
+                'terms': {
+                    'field': 'ggw_naam.raw',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            'ggw_code': {
+                'terms': {
+                    'field': 'ggw_code',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            stadsdeel_naam
+            'stadsdeel_naam': {
+                'terms': {
+                    'field': 'stadsdeel_naam.raw',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            'stadsdeel_code': {
+                'terms': {
+                    'field': 'stadsdeel_code',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
             },
         }
     }

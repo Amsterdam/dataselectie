@@ -36,8 +36,6 @@ class BagSearch(BagBase, TableSearchView):
             for field in fields:
                 self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
         self.extra_context_data['aggs_list'] = response.get('aggregations', {})
-        print ('BOOO!!!!')
-        print(self.extra_context_data)
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result

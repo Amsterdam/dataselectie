@@ -22,7 +22,6 @@ node {
     stage "Checkout"
     checkout scm
 
-
     stage "Build base image"
     tryStep "build", {
         sh "docker-compose build"

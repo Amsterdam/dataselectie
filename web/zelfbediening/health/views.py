@@ -45,7 +45,7 @@ def check_data(request):
     message = ''
     status = 200
     try:
-        assert Nummeraanduiding.objects.using('BAG').count() > 10
+        assert Nummeraanduiding.objects.count() > 10
     except:
         log.exception("No BAG data found")
         message += "\nNo BAG data found."

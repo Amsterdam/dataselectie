@@ -60,20 +60,19 @@ label {
 </section>
 <section id="preview">
     <h2>Preview</h2>
-    {% for item in object_list %}
-    <div class="row">
-        <input id="entry{{ forloop.counter}}" type="checkbox">
-        <label for="entry{{ forloop.counter}}">
-            <i class="fa fa-caret-square-o-down" aria-hidden="true"></i>
-            <i class="fa fa-caret-square-o-up" aria-hidden="true"></i>
-            <span>{{ forloop.counter }}</span>
-        </label>
-        <div class="list">
-            {% include "pretty_elastic_snippet.html" with obj=item %}
-        </div>
+    <table>
+        {% for obj in object_list %}
+            {% if obj and obj.keys|length > 0 %}
+            <tr class="{% cycle 'white' 'grey' %}">
+                {% for key, value in obj.items %}
+                    <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+            
+{% else %}
+    <div>
+        {{ obj }}
     </div>
-    {% endfor %}
-</section>
-</body>
-</html>
+{% endif %}
+
 

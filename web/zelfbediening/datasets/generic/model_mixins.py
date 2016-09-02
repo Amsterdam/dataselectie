@@ -1,6 +1,7 @@
 # Package
 from django.db import models
 
+
 class ImportStatusMixin(models.Model):
     date_modified = models.DateTimeField(auto_now=True)
 
@@ -40,6 +41,3 @@ class CodeOmschrijvingMixin(models.Model):
 
     def __str__(self):
         return "{}: {}".format(self.code, self.omschrijving)
-
-
-

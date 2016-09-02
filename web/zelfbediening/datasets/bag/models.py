@@ -7,7 +7,7 @@ from datasets.generic import model_mixins as mixins
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
              models.Model):
     class Meta:
-        managed = False
+        managed = True
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
