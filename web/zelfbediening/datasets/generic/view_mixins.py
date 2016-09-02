@@ -21,7 +21,6 @@ class TableSearchView(ListView):
     #---------------------
     model = None  # The model class to use
     index = ''  # The name of the index to search in
-    db = 'default'  # The DB to use for the query This allws usage of different dbs
     keywords = []  # A set of optional keywords to filter the results further
     preview_size = settings.SEARCH_PREVIEW_SIZE
 
@@ -82,6 +81,7 @@ class TableSearchView(ListView):
         # Checking if pretty and debug
         resp = {}
         if self.request.GET.get('pretty', False) and settings.DEBUG:
+            # @TODO Add a row to the object list at the start with all the keys
             return render(self.request, "pretty_elastic.html", context=context) 
         resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
@@ -167,7 +167,7 @@ class TableSearchView(ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            return self.model.objects.using(self.db).filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
+            return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()
@@ -253,7 +253,7 @@ class CSVExportView(TableSearchView):
             if len(items) < batch_size:
                 more = False
             # Retriving the database data
-            qs = self.model.objects.using(self.db).filter(id__in=list(items.keys())).values()
+            qs = self.model.objects.filter(id__in=list(items.keys())).values()
             # Pairing the data
             data = self._combine_data(qs, items)
             for item in data:

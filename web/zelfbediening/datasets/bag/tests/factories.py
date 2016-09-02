@@ -143,15 +143,6 @@ class VerblijfsobjectFactory(factory.DjangoModelFactory):
     buurt = factory.SubFactory(BuurtFactory)
 
 
-class PandFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = models.Pand
-
-    id = fuzzy.FuzzyText(length=14, chars=string.digits)
-    landelijk_id = id
-    bouwblok = factory.SubFactory(BouwblokFactory)
-
-
 class WoonplaatsFactory(factory.DjangoModelFactory):
     class Meta:
         model = models.Woonplaats
@@ -210,6 +201,7 @@ class GebiedsgerichtwerkenFactory(factory.DjangoModelFactory):
         model = models.Gebiedsgerichtwerken
         django_get_or_create = ('code',)
 
+    id = fuzzy.FuzzyText(length=4)
     naam = fuzzy.FuzzyText(length=50)
     code = fuzzy.FuzzyText(length=4)
     stadsdeel = factory.SubFactory(StadsdeelFactory)

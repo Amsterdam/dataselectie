@@ -112,6 +112,8 @@ DATABASES = {
     }
 }
 
+# DB routing
+DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter',]
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
@@ -154,3 +156,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Tests
+TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
+IN_TEST_MODE = False

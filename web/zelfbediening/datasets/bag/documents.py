@@ -74,8 +74,8 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
          setattr(doc, key, getattr(item, key, None))
     if obj:
         try:
-            buurtcombinatie = models.Buurtcombinatie.objects.using('BAG').filter(geometrie__contains=obj.geometrie).first()
-            ggw = models.Gebiedsgerichtwerken.objects.using('BAG').filter(geometrie__contains=obj.geometrie).first()
+            buurtcombinatie = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
+            ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
         except Exception as e:
             buurtcombinatie = None
             ggw = None
