@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'django_jenkins',
     'batch',
     'atlas',
-    'atlas_api',
     # Datasets
     'datasets.bag',
 
@@ -158,5 +157,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Tests
-TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
-IN_TEST_MODE = False
+#TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
+#IN_TEST_MODE = False
