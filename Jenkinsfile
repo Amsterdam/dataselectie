@@ -28,17 +28,13 @@ node {
     }
 
 
-    stage 'Test'
-    tryStep "test", {
-            sh "docker-compose build"
-            sh "docker-compose up -d"
-            sh "sleep 20"
-            sh "docker-compose up -d"
-            sh "docker-compose run -u root zelfbediening python manage.py jenkins"
+    stage "Test"
+    tryStep "Test",  {
+        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
     }, {
         step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
 
-        sh "docker-compose down"
+        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
     }
 
     stage "Build develop image"
