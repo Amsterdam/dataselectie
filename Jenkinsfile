@@ -22,7 +22,6 @@ node {
     stage "Checkout"
     checkout scm
 
-
     stage "Build base image"
     tryStep "build", {
         sh "docker-compose build"
@@ -31,7 +30,11 @@ node {
 
     stage 'Test'
     tryStep "test", {
-        sh "docker-compose run --rm -u root zelfbediening python manage.py jenkins"
+            sh "docker-compose build"
+            sh "docker-compose up -d"
+            sh "sleep 20"
+            sh "docker-compose up -d"
+            sh "docker-compose run -u root zelfbediening python manage.py jenkins"
     }, {
         step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
 
