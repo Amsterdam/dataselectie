@@ -31,7 +31,7 @@ node {
 
     stage 'Test'
     tryStep "test", {
-        sh "docker-compose run --rm -u root web python manage.py jenkins"
+        sh "docker-compose run --rm -u root zelfbediening python manage.py jenkins"
     }, {
         step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
 
