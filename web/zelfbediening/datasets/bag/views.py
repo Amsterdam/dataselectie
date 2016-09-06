@@ -38,7 +38,14 @@ class BagSearch(BagBase, TableSearchView):
                     self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
                 except:
                     pass
-        self.extra_context_data['aggs_list'] = response.get('aggregations', {})
+        # Merging count with regular aggregation
+        aggs = response.get('aggregations', {})
+        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+        for key in count_keys:
+            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+            # Removing the individual count aggregation
+            del aggs[key]
+        self.extra_context_data['aggs_list'] = aggs
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result

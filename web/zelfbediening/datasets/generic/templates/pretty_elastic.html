@@ -66,13 +66,18 @@ label {
             <tr class="{% cycle 'white' 'grey' %}">
                 {% for key, value in obj.items %}
                     <td>{{ value }}</td>
+                {% endfor %}
             </tr>
-        {% endfor %}
             
-{% else %}
-    <div>
-        {{ obj }}
-    </div>
-{% endif %}
+            {% else %}
+            <tr>
+                <div>
+                    {{ obj }}
+                </div>
+            </tr>
+            {% endif %}
+        {% endfor %}
+    </table>
+</section>
 
 

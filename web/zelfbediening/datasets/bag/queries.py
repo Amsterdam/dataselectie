@@ -102,10 +102,10 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
         }
     if add_aggs:
         if add_count_aggs:
-            count_aggs = {'aggs':{}}
+            count_aggs = {}
             # Creating count aggs per aggregatie
             for key, value in aggs['aggs'].items():
-                count_aggs['aggs'][key + '_count'] = {'cardinality': {'field': key}}
-            aggs.update(count_aggs)
+                count_aggs[key + '_count'] = {'cardinality': {'field': key}}
+            aggs['aggs'].update(count_aggs)
         q.update(aggs)
     return q
