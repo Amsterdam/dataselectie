@@ -34,7 +34,10 @@ class BagSearch(BagBase, TableSearchView):
         for item in response['hits']['hits']:
             self.extra_context_data['items'][item['_id']] = {}
             for field in fields:
-                self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
+                try:
+                    self.extra_context_data['items'][item['_id']][field] = item['_source'][field]
+                except:
+                    pass
         self.extra_context_data['aggs_list'] = response.get('aggregations', {})
 
     def update_context_data(self, context):
