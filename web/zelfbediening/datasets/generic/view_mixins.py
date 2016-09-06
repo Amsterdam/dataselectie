@@ -92,6 +92,9 @@ class TableSearchView(ListView):
         # If there is a total count, adding it as well
         try:
             resp['object_count'] = context['total']
+            resp['page_count'] = int(int(context['total']) / self.preview_size)
+            if int(context['total']) % self.preview_size:
+                resp['page_count'] += 1
         except KeyError:
             pass
 
