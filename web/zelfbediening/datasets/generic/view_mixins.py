@@ -87,7 +87,7 @@ class TableSearchView(ListView):
         # Cleaning all but the objects and aggregations
         try:
             resp['aggs_list'] = context['aggs_list']
-        excpet KeyError:
+        except KeyError:
             pass
         # If there is a total count, adding it as well
         try:
