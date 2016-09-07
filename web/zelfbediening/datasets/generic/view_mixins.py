@@ -85,7 +85,18 @@ class TableSearchView(ListView):
             return render(self.request, "pretty_elastic.html", context=context) 
         resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
-        resp['aggs_list'] = context['aggs_list']
+        try:
+            resp['aggs_list'] = context['aggs_list']
+        except KeyError:
+            pass
+        # If there is a total count, adding it as well
+        try:
+            resp['object_count'] = context['total']
+            resp['page_count'] = int(int(context['total']) / self.preview_size)
+            if int(context['total']) % self.preview_size:
+                resp['page_count'] += 1
+        except KeyError:
+            pass
 
         return HttpResponse(
             json.dumps(resp),
