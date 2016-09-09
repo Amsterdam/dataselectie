@@ -123,6 +123,9 @@ ELASTIC_INDICES = {
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 20
+MAX_SEARCH_ITEMS = 10000  # Elastic default for max item
+# offset + page items is not more then max search item
+SEARCH_MAX_PAGE_SIZE = int(MAX_SEARCH_ITEMS /  SEARCH_PREVIEW_SIZE) - 1  
 AGGS_VALUE_SIZE = 100
 
 # Batch processing

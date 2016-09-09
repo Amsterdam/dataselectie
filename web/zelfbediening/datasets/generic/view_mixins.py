@@ -23,6 +23,7 @@ class TableSearchView(ListView):
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
     preview_size = settings.SEARCH_PREVIEW_SIZE
+    max_page_size = settings.SEARCH_MAX_PAGE_SIZE
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -95,6 +96,9 @@ class TableSearchView(ListView):
             resp['page_count'] = int(int(context['total']) / self.preview_size)
             if int(context['total']) % self.preview_size:
                 resp['page_count'] += 1
+            # Caping the number at max_page_size
+            if resp['page_count'] > self.max_page_size:
+                resp['page_count'] = self.max_page_size;
         except KeyError:
             pass
 
@@ -140,6 +144,9 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
+        # Sanity check to make sure we do not pass 10000
+        if query['size'] + query['from'] > settings.MAX_SEARCH_ITEMS:
+            query = None
         return query
 
     def load_from_elastic(self):
@@ -157,7 +164,7 @@ class TableSearchView(ListView):
         postcode - A postcode to limit the results to
         """
         # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {}}
+        elastic_data = {'ids': [], 'filters': {})
         # looking for a query
         query_string = self.request.GET.get('query', None)
 
@@ -165,19 +172,23 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
-        # Enrich result data with neede info
-        self.save_context_data(response)
+        # -----------------------
+        # Checking if normal search can be done or the scroll API
+        # must be used
+        if query:
+            response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
+            for hit in response['hits']['hits']:
+                elastic_data['ids'].append(hit['_id'])
+            # Enrich result data with neede info
+            self.save_context_data(response)
         return elastic_data
 
     def create_queryset(self, elastic_data):
         """
         Generates a query set based on the ids retrieved from elastic
         """
-        ids = elastic_data.get('ids', None)
-        if ids:
+        ids = elastic_data.get('ids', []])
+        if len(ids) == 0:
             return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:
             # No ids where found
