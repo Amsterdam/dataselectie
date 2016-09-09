@@ -145,7 +145,7 @@ class TableSearchView(ListView):
                 # offset is not an int
                 pass
         # Sanity check to make sure we do not pass 10000
-        if query['size'] + query['from'] > settings.MAX_SEARCH_ITEMS:
+        if query['size'] + offset > settings.MAX_SEARCH_ITEMS:
             query = None
         return query
 
