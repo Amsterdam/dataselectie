@@ -135,7 +135,7 @@ class TableSearchView(ListView):
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
         # Adding offset in case of paging
-        offset = self.request.GET.get('page', None)
+        offset = self.request.GET.get('page', 0)
         if offset:
             try:
                 offset = (int(offset) - 1) * 20
