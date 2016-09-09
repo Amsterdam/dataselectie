@@ -60,7 +60,7 @@ class BagSearch(BagBase, TableSearchView):
         try:
             context['aggs_list'] = self.extra_context_data['aggs_list']
             context['total'] = self.extra_context_data['total']
-        except NameError:
+        except TypeError:
             # There is no extra_content_data
             pass
         return context
