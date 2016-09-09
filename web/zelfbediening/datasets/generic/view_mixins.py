@@ -84,7 +84,7 @@ class TableSearchView(ListView):
         if self.request.GET.get('pretty', False) and settings.DEBUG:
             # @TODO Add a row to the object list at the start with all the keys
             return render(self.request, "pretty_elastic.html", context=context) 
-        resp['object_list'] = list(context['object_list'])
+        resp['object_list'] = list(context.get('object_list', []))
         # Cleaning all but the objects and aggregations
         try:
             resp['aggs_list'] = context['aggs_list']
@@ -92,7 +92,7 @@ class TableSearchView(ListView):
             pass
         # If there is a total count, adding it as well
         try:
-            resp['object_count'] = context['total']
+            resp['object_count'] = context.get('total', 0)
             resp['page_count'] = int(int(context['total']) / self.preview_size)
             if int(context['total']) % self.preview_size:
                 resp['page_count'] += 1
