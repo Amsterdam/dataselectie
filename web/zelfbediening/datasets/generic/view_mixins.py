@@ -164,7 +164,7 @@ class TableSearchView(ListView):
         postcode - A postcode to limit the results to
         """
         # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {})
+        elastic_data = {'ids': [], 'filters': {}}
         # looking for a query
         query_string = self.request.GET.get('query', None)
 
@@ -187,7 +187,7 @@ class TableSearchView(ListView):
         """
         Generates a query set based on the ids retrieved from elastic
         """
-        ids = elastic_data.get('ids', []])
+        ids = elastic_data.get('ids', [])
         if len(ids) == 0:
             return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:
