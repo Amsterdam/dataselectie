@@ -23,7 +23,7 @@ class TableSearchView(ListView):
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
     preview_size = settings.SEARCH_PREVIEW_SIZE
-    max_page_size = settings.SEARCH_MAX_PAGE_SIZE
+    max_page_size = settings.SEARCH_MAX_PAGE_COUNT
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -138,7 +138,7 @@ class TableSearchView(ListView):
         offset = self.request.GET.get('page', 0)
         if offset:
             try:
-                offset = (int(offset) - 1) * 20
+                offset = (int(offset) - 1) * self.preview_size
                 if offset > 1:
                     query['from'] = offset
             except ValueError:
