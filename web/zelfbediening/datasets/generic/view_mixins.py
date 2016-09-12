@@ -175,12 +175,11 @@ class TableSearchView(ListView):
         # -----------------------
         # Checking if normal search can be done or the scroll API
         # must be used
-        if query:
-            response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
-            for hit in response['hits']['hits']:
-                elastic_data['ids'].append(hit['_id'])
-            # Enrich result data with neede info
-            self.save_context_data(response)
+        response = self.elastic.search(index='zb_bag', body=query)
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
+        # Enrich result data with needed info
+        self.save_context_data(response)
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -188,7 +187,7 @@ class TableSearchView(ListView):
         Generates a query set based on the ids retrieved from elastic
         """
         ids = elastic_data.get('ids', [])
-        if len(ids) == 0:
+        if ids:
             return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:
             # No ids where found
