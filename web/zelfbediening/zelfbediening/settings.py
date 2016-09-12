@@ -33,7 +33,7 @@ SECRET_KEY = os.getenv('ZELFBEDIENING_SECRET_KEY', 'insecure')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = (SECRET_KEY == 'insecure')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 SITE_ID = 1
 
 # Application definition
