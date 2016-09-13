@@ -23,7 +23,6 @@ class TableSearchView(ListView):
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
     preview_size = settings.SEARCH_PREVIEW_SIZE
-    max_page_size = settings.SEARCH_MAX_PAGE_COUNT
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -84,7 +83,7 @@ class TableSearchView(ListView):
         if self.request.GET.get('pretty', False) and settings.DEBUG:
             # @TODO Add a row to the object list at the start with all the keys
             return render(self.request, "pretty_elastic.html", context=context) 
-        resp['object_list'] = list(context.get('object_list', []))
+        resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
         try:
             resp['aggs_list'] = context['aggs_list']
@@ -92,13 +91,10 @@ class TableSearchView(ListView):
             pass
         # If there is a total count, adding it as well
         try:
-            resp['object_count'] = context.get('total', 0)
+            resp['object_count'] = context['total']
             resp['page_count'] = int(int(context['total']) / self.preview_size)
             if int(context['total']) % self.preview_size:
                 resp['page_count'] += 1
-            # Caping the number at max_page_size
-            if resp['page_count'] > self.max_page_size:
-                resp['page_count'] = self.max_page_size;
         except KeyError:
             pass
 
@@ -135,18 +131,15 @@ class TableSearchView(ListView):
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
         # Adding offset in case of paging
-        offset = self.request.GET.get('page', 0)
+        offset = self.request.GET.get('page', None)
         if offset:
             try:
-                offset = (int(offset) - 1) * self.preview_size
+                offset = (int(offset) - 1) * 20
                 if offset > 1:
                     query['from'] = offset
             except ValueError:
                 # offset is not an int
                 pass
-        # Sanity check to make sure we do not pass 10000
-        if query['size'] + offset > settings.MAX_SEARCH_ITEMS:
-            query['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
         return query
 
     def load_from_elastic(self):
@@ -172,13 +165,10 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        # -----------------------
-        # Checking if normal search can be done or the scroll API
-        # must be used
-        response = self.elastic.search(index='zb_bag', body=query)
+        response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
-        # Enrich result data with needed info
+        # Enrich result data with neede info
         self.save_context_data(response)
         return elastic_data
 
@@ -186,7 +176,7 @@ class TableSearchView(ListView):
         """
         Generates a query set based on the ids retrieved from elastic
         """
-        ids = elastic_data.get('ids', [])
+        ids = elastic_data.get('ids', None)
         if ids:
             return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
         else:

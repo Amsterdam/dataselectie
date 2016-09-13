@@ -31,9 +31,9 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('ZELFBEDIENING_SECRET_KEY', 'insecure')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = (SECRET_KEY == 'insecure')
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = []
 SITE_ID = 1
 
 # Application definition
@@ -123,9 +123,6 @@ ELASTIC_INDICES = {
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 20
-MAX_SEARCH_ITEMS = 10000  # Elastic default for max item
-# offset + page items is not more then max search item
-SEARCH_MAX_PAGE_COUNT = int(MAX_SEARCH_ITEMS /  SEARCH_PREVIEW_SIZE)
 AGGS_VALUE_SIZE = 100
 
 # Batch processing
@@ -164,78 +161,3 @@ STATIC_URL = '/static/'
 # Tests
 #TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
 #IN_TEST_MODE = False
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-
-    'formatters': {
-        'console': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        },
-    },
-
-    'handlers': {
-        'console': {
-            'level': 'DEBUG',
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-        },
-    },
-
-    'root': {
-        'level': 'DEBUG',
-        'handlers': ['console'],
-    },
-
-
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-        },
-        # Debug all batch jobs
-        'doc': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'index': {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': False,
-        },
-
-        'search': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-        'elasticsearch': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-        'urllib3': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-
-        'urllib3.connectionpool': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-
-        # Log all unhandled exceptions
-        'django.request': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-    },
-}

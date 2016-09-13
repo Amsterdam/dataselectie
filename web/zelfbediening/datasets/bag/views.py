@@ -57,12 +57,8 @@ class BagSearch(BagBase, TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][context['object_list'][i]['id']])
-        try:
-            context['aggs_list'] = self.extra_context_data['aggs_list']
-            context['total'] = self.extra_context_data['total']
-        except TypeError:
-            # There is no extra_content_data
-            pass
+        context['aggs_list'] = self.extra_context_data['aggs_list']
+        context['total'] = self.extra_context_data['total']
         return context
 
 
