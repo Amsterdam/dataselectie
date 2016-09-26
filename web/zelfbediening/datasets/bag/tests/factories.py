@@ -1,10 +1,11 @@
 import string
-
-import factory
-from factory import fuzzy
 import faker
-
+import factory
+import random
+from factory import fuzzy
+from django.contrib.gis.geos import Point
 from .. import models
+
 
 f = faker.Factory.create(locale='nl_NL')
 
@@ -13,8 +14,7 @@ f = faker.Factory.create(locale='nl_NL')
 class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
 
     def fuzz(self):
-        return Point(random.uniform(-180.0, 180.0),
-            random.uniform(-90.0, 90.0))
+        return Point(random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
 
 
 class EigendomsverhoudingFactory(factory.DjangoModelFactory):

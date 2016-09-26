@@ -3,22 +3,23 @@ from datetime import date, datetime
 import json
 # Packages
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 
-#=============================================================
+# =============================================================
 # Views
-#=============================================================
+# =============================================================
+
 
 class TableSearchView(ListView):
     """
     A base class to generate tables from search results
     """
-    #attributes:
-    #---------------------
+    # attributes:
+    # ---------------------
     model = None  # The model class to use
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
@@ -36,7 +37,7 @@ class TableSearchView(ListView):
         Makes sure that the dict contains only strings for easy jsoning of the dict
         Following actions are taken:
         - None is replace by empty string
-        - Boolean is converted to strinf
+        - Boolean is converted to string
         - Numbers are converted to string
         - Datetime and Dates are converted to EU norm dates
 
@@ -82,7 +83,7 @@ class TableSearchView(ListView):
         resp = {}
         if self.request.GET.get('pretty', False) and settings.DEBUG:
             # @TODO Add a row to the object list at the start with all the keys
-            return render(self.request, "pretty_elastic.html", context=context) 
+            return render(self.request, "pretty_elastic.html", context=context)
         resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
         try:
@@ -165,7 +166,8 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
+        response = self.elastic.search(index='zb_bag', body=query)
+
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
         # Enrich result data with neede info

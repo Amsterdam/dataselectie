@@ -8,12 +8,8 @@
 ==================================================
 """
 
-# Python
-from collections import OrderedDict
-import re
 # Packages
 from django.conf import settings
-from elasticsearch_dsl import A, Q
 
 
 def meta_Q(query, add_aggs=True, add_count_aggs=True):
@@ -22,24 +18,24 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
     aggs = {
         'aggs': {
             'postcode': {
-                  'terms': {
+                'terms': {
                     'field': 'postcode',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
-                 },
-             },
-             'naam': {
+                },
+            },
+            'naam': {
                 'terms': {
-                    'field': 'naam.raw',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
+                     'field': 'naam.raw',
+                     'size': agg_size,
+                     'order': {'_term': 'asc'},
                 }
              },
              'buurtcombinatie_naam': {
-                 'terms': {
-                     'field': 'buurtcombinatie_naam.raw',
-                     'size': agg_size,
-                     'order': {'_term': 'asc'},
+                'terms': {
+                    'field': 'buurtcombinatie_naam.raw',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
                 },
             },
             'buurtcombinatie_code': {
@@ -94,19 +90,20 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
         }
     }
     if query:
-        q =  {
+        q = {
             'query': {'match': {'_all': query}},
         }
     else:
         q = {
-            'query': {'match_all': {} }
+            'query': {'match_all': {}}
         }
     if add_aggs:
         if add_count_aggs:
             count_aggs = {}
             # Creating count aggs per aggregatie settings.AGGS_VALUE_SIZE
             for key, value in aggs['aggs'].items():
-                count_aggs[key + '_count'] = {'cardinality': {'field': aggs['aggs'][key]['terms']['field'], 'precision_threshold': 1000}}
+                count_aggs[key + '_count'] = {'cardinality':
+                    {'field': aggs['aggs'][key]['terms']['field'], 'precision_threshold': 1000}}
             aggs['aggs'].update(count_aggs)
         q.update(aggs)
     return q
