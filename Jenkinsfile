@@ -38,10 +38,14 @@ node {
         tryStep "build", {
             def image = docker.build("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}", "web")
             image.push()
-            image.push("develop")
+            image.push("acceptance")
         }
     }
 }
+
+String BRANCH = "${env.BRANCH_NAME}"
+
+if (BRANCH == "master") {
 
 node {
     stage("Deploy to ACC") {
@@ -58,6 +62,7 @@ node {
 
 
 stage('Waiting for approval') {
+    slackSend channel: '#ci-channel', color: 'warning', message: 'Zelfbediening is waiting for Production Release - please confirm'
     input "Deploy to Production?"
 }
 
@@ -69,7 +74,7 @@ node {
             def image = docker.image("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}")
             image.pull()
 
-            image.push("master")
+            image.push("production")
             image.push("latest")
         }
     }
@@ -86,4 +91,5 @@ node {
                     ]
         }
     }
+}
 }
