@@ -52,7 +52,7 @@ class TableSearchView(ListView):
         The string representation of the value
         """
         if (isinstance(value, date) or isinstance(value, datetime)):
-            return = value.strftime('%d-%m-%Y')
+            return value.strftime('%d-%m-%Y')
         elif value is None:
             return ''
         else:
