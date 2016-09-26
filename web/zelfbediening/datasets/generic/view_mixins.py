@@ -52,20 +52,19 @@ class TableSearchView(ListView):
         The string representation of the value
         """
         if (isinstance(value, date) or isinstance(value, datetime)):
-            value = value.strftime('%d-%m-%Y')
+            return = value.strftime('%d-%m-%Y')
         elif value is None:
-            value = ''
+            return ''
         else:
             # Trying repr, otherwise trying
             try:
-                value = repr(value)
+                return repr(value)
             except:
                 try:
-                    value = str(value)
+                    return str(value)
                 except:
                     pass
-        return value
-
+            return ''
 
     # Listview methods overloading
     def get_queryset(self):
