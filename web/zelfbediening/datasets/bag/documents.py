@@ -1,11 +1,8 @@
-# Python
-import json
 # Packages
 import elasticsearch_dsl as es
 # Project
 from . import models
 from datasets.generic import analyzers
-from django.conf import settings
 
 
 class NummeraanduidingMeta(es.DocType):
@@ -53,6 +50,7 @@ class NummeraanduidingMeta(es.DocType):
     )
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
+
     headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
     doc = NummeraanduidingMeta(_id=item.id)
     doc.nummeraanduiding_id = item.id
@@ -95,5 +93,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         if ggw:
             doc.ggw_code = ggw.code
             doc.ggw_naam = ggw.naam
+
     return doc
 

@@ -15,9 +15,11 @@ Op dit moment wordt de DB van de bag project gebruikt, omdat daar zit alle data.
 ### Lokaal setup
 Lokake setup voor zelfbediening
 
+`Let op dat dat er voldoende geheugen gealloceerd is voor elasticsearch docker (min. 4GB)`
+
 ```
 $ docker-compose up
-$ docker-compose exec -T database_BAG update
+$ docker-compose exec -T database_BAG update-atlas.sh
 $ docker-compose exec -T zelfbediening python manage.py migrate
 $ docker-compose exec -T zelfbediening python manage.py elastic_indices --build
 ```

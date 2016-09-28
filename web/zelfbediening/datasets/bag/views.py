@@ -16,7 +16,8 @@ class BagBase(object):
     index = 'ZB_BAG'
     db = 'BAG'
     q_func = meta_Q
-    keywords = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+    keywords = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+                'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
 
 
 class BagSearch(BagBase, TableSearchView):
@@ -30,7 +31,8 @@ class BagSearch(BagBase, TableSearchView):
         later to enrich the results
         """
         self.extra_context_data = {'items': {}}
-        fields = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code', 'stadsdeel_naam', 'stadsdeel_code')
+        fields = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+                  'stadsdeel_naam', 'stadsdeel_code')
         for item in response['hits']['hits']:
             self.extra_context_data['items'][item['_id']] = {}
             for field in fields:
@@ -67,7 +69,12 @@ class BagCSV(BagBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ('id', '_openbare_ruimte_naam', 'huisnummer', 'stadsdeel_naam', 'huisnummer_toevoeging', 'ggw_code', 'document_nummer', 'buurt_code', 'huisletter', 'hoofdadres', 'vervallen', 'begin_geldigheid', 'buurt_naam', 'einde_geldigheid', 'landelijk_id', 'stadsdeel_code', 'ggw_naam', 'buurtcombinatie_naam', 'buurtcombinatie_code', 'adres_nummer', 'postcode', 'type', 'document_mutatie', 'date_modified', 'openbare_ruimte_id', 'mutatie_gebruiker', 'standplaats_id', 'landelijk_id', 'verblijfsobject_id', 'ligplaats_id', 'status_id')
+    headers = ('id', '_openbare_ruimte_naam', 'huisnummer', 'stadsdeel_naam', 'huisnummer_toevoeging', 'ggw_code',
+               'document_nummer', 'buurt_code', 'huisletter', 'hoofdadres', 'vervallen', 'begin_geldigheid',
+               'buurt_naam', 'einde_geldigheid', 'landelijk_id', 'stadsdeel_code', 'ggw_naam',
+               'buurtcombinatie_naam', 'buurtcombinatie_code', 'adres_nummer', 'postcode', 'type',
+               'document_mutatie', 'date_modified', 'openbare_ruimte_id', 'mutatie_gebruiker', 'standplaats_id',
+               'landelijk_id', 'verblijfsobject_id', 'ligplaats_id', 'status_id')
 
     def elastic_query(self, query):
         return meta_Q(query, add_aggs=False)

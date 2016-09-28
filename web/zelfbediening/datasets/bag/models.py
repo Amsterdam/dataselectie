@@ -3,80 +3,63 @@ from django.db import models
 from datasets.generic import model_mixins as mixins
 
 
-class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-             models.Model):
+class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = True
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
 
-class RedenAfvoer(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+class RedenAfvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Reden Afvoer"
         verbose_name_plural = "Reden Afvoer"
 
 
-class RedenOpvoer(
-            mixins.ImportStatusMixin,
-            mixins.CodeOmschrijvingMixin, models.Model):
+class RedenOpvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Reden Opvoer"
         verbose_name_plural = "Reden Opvoer"
 
 
-class Eigendomsverhouding(
-            mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-            models.Model):
+class Eigendomsverhouding(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Eigendomsverhouding"
         verbose_name_plural = "Eigendomsverhoudingen"
 
 
-class Financieringswijze(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+class Financieringswijze(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Financieringswijze"
         verbose_name_plural = "Financieringswijzes"
 
 
-class Ligging(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+class Ligging(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Ligging"
         verbose_name_plural = "Ligging"
 
 
-class Gebruik(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+class Gebruik(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Gebruik"
         verbose_name_plural = "Gebruik"
 
 
-class LocatieIngang(
-        mixins.ImportStatusMixin,
-        mixins.CodeOmschrijvingMixin, models.Model):
+class LocatieIngang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Locatie Ingang"
         verbose_name_plural = "Locaties Ingang"
 
 
-class Toegang(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+class Toegang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Toegang"
@@ -99,10 +82,10 @@ class Gemeente(mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
         return self.naam
 
 
-class Woonplaats(
-        mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-        mixins.ImportStatusMixin,
-        mixins.DocumentStatusMixin, models.Model):
+class Woonplaats(mixins.GeldigheidMixin,
+                 mixins.MutatieGebruikerMixin,
+                 mixins.ImportStatusMixin,
+                 mixins.DocumentStatusMixin, models.Model):
 
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=4, unique=True)
@@ -233,8 +216,10 @@ class Bouwblok(mixins.GeldigheidMixin, Hoofdklasse):
         return self._stadsdeel.gemeente if self._stadsdeel else None
 
 
-class OpenbareRuimte(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-                     mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
+class OpenbareRuimte(mixins.GeldigheidMixin,
+                     mixins.MutatieGebruikerMixin,
+                     mixins.ImportStatusMixin,
+                     mixins.DocumentStatusMixin,
                      models.Model):
     """
     Een OPENBARE RUIMTE is een door het bevoegde gemeentelijke orgaan als
@@ -310,8 +295,10 @@ class OpenbareRuimte(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
         return dct
 
 
-class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-                       mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
+class Nummeraanduiding(mixins.GeldigheidMixin,
+                       mixins.MutatieGebruikerMixin,
+                       mixins.ImportStatusMixin,
+                       mixins.DocumentStatusMixin,
                        models.Model):
     """
     Een nummeraanduiding, in de volksmond ook wel adres genoemd, is een door
@@ -496,9 +483,12 @@ class AdresseerbaarObjectMixin(object):
         return "adres onbekend"
 
 
-class Ligplaats(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-                mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
-                AdresseerbaarObjectMixin, models.Model):
+class Ligplaats(mixins.GeldigheidMixin,
+                mixins.MutatieGebruikerMixin,
+                mixins.ImportStatusMixin,
+                mixins.DocumentStatusMixin,
+                AdresseerbaarObjectMixin,
+                models.Model):
     """
     Een LIGPLAATS is een door het bevoegde gemeentelijke orgaan als zodanig
     aangewezen plaats in het water al dan niet aangevuld met een op de
@@ -564,9 +554,12 @@ class Ligplaats(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
         return self.hoofdadres.woonplaats if self.hoofdadres else None
 
 
-class Standplaats(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-                  mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
-                  AdresseerbaarObjectMixin, models.Model):
+class Standplaats(mixins.GeldigheidMixin,
+                  mixins.MutatieGebruikerMixin,
+                  mixins.ImportStatusMixin,
+                  mixins.DocumentStatusMixin,
+                  AdresseerbaarObjectMixin,
+                  models.Model):
     """
     Een STANDPLAATS is een door het bevoegde gemeentelijke orgaan als zodanig
     aangewezen terrein of gedeelte daarvan dat bestemd is voor het permanent
@@ -629,9 +622,12 @@ class Standplaats(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
         return self.hoofdadres.woonplaats if self.hoofdadres else None
 
 
-class Verblijfsobject(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-                      mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
-                      AdresseerbaarObjectMixin, models.Model):
+class Verblijfsobject(mixins.GeldigheidMixin,
+                      mixins.MutatieGebruikerMixin,
+                      mixins.ImportStatusMixin,
+                      mixins.DocumentStatusMixin,
+                      AdresseerbaarObjectMixin,
+                      models.Model):
     """
     Een VERBLIJFSOBJECT is de kleinste binnen één of meer panden gelegen en
     voor woon-, bedrijfsmatige, of recreatieve
@@ -749,8 +745,10 @@ class Verblijfsobject(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
 
 
 class Pand(
-        mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
-        mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
+        mixins.GeldigheidMixin,
+        mixins.MutatieGebruikerMixin,
+        mixins.ImportStatusMixin,
+        mixins.DocumentStatusMixin,
         models.Model):
     """
     Een PAND is de kleinste bij de totstandkoming functioneel en
