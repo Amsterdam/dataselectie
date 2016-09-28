@@ -40,8 +40,6 @@ tests:
     - database_zelfbediening:database_zelfbediening
     - elasticsearch:elasticsearch
     - database_BAG:database_BAG
-  volumes:
-    - ../reports:/app/reports
   environment:
     DATABASE_NAME: zelfbediening
     DATABASE_USER: zelfbediening
