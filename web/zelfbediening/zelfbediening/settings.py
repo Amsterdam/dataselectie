@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # Zelfbediging
+    # Zelfbediening
     'django_jenkins',
     'batch',
     'atlas',
@@ -156,8 +156,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
-STATIC_URL = '/static/'
 
-# Tests
-#TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
-#IN_TEST_MODE = False
+STATIC_URL = '/static/'

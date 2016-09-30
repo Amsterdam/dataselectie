@@ -1,8 +1,8 @@
 # Python
 import csv
-# Packages
+
 from django.http import StreamingHttpResponse
-# Project
+
 from datasets.bag import models
 from datasets.bag.queries import meta_Q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView

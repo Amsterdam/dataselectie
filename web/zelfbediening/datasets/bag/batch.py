@@ -1,7 +1,10 @@
 import logging
+
 from django.conf import settings
+
+from datasets.bag import models
 from datasets.generic import index
-from . import models, documents
+from . import documents
 
 log = logging.getLogger(__name__)
 

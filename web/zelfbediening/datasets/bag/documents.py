@@ -1,7 +1,7 @@
 # Packages
 import elasticsearch_dsl as es
-# Project
-from . import models
+
+from datasets.bag import models
 from datasets.generic import analyzers
 
 
