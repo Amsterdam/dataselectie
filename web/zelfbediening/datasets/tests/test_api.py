@@ -6,11 +6,11 @@ class DataselectieApiTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        self.gemeente = GemeenteFactory()
-        for i in range(10):
-            NummeraanduidingFactory()
-
-        print(models.Nummeraanduiding.objects.all())
+        # self.gemeente = GemeenteFactory()
+        # for i in range(10):
+        #     NummeraanduidingFactory()
+        #
+        # print(models.Nummeraanduiding.objects.all())
 
 
     # Get by id
