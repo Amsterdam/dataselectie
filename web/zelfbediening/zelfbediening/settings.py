@@ -120,6 +120,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
 ELASTIC_INDICES = {
     'ZB_BAG': 'zb_bag',
 }
+MAX_SEARCH_ITEMS = 10000
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 20
@@ -161,8 +162,5 @@ STATIC_URL = '/static/'
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 DEBUG = True
-
-DATABASE_ROUTERS = []
-
 TEST_RUNNER = 'zelfbediening.utils.ManagedModelTestRunner'
 IN_TEST_MODE = True

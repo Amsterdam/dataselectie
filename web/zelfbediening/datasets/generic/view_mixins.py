@@ -145,9 +145,10 @@ class TableSearchView(ListView):
 
     def paginate(self, offset, q):
         # Sanity check to make sure we do not pass 10000
-        if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
-            q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
-        q
+        if offset and settings.MAX_SEARCH_ITEMS:
+            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
+                q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
+        return q
 
 
     def load_from_elastic(self):
