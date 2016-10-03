@@ -151,8 +151,7 @@ class TableSearchView(ListView):
         # Sanity check to make sure we do not pass 10000
         if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
             q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
-        q
-
+        return q
 
     def load_from_elastic(self):
         """
