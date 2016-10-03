@@ -87,3 +87,5 @@ class BagCSV(BagBase, CSVExportView):
         response['Content-Disposition'] = 'attachment; filename="export.csv"'
         return response
 
+    def paginate(self, offset, q):
+        q

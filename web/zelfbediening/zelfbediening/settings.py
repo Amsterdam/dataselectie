@@ -18,7 +18,7 @@ def _get_docker_host():
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
-    return '0.0.0.0'
+    return '127.0.0.1'
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # Zelfbediging
+    # Zelfbediening
     'django_jenkins',
     'batch',
     'atlas',
