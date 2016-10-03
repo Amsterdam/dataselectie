@@ -5,10 +5,7 @@ from elasticsearch import helpers
 import elasticsearch
 import elasticsearch_dsl as es
 
-from elasticsearch.client import IndicesClient
-
 from elasticsearch.exceptions import NotFoundError
-
 from elasticsearch_dsl.connections import connections
 
 import time

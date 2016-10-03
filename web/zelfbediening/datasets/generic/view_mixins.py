@@ -3,22 +3,23 @@ from datetime import date, datetime
 import json
 # Packages
 from django.conf import settings
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 
-#=============================================================
+# =============================================================
 # Views
-#=============================================================
+# =============================================================
+
 
 class TableSearchView(ListView):
     """
     A base class to generate tables from search results
     """
-    #attributes:
-    #---------------------
+    # attributes:
+    # ---------------------
     model = None  # The model class to use
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
@@ -36,7 +37,7 @@ class TableSearchView(ListView):
         Makes sure that the dict contains only strings for easy jsoning of the dict
         Following actions are taken:
         - None is replace by empty string
-        - Boolean is converted to strinf
+        - Boolean is converted to string
         - Numbers are converted to string
         - Datetime and Dates are converted to EU norm dates
 
@@ -51,20 +52,19 @@ class TableSearchView(ListView):
         The string representation of the value
         """
         if (isinstance(value, date) or isinstance(value, datetime)):
-            value = value.strftime('%d-%m-%Y')
+            return value.strftime('%d-%m-%Y')
         elif value is None:
-            value = ''
+            return ''
         else:
             # Trying repr, otherwise trying
             try:
-                value = repr(value)
+                return repr(value)
             except:
                 try:
-                    value = str(value)
+                    return str(value)
                 except:
                     pass
-        return value
-
+            return ''
 
     # Listview methods overloading
     def get_queryset(self):
@@ -82,7 +82,7 @@ class TableSearchView(ListView):
         resp = {}
         if self.request.GET.get('pretty', False) and settings.DEBUG:
             # @TODO Add a row to the object list at the start with all the keys
-            return render(self.request, "pretty_elastic.html", context=context) 
+            return render(self.request, "pretty_elastic.html", context=context)
         resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
         try:
@@ -140,7 +140,15 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
-        return query
+
+        return self.paginate(offset, query)
+
+    def paginate(self, offset, q):
+        # Sanity check to make sure we do not pass 10000
+        if offset and settings.MAX_SEARCH_ITEMS:
+            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
+                q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
+        return q
 
     def load_from_elastic(self):
         """
@@ -165,7 +173,8 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index='zb_bag', body=query)  #, filter_path=['hits.hits._id', 'hits.hits._type'])
+        response = self.elastic.search(index='zb_bag', body=query)
+
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
         # Enrich result data with neede info
@@ -233,7 +242,7 @@ class CSVExportView(TableSearchView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Making sure there is no pagination
-        if 'from' in query:
+        if query is not None and 'from' in query:
             del(query['from'])
         # Returning the elastic generator
         return scan(self.elastic, query=query)

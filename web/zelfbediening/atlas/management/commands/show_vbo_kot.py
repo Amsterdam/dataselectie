@@ -1,7 +1,7 @@
+from datasets.brk.models import KadastraalObject
 from django.core.management import BaseCommand
 
 from datasets.bag.models import Verblijfsobject
-from datasets.brk.models import KadastraalObject
 
 
 class Command(BaseCommand):

@@ -94,4 +94,3 @@ class Command(BaseCommand):
 
         self.stdout.write(
             "Total Duration: %.2f seconds" % (time.time() - start))
-

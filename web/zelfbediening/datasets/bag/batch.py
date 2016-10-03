@@ -1,18 +1,10 @@
-# Python
-# import datetime
-# import json
 import logging
-import os
-# Packages
+
 from django.conf import settings
-from django.contrib.gis.geos import Point
-from django.db import connection
-from django.utils.text import slugify
-# import requests
-# Project
-from batch import batch
+
+from datasets.bag import models
 from datasets.generic import index
-from . import models, documents
+from . import documents
 
 log = logging.getLogger(__name__)
 
@@ -58,5 +50,3 @@ class DeleteIndexBagJob(object):
         return [
             DeleteBagIndexTask(),
         ]
-
-

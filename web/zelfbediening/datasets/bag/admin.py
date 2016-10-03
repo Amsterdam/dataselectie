@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from . import models
+from datasets.bag import models
 from datasets.generic import admin_mixins
 
 

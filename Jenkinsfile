@@ -28,6 +28,8 @@ node {
         sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml build"
         sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
     }, {
+        step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
+
             sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
         }
     }
@@ -66,11 +68,11 @@ stage('Waiting for approval') {
 
 
 
-node {
-    stage('Push production image') {
-        tryStep "image tagging", {
-            def image = docker.image("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}")
-            image.pull()
+    node {
+        stage('Push production image') {
+            tryStep "image tagging", {
+                def image = docker.image("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}")
+                image.pull()
 
             image.push("production")
             image.push("latest")
@@ -89,5 +91,4 @@ node {
                     ]
         }
     }
-}
 }
