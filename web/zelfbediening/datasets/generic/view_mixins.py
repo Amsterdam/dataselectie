@@ -150,7 +150,6 @@ class TableSearchView(ListView):
                 q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
         return q
 
-
     def load_from_elastic(self):
         """
         Loads the data from elastic.
