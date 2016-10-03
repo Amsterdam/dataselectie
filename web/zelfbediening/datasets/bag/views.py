@@ -91,4 +91,4 @@ class BagCSV(BagBase, CSVExportView):
         return response
 
     def paginate(self, offset, q):
-        q
+        return q
