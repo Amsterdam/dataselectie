@@ -21,7 +21,7 @@ Lokake setup voor zelfbediening
 $ docker-compose up
 $ docker-compose exec -T database_BAG update-atlas.sh
 $ docker-compose exec -T zelfbediening python manage.py migrate
-$ docker-compose exec elasticsearch update-atlas.sh
+$ docker-compose exec elasticsearch update-dataselectie.sh"
 ```
 
 `Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim twee uur in beslag neemt`

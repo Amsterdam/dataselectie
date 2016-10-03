@@ -1,5 +1,6 @@
 from django.contrib.gis.db import models as geo
 from django.db import models
+
 from datasets.generic import model_mixins as mixins
 
 
@@ -258,7 +259,7 @@ class OpenbareRuimte(mixins.GeldigheidMixin,
     naam_nen = models.CharField(max_length=24)
     naam_ptt = models.CharField(max_length=17)
     vervallen = models.NullBooleanField(default=None)
-    #bron = models.ForeignKey(Bron, null=True)
+    # bron = models.ForeignKey(Bron, null=True)
     status = models.ForeignKey(Status, null=True)
     woonplaats = models.ForeignKey(Woonplaats, related_name="openbare_ruimtes")
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
@@ -333,7 +334,7 @@ class Nummeraanduiding(mixins.GeldigheidMixin,
         max_length=2, null=True, choices=OBJECT_TYPE_CHOICES)
     adres_nummer = models.CharField(max_length=10, null=True)
     vervallen = models.NullBooleanField(default=None)
-    #bron = models.ForeignKey(Bron, null=True)
+    # bron = models.ForeignKey(Bron, null=True)
     status = models.ForeignKey(Status, null=True)
     openbare_ruimte = models.ForeignKey(
         OpenbareRuimte, related_name='adressen')
@@ -502,7 +503,7 @@ class Ligplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    #bron = models.ForeignKey(Bron, null=True)
+    # bron = models.ForeignKey(Bron, null=True)
     status = models.ForeignKey(Status, null=True)
     buurt = models.ForeignKey(Buurt, null=True, related_name='ligplaatsen')
     geometrie = geo.PolygonField(null=True, srid=28992)
@@ -572,7 +573,7 @@ class Standplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    #bron = models.ForeignKey(Bron, null=True)
+    # bron = models.ForeignKey(Bron, null=True)
     status = models.ForeignKey(Status, null=True)
     buurt = models.ForeignKey(Buurt, null=True, related_name='standplaatsen')
     geometrie = geo.PolygonField(null=True, srid=28992)
@@ -811,15 +812,15 @@ class VerblijfsobjectPandRelatie(mixins.ImportStatusMixin, models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.pand_id and self.verblijfsobject_id:
-            self.id = self.pand_id + '_' + self.verblijfsobject_id
+            self.id = '{}_{}'.format(self.pand_id, self.verblijfsobject_id)
 
     def __str__(self):
         return "Pand-Verblijfsobject({}-{})".format(
             self.pand_id, self.verblijfsobject_id)
 
 
-class Buurtcombinatie(
-        mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
+class Buurtcombinatie(mixins.GeldigheidMixin, mixins.ImportStatusMixin,
+                      models.Model):
     """
     model for data from shp files
 

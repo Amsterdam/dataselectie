@@ -140,7 +140,15 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
-        return query
+
+        return self.paginate(offset, query)
+
+    def paginate(self, offset, q):
+        # Sanity check to make sure we do not pass 10000
+        if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
+            q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
+        q
+
 
     def load_from_elastic(self):
         """
@@ -234,7 +242,7 @@ class CSVExportView(TableSearchView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Making sure there is no pagination
-        if 'from' in query:
+        if query is not None and 'from' in query:
             del(query['from'])
         # Returning the elastic generator
         return scan(self.elastic, query=query)
