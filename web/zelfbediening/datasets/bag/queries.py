@@ -26,12 +26,12 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
             },
             'naam': {
                 'terms': {
-                     'field': 'naam.raw',
-                     'size': agg_size,
-                     'order': {'_term': 'asc'},
+                    'field': 'naam.raw',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
                 }
-             },
-             'buurtcombinatie_naam': {
+            },
+            'buurtcombinatie_naam': {
                 'terms': {
                     'field': 'buurtcombinatie_naam.raw',
                     'size': agg_size,
@@ -89,6 +89,7 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
             },
         }
     }
+
     if query:
         q = {
             'query': {'match': {'_all': query}},
@@ -97,13 +98,18 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
         q = {
             'query': {'match_all': {}}
         }
+
     if add_aggs:
         if add_count_aggs:
             count_aggs = {}
             # Creating count aggs per aggregatie settings.AGGS_VALUE_SIZE
             for key, value in aggs['aggs'].items():
-                count_aggs[key + '_count'] = {'cardinality':
-                    {'field': aggs['aggs'][key]['terms']['field'], 'precision_threshold': 1000}}
+                count_aggs[key + '_count'] = {
+                    'cardinality': {
+                        'field': aggs['aggs'][key]['terms']['field'],
+                        'precision_threshold': 1000
+                    }
+                }
             aggs['aggs'].update(count_aggs)
         q.update(aggs)
     return q
