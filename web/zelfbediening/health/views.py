@@ -1,12 +1,12 @@
 # Python
 import logging
-# Packages
+
 from django.conf import settings
 from django.db import connection
 from django.http import HttpResponse
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
-# Project
+
 from datasets.bag.models import Nummeraanduiding
 
 log = logging.getLogger(__name__)

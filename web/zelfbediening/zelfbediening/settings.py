@@ -18,7 +18,7 @@ def _get_docker_host():
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
-    return '0.0.0.0'
+    return '127.0.0.1'
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
-    # Zelfbediging
+    # Zelfbediening
     'django_jenkins',
     'batch',
     'atlas',
@@ -120,9 +120,10 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
 ELASTIC_INDICES = {
     'ZB_BAG': 'zb_bag',
 }
+MAX_SEARCH_ITEMS = 10000
 
 # The size of the preview to fetch from elastic
-SEARCH_PREVIEW_SIZE = 20
+SEARCH_PREVIEW_SIZE = 100
 AGGS_VALUE_SIZE = 100
 
 # Batch processing
@@ -156,8 +157,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
+
 STATIC_URL = '/static/'
 
-# Tests
-#TEST_RUNNER = 'atlas_api.tests.utils.UnManagedModelTestRunner'
-#IN_TEST_MODE = False
+# settings below are just for unit test purposes and need to be put in a test_settings.py module
+DEBUG = True
+TEST_RUNNER = 'zelfbediening.utils.ManagedModelTestRunner'
+IN_TEST_MODE = True

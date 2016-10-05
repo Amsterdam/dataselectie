@@ -15,6 +15,7 @@ dc build --pull
 dc up -d database_BAG
 sleep 10 # waiting for postgres to start
 dc exec -T database_BAG update-atlas.sh
+
 dc run --rm importer
 dc run --rm el-backup
 dc down 

@@ -8,6 +8,13 @@ elasticsearch:
     user: root
     command: /usr/share/elasticsearch/bin/elasticsearch -Des.insecure.allow.root=true -Des.network.host=0.0.0.0 -Des.path.repo=/tmp
 
+test_elasticsearch:
+   image: admin.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+   command: elasticsearch -Des.network.host=0.0.0.0
+   ports:
+       - "9210:9200"
+       - "9310:9300"
+
 el-backup:
   image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
   links:
@@ -40,19 +47,25 @@ tests:
     - database_zelfbediening:database_zelfbediening
     - elasticsearch:elasticsearch
     - database_BAG:database_BAG
+    - test_elasticsearch:test_elasticsearch
   environment:
     DATABASE_NAME: zelfbediening
     DATABASE_USER: zelfbediening
     DATABASE_PASSWORD: insecure
-  command: bash -c "/app/docker-wait.sh && python manage.py jenkins"
+    DJANGO_SETTINGS_MODULE: zelfbediening.test_settings
+  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py jenkins"
 
 
 importer:
     build: ../web
     links:
         - elasticsearch:elasticsearch
+        - test_elasticsearch:test_elasticsearch
         - database_zelfbediening:database_zelfbediening
         - database_BAG:database_BAG
+
+    environment:
+        DJANGO_SETTINGS_MODULE: zelfbediening.test_settings
 
     command: >
         bash -c "/app/docker-wait.sh \

@@ -1,20 +1,21 @@
+import random
 import string
 
 import factory
-from factory import fuzzy
 import faker
+from django.contrib.gis.geos import Point
+from factory import fuzzy
 
-from .. import models
+from datasets.bag import models
 
-f = faker.Factory.create(locale='nl_NL')
+faker_instance = faker.Factory.create(locale='nl_NL')
 
 
 # Creating a Point
 class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
 
     def fuzz(self):
-        return Point(random.uniform(-180.0, 180.0),
-            random.uniform(-90.0, 90.0))
+        return Point(random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
 
 
 class EigendomsverhoudingFactory(factory.DjangoModelFactory):
@@ -78,8 +79,9 @@ class GemeenteFactory(factory.DjangoModelFactory):
         model = models.Gemeente
         django_get_or_create = ('code',)
 
-    id = fuzzy.FuzzyText(length=14, chars=string.digits)
-    code = fuzzy.FuzzyText(length=4, chars=string.digits)
+    id = fuzzy.FuzzyInteger(low=44444, high=54444, step=1)
+    code = fuzzy.FuzzyText(length=4)
+    naam = 'Amsterdam'
 
 
 class BuurtcombinatieFactory(factory.DjangoModelFactory):
@@ -162,7 +164,7 @@ class OpenbareRuimteFactory(factory.DjangoModelFactory):
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
     code = fuzzy.FuzzyText(length=5, chars=string.digits)
     woonplaats = factory.SubFactory(WoonplaatsFactory)
-    naam = factory.LazyAttribute(lambda o: f.street_name())
+    naam = factory.LazyAttribute(lambda o: faker_instance.street_name())
     # @TODO make it an optional value
     type = '01'  # weg
 
@@ -173,7 +175,7 @@ class NummeraanduidingFactory(factory.DjangoModelFactory):
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
-    huisnummer = factory.LazyAttribute(lambda o: int(f.building_number()))
+    huisnummer = factory.LazyAttribute(lambda o: int(faker_instance.building_number()))
     openbare_ruimte = factory.SubFactory(OpenbareRuimteFactory)
     verblijfsobject = factory.SubFactory(VerblijfsobjectFactory)
     type = '01'  # default verblijfsobject
