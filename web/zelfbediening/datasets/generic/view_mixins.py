@@ -1,13 +1,14 @@
 # Python
-from datetime import date, datetime
 import json
-# Packages
+from datetime import date, datetime
+
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
+
 
 # =============================================================
 # Views
@@ -28,7 +29,8 @@ class TableSearchView(ListView):
     def __init__(self):
         super(ListView, self).__init__()
         self.elastic = Elasticsearch(
-            hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True, refresh=True
+            hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True,
+            refresh=True
         )
         self.extra_context_data = None  # Used to store data from elastic used in context
 
@@ -187,7 +189,8 @@ class TableSearchView(ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            return self.model.objects.filter(id__in=ids).order_by('_openbare_ruimte_naam').values()[:self.preview_size]
+            return self.model.objects.filter(id__in=ids).order_by(
+                '_openbare_ruimte_naam').values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()
@@ -199,9 +202,10 @@ class TableSearchView(ListView):
         context = super(TableSearchView, self).get_context_data(**kwargs)
         context = self.update_context_data(context)
         return context
-    #===============================================
+
+    # ===============================================
     # Context altering functions to be overwritten
-    #===============================================
+    # ===============================================
     def save_context_data(self, response):
         """
         Can be used by the subclass to save extra data to be used
@@ -217,6 +221,7 @@ class TableSearchView(ListView):
         Enables the subclasses to update/change the object list
         """
         return context
+
 
 class CSVExportView(TableSearchView):
     """
@@ -243,7 +248,7 @@ class CSVExportView(TableSearchView):
         query = self.build_elastic_query(q)
         # Making sure there is no pagination
         if query is not None and 'from' in query:
-            del(query['from'])
+            del (query['from'])
         # Returning the elastic generator
         return scan(self.elastic, query=query)
 
@@ -254,7 +259,7 @@ class CSVExportView(TableSearchView):
         # Als eerst geef de headers terug
         header_dict = {}
         for h in headers:
-            header_dict[h] = h
+            header_dict[h] = self.sanitize(h)
         yield header_dict
         more = True
         counter = 0
@@ -283,22 +288,31 @@ class CSVExportView(TableSearchView):
                     resp[key] = item.get(key, '')
                 yield resp
 
+    @staticmethod
+    def sanitize(header):
+        if header[0] in ('_', '-'):
+            return header[1:]
+        return header
+
     def _combine_data(self, qs, es):
         data = list(qs)
         for item in data:
             # Making sure all the data is in string form
             item.update(
-                {k: self._stringify_item_value(v) for k, v in item.items() if not isinstance(v, str)}
+                {k: self._stringify_item_value(v) for k, v in item.items() if
+                 not isinstance(v, str)}
             )
             # Adding the elastic context
             item.update(es[item['id']]['_source'])
         return data
 
+
 class Echo(object):
-        """
-        An object that implements just the write method of the file-like
-        interface, for csv file streaming
-        """
-        def write(self, value):
-            """Write the value by returning it, instead of storing in a buffer."""
-            return value
+    """
+    An object that implements just the write method of the file-like
+    interface, for csv file streaming
+    """
+
+    def write(self, value):
+        """Write the value by returning it, instead of storing in a buffer."""
+        return value
