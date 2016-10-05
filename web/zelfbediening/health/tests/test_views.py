@@ -14,14 +14,14 @@ class StatusViewsTest(TestCase):
             NummeraanduidingFactory()
 
     def test_status_health(self):
-        "check health url"
+        """check health url"""
         response = self.client.get('/status/health')
         # Making sure its a 200
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b'Connectivity OK')
 
     def test_status_data(self):
-        "check data status url"
+        """check data status url"""
         client = Client()
         response = self.client.get('/status/data')
         # Making sure its a 200

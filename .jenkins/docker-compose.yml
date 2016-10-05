@@ -53,7 +53,7 @@ tests:
     DATABASE_USER: zelfbediening
     DATABASE_PASSWORD: insecure
     DJANGO_SETTINGS_MODULE: zelfbediening.test_settings
-  command: bash -c "/app/docker-wait.sh && python manage.py jenkins"
+  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py jenkins"
 
 
 importer:
