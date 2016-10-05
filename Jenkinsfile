@@ -73,11 +73,6 @@ if (BRANCH == "master") {
 
 
 
-    node {
-        stage('Push production image') {
-            tryStep "image tagging", {
-                def image = docker.image("admin.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}")
-                image.pull()
 node {
     stage('Push production image') {
         tryStep "image tagging", {
