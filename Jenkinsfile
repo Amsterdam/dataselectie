@@ -23,6 +23,13 @@ node {
         checkout scm
     }
 
+    stage("Cleanup") {
+        tryStep "cleanup", {
+            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml kill"
+            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml rm"
+        }
+    }
+
     stage('Test') {
         tryStep "test", {
             sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml build"
