@@ -30,16 +30,16 @@ node {
         }
     }
 
-#    stage('Test') {
-#        tryStep "test", {
-#            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml build"
-#            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
-#        }, {
-#            step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
-#
-#            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
-#        }
-#    }
+//    stage('Test') {
+//        tryStep "test", {
+//            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml build"
+//            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
+//        }, {
+//            step([$class: "JUnitResultArchiver", testResults: "reports/junit.xml"])
+//
+//            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
+//        }
+//    }
 
     stage("Build develop image") {
         tryStep "build", {
