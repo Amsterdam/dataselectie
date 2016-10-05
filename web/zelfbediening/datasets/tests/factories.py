@@ -79,7 +79,7 @@ class GemeenteFactory(factory.DjangoModelFactory):
         model = models.Gemeente
         django_get_or_create = ('code',)
 
-    id = fuzzy.FuzzyInteger(low=1)
+    id = fuzzy.FuzzyInteger(low=44444, high=54444, step=1)
     code = fuzzy.FuzzyText(length=4)
     naam = 'Amsterdam'
 
