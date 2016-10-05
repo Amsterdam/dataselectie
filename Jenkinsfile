@@ -26,7 +26,7 @@ node {
     stage("Cleanup") {
         tryStep "cleanup", {
             sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml kill"
-            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml rm"
+            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml rm -f -a"
         }
     }
 

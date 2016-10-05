@@ -22,7 +22,7 @@ class BagBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam',
         'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode', )
+        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
 
 
 class BagSearch(BagBase, TableSearchView):
