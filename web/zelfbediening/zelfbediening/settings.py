@@ -123,7 +123,7 @@ ELASTIC_INDICES = {
 MAX_SEARCH_ITEMS = 10000
 
 # The size of the preview to fetch from elastic
-SEARCH_PREVIEW_SIZE = 20
+SEARCH_PREVIEW_SIZE = 100
 AGGS_VALUE_SIZE = 100
 
 # Batch processing
