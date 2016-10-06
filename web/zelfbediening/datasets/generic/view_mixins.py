@@ -120,7 +120,7 @@ class TableSearchView(ListView):
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
             if val:
-                filters.append({'match_phrase': {filter_keyword: val}})
+                filters.append({'term': {filter_keyword + '.raw': val}})
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {

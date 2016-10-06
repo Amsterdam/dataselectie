@@ -49,9 +49,10 @@ class NummeraanduidingMeta(es.DocType):
         fields={'raw': es.String(index='not_analyzed')}
     )
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
 
-    headers = ('huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres', )
+def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
+    headers = (
+        'huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres',)
     doc = NummeraanduidingMeta(_id=item.id)
     doc.nummeraanduiding_id = item.id
     try:
@@ -69,17 +70,20 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     else:
         obj = None
     for key in headers:
-         setattr(doc, key, getattr(item, key, None))
+        setattr(doc, key, getattr(item, key, None))
     if obj:
         try:
-            buurtcombinatie = models.Buurtcombinatie.objects.filter(geometrie__contains=obj.geometrie).first()
-            ggw = models.Gebiedsgerichtwerken.objects.filter(geometrie__contains=obj.geometrie).first()
+            buurtcombinatie = models.Buurtcombinatie.objects.filter(
+                geometrie__contains=obj.geometrie).first()
+            ggw = models.Gebiedsgerichtwerken.objects.filter(
+                geometrie__contains=obj.geometrie).first()
         except Exception as e:
             buurtcombinatie = None
             ggw = None
         try:
             doc.buurt_naam = obj.buurt.naam
-            doc.buurt_code = '%s%s' % (str(obj.buurt.stadsdeel.code), str(obj.buurt.code))
+            doc.buurt_code = '%s%s' % (
+                str(obj.buurt.stadsdeel.code), str(obj.buurt.code))
             doc.stadsdeel_code = obj.buurt.stadsdeel.code
             doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
         except Exception as e:
@@ -87,7 +91,8 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         if buurtcombinatie:
             doc.buurtcombinatie_naam = buurtcombinatie.naam
             try:
-                doc.buurtcombinatie_code = '%s%s' % (obj.buurt.stadsdeel.code, str(buurtcombinatie.code))
+                doc.buurtcombinatie_code = '%s%s' % (
+                    obj.buurt.stadsdeel.code, str(buurtcombinatie.code))
             except Exception as e:
                 print(repr(e))
         if ggw:
@@ -95,4 +100,3 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
             doc.ggw_naam = ggw.naam
 
     return doc
-
