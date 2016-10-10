@@ -23,13 +23,13 @@ el-backup:
     bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
             && curl -X PUT http://el:9200/_snapshot/backup/zb_bag?wait_for_completion=true -d '{ \"indices\": \"zb_bag\" }' "
 
-database_zelfbediening:
+database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
         - "5432"
     environment:
-        POSTGRES_USER: zelfbediening
-        POSTGRES_DB: zelfbediening
+        POSTGRES_USER: dataselectie
+        POSTGRES_DB: dataselectie
         POSTGRES_PASSWORD: insecure
 
 database_BAG:
@@ -44,15 +44,15 @@ database_BAG:
 tests:
   build: ../web
   links:
-    - database_zelfbediening:database_zelfbediening
+    - database_dataselectie:database_dataselectie
     - elasticsearch:elasticsearch
     - database_BAG:database_BAG
     - test_elasticsearch:test_elasticsearch
   environment:
-    DATABASE_NAME: zelfbediening
-    DATABASE_USER: zelfbediening
+    DATABASE_NAME: dataselectie
+    DATABASE_USER: dataselectie
     DATABASE_PASSWORD: insecure
-    DJANGO_SETTINGS_MODULE: zelfbediening.test_settings
+    DJANGO_SETTINGS_MODULE: dataselectie.test_settings
   command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py jenkins"
 
 
@@ -61,11 +61,11 @@ importer:
     links:
         - elasticsearch:elasticsearch
         - test_elasticsearch:test_elasticsearch
-        - database_zelfbediening:database_zelfbediening
+        - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
 
     environment:
-        DJANGO_SETTINGS_MODULE: zelfbediening.test_settings
+        DJANGO_SETTINGS_MODULE: dataselectie.test_settings
 
     command: >
         bash -c "/app/docker-wait.sh \

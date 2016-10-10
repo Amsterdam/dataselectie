@@ -25,23 +25,23 @@ node {
 
     stage("Cleanup") {
         tryStep "cleanup", {
-            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml kill"
-            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml rm -f -a"
+            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml kill"
+            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml rm -f -a"
         }
     }
 
     stage('Test') {
         tryStep "test", {
-        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml build"
-        sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml run -u root --rm tests"
+        sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml build"
+        sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml run -u root --rm tests"
     }, {
-            sh "docker-compose -p zelfbediening -f .jenkins/docker-compose.yml down"
+            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml down"
         }
     }
 
     stage("Build develop image") {
         tryStep "build", {
-            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}", "web")
+            def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}", "web")
             image.push()
             image.push("acceptance")
         }
@@ -58,7 +58,7 @@ if (BRANCH == "master") {
                 build job: 'Subtask_Openstack_Playbook',
                         parameters: [
                                 [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-zelfbediening.yml'],
+                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
                                 [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
                         ]
             }
@@ -67,7 +67,7 @@ if (BRANCH == "master") {
 
 
     stage('Waiting for approval') {
-        slackSend channel: '#ci-channel', color: 'warning', message: 'Zelfbediening is waiting for Production Release - please confirm'
+        slackSend channel: '#ci-channel', color: 'warning', message: 'dataselectie is waiting for Production Release - please confirm'
         input "Deploy to Production?"
     }
 
@@ -76,7 +76,7 @@ if (BRANCH == "master") {
 node {
     stage('Push production image') {
         tryStep "image tagging", {
-            def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/zelfbediening:${env.BUILD_NUMBER}")
+            def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
             image.pull()
 
                 image.push("production")
@@ -91,7 +91,7 @@ node {
                 build job: 'Subtask_Openstack_Playbook',
                         parameters: [
                                 [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-zelfbediening.yml'],
+                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
                                 [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
                         ]
             }
