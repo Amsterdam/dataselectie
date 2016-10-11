@@ -27,7 +27,8 @@ class BagBase(object):
 
 class BagSearch(BagBase, TableSearchView):
     def elastic_query(self, query):
-        return meta_Q(query)
+        res = meta_Q(query)
+        return res
 
     def save_context_data(self, response):
         """

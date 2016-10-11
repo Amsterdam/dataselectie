@@ -2,8 +2,8 @@ import logging
 
 from django.conf import settings
 
-from datasets.bag import models
-from datasets.generic import index
+from . import models
+from ..generic import index
 from . import documents
 
 log = logging.getLogger(__name__)
@@ -21,12 +21,12 @@ class DeleteBagIndexTask(index.DeleteIndexTask):
 
 class IndexBagTask(index.ImportIndexTask):
     name = "index bag data"
-    queryset = models.Nummeraanduiding.objects.\
-        using('BAG').\
+    queryset = models.Nummeraanduiding.objects. \
         prefetch_related('verblijfsobject').\
         prefetch_related('standplaats').\
         prefetch_related('ligplaats').\
         prefetch_related('openbare_ruimte')
+    # using('BAG'). \
 
     def convert(self, obj):
         return documents.meta_from_nummeraanduiding(obj)
