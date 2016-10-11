@@ -18,7 +18,7 @@ do
 done
 
 # wait for postgres dataselectie
-while ! nc -z ${DATABASE_dataselectie_PORT_5432_TCP_ADDR} ${DATABASE_DATASELECTIE_PORT_5432_TCP_PORT}
+while ! nc -z ${DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR} ${DATABASE_DATASELECTIE_PORT_5432_TCP_PORT}
 do
 	echo "Waiting for postgres..."
 	sleep 0.1
