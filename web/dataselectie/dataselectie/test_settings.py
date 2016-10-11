@@ -13,7 +13,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9210))]
 
 ELASTIC_INDICES = {
-    'ZB_BAG': 'zb_bag',
+    'DS_BAG': 'ds_bag',
 }
 
 DEBUG = True

@@ -175,7 +175,7 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index='zb_bag', body=query)
+        response = self.elastic.search(index='ds_bag', body=query)
 
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])

@@ -10,14 +10,14 @@ import time
 
 class Command(BaseCommand):
 
-    ordered = ['zb_bag']
+    ordered = ['ds_bag']
 
     indexes = {
-        'zb_bag': [datasets.bag.batch.BuildIndexBagJob],
+        'ds_bag': [datasets.bag.batch.BuildIndexBagJob],
     }
 
     delete_indexes = {
-        'zb_bag': [datasets.bag.batch.DeleteIndexBagJob],
+        'ds_bag': [datasets.bag.batch.DeleteIndexBagJob],
     }
 
     def add_arguments(self, parser):

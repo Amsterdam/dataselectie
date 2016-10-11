@@ -6,7 +6,7 @@ from pytz import timezone
 from django.http import StreamingHttpResponse
 
 from datasets.bag import models
-from datasets.bag.queries import meta_Q
+from datasets.bag.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
 
 
@@ -15,9 +15,9 @@ class BagBase(object):
     Base class mixing for data settings
     """
     model = models.Nummeraanduiding
-    index = 'ZB_BAG'
+    index = 'DS_BAG'
     db = 'BAG'
-    q_func = meta_Q
+    q_func = meta_q
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam',
@@ -27,7 +27,7 @@ class BagBase(object):
 
 class BagSearch(BagBase, TableSearchView):
     def elastic_query(self, query):
-        res = meta_Q(query)
+        res = meta_q(query)
         return res
 
     def save_context_data(self, response):
@@ -91,7 +91,7 @@ class BagCSV(BagBase, CSVExportView):
                'status_id')
 
     def elastic_query(self, query):
-        return meta_Q(query, add_aggs=False)
+        return meta_q(query, add_aggs=False)
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV

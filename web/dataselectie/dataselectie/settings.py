@@ -32,6 +32,8 @@ SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', 'insecure')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+IN_TEST_MODE = True
+
 
 ALLOWED_HOSTS = []
 SITE_ID = 1
@@ -118,7 +120,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
 
 ELASTIC_INDICES = {
-    'ZB_BAG': 'zb_bag',
+    'ds_bag': 'ds_bag',
 }
 MAX_SEARCH_ITEMS = 10000
 

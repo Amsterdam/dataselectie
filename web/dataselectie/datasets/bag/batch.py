@@ -8,14 +8,13 @@ from . import documents
 
 log = logging.getLogger(__name__)
 
-
 BAG_DOC_TYPES = (
     documents.NummeraanduidingMeta,
 )
 
 
 class DeleteBagIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['ZB_BAG']
+    index = settings.ELASTIC_INDICES['DS_BAG']
     doc_types = BAG_DOC_TYPES
 
 
@@ -35,7 +34,8 @@ class IndexBagTask(index.ImportIndexTask):
 class BuildIndexBagJob(object):
     name = "Create new search-index for all BAG data from database"
 
-    def tasks(self):
+    @staticmethod
+    def tasks():
         return [
             DeleteBagIndexTask(),
             IndexBagTask(),
@@ -43,10 +43,8 @@ class BuildIndexBagJob(object):
 
 
 class DeleteIndexBagJob(object):
-
     name = "Delete BAG related indexes"
 
-    def tasks(self):
-        return [
-            DeleteBagIndexTask(),
-        ]
+    @staticmethod
+    def tasks():
+        return [DeleteBagIndexTask()]
