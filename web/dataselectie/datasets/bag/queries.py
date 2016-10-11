@@ -19,7 +19,7 @@ def meta_Q(query, add_aggs=True, add_count_aggs=True):
         'aggs': {
             'postcode': {
                 'terms': {
-                    'field': 'postcode',
+                    'field': 'postcode.raw',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },

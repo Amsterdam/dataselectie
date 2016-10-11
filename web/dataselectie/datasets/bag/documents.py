@@ -25,7 +25,10 @@ class NummeraanduidingMeta(es.DocType):
     huisnummer = es.Integer()
     toevoeging = es.String()
     huisletter = es.String()
-    postcode = es.String(analyzer=analyzers.postcode)
+    postcode = es.String(
+        analyzer=analyzers.postcode,
+        fields={'raw': es.String(index='not_analyzed')}
+        )
     woonplaats = es.String(
         fields={'raw': es.String(index='not_analyzed')}
     )
