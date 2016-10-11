@@ -22,11 +22,11 @@ class DeleteBagIndexTask(index.DeleteIndexTask):
 class IndexBagTask(index.ImportIndexTask):
     name = "index bag data"
     queryset = models.Nummeraanduiding.objects. \
+        using('BAG'). \
         prefetch_related('verblijfsobject').\
         prefetch_related('standplaats').\
         prefetch_related('ligplaats').\
         prefetch_related('openbare_ruimte')
-    # using('BAG'). \
 
     def convert(self, obj):
         return documents.meta_from_nummeraanduiding(obj)
