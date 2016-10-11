@@ -38,7 +38,6 @@ def create_buurt_combinaties():
         create_bc(id="3630012052034", naam="Grachtengordel-Zuid", code="03", vollcode="A03", stadsdeel_id="03630000000018"),
         create_bc(id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01", vollcode="A01", stadsdeel_id="03630000000018"),
         create_bc(id="3630012052037", naam="Jordaan", code="06", vollcode="A06", stadsdeel_id="03630000000018"),
-
     ]
 
 
