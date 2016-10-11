@@ -83,21 +83,9 @@ class DataselectieApiTest(ESTestCase):
 
     def test_get_dataselectie_bag_buurtcombinatie_naam(self):
         """
-        Test the elastic while querying on field `buurtcombinatie_naam` top-down
-        """
-        q = dict(page=1, buurtcombinatie_naam='Burgwallen-Nieuwe Zijde')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 1)
-        self.assertEqual(res['page_count'], 1)
-
-    def test_get_dataselectie_bag_buurtcombinatie_naam_direct(self):
-        """
         Test the elastic while querying on field `buurtcombinatie_naam`
         """
-        q = dict(page=1, buurtcombinatie_naam='Grachtengordel-West')
+        q = dict(page=1, buurtcombinatie_naam='Burgwallen-Nieuwe Zijde')
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
