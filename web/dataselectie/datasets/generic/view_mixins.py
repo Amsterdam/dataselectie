@@ -120,7 +120,7 @@ class TableSearchView(ListView):
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
             if val:
-                filters.append({'term': {filter_keyword + '.raw': val}})
+                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {
@@ -136,7 +136,7 @@ class TableSearchView(ListView):
         offset = self.request.GET.get('page', None)
         if offset:
             try:
-                offset = (int(offset) - 1) * 20
+                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
                 if offset > 1:
                     query['from'] = offset
             except ValueError:
@@ -221,6 +221,21 @@ class TableSearchView(ListView):
         Enables the subclasses to update/change the object list
         """
         return context
+
+    @staticmethod
+    def get_term_and_value(filter_keyword, val):
+        """
+        Some fields need to be searched raw while others are analysed with the default string analyser which will
+        automatically convert the fields to lowercase in de the index.
+        :param filter_keyword: the keyword in the index to search on
+        :param val: the value we are searching for
+        :return: a small dict that contains the key/value pair to use in the ES search.
+        """
+        from datasets.bag.views import BagBase
+        if BagBase.keywords_is_raw()[filter_keyword]:
+            return {filter_keyword + '.raw': val}
+
+        return {filter_keyword: val.lower()}
 
 
 class CSVExportView(TableSearchView):

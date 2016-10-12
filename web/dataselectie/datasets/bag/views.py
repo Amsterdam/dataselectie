@@ -1,9 +1,9 @@
 # Python
 import csv
 from datetime import datetime
-from pytz import timezone
 
 from django.http import StreamingHttpResponse
+from pytz import timezone
 
 from datasets.bag import models
 from datasets.bag.queries import meta_q
@@ -23,6 +23,21 @@ class BagBase(object):
         'buurtcombinatie_naam',
         'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+
+    @staticmethod
+    def keywords_is_raw():
+        return {
+            'buurt_naam': True,
+            'buurt_code': False,
+            'buurtcombinatie_code': False,
+            'buurtcombinatie_naam': True,
+            'ggw_naam': True,
+            'ggw_code': False,
+            'stadsdeel_naam': True,
+            'stadsdeel_code': False,
+            'naam': True,
+            'postcode': False
+        }
 
 
 class BagSearch(BagBase, TableSearchView):
