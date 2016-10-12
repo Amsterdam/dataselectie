@@ -5,6 +5,13 @@ elasticsearch:
         - "9200:9200"
         - "9300:9300"
 
+test_elasticsearch:
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+    command: elasticsearch -Des.network.host=0.0.0.0
+    ports:
+        - "9210:9200"
+        - "9310:9300"
+
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:

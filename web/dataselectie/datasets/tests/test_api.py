@@ -1,4 +1,5 @@
 from django.test import Client
+from django.conf import settings
 from json import loads
 
 from urllib.parse import urlencode
@@ -6,24 +7,32 @@ from django.core.management import call_command
 from django.test import TestCase
 from datasets.bag import models
 from datasets.tests import fixture_utils
+from elasticsearch import Elasticsearch
+
 
 class ESTestCase(TestCase):
     """
-    TestCase for using with elastic search to reset the elistic index
+    TestCase for using with elastic search to reset the elastic index
     """
     @classmethod
     def rebuild_elastic_index(cls):
         """
         Rebuild the elastic search index for tests
         """
+        es = Elasticsearch()
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
+        es.cluster.health(wait_for_status='yellow',
+                          wait_for_active_shards=0,
+                          timeout="320s")
 
 
 class DataselectieApiTest(ESTestCase):
+    multi_db = True
+    #fixtures = ['bag_testdata.json']
 
     @classmethod
-    def setUpClass(cls):
-        super(ESTestCase, cls).setUpClass()
+    def setUpTestData(cls):
+        super(ESTestCase, cls).setUpTestData()
         fixture_utils.create_nummeraanduiding_fixtures()
         cls.rebuild_elastic_index()
 
@@ -44,7 +53,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_stadsdeel(self):
+    def test_get_dataselectie_bag_stadsdeel_naam(self):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
@@ -53,8 +62,9 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
+        assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 9)
-        self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_stadsdeel_code(self):
         """
@@ -65,8 +75,9 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
+        _ = models.Nummeraanduiding.objects.count()
         self.assertEqual(res['object_count'], 9)
-        self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_ggw_naam(self):
         """
@@ -124,13 +135,15 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `buurt_naam`
         """
+
         q = dict(page=1, postcode='1012AA')
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 5)
-        self.assertEqual(res['page_count'], 1)
+        postcode_count = models.Nummeraanduiding.objects.filter(postcode=q['postcode']).count()
+        self.assertEqual(res['object_count'], postcode_count)
+        self.assertEqual(res['page_count'], int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def tearDown(self):
         pass
