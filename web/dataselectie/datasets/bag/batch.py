@@ -15,7 +15,7 @@ BAG_DOC_TYPES = (
 
 
 class DeleteBagIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['ZB_BAG']
+    index = settings.ELASTIC_INDICES['DS_BAG']
     doc_types = BAG_DOC_TYPES
 
 
