@@ -117,10 +117,14 @@ class BagCSV(BagBase, CSVExportView):
         data = []
         for item in qs:
             geom_wgs = None
-            geom = item.adresseerbaar_object.geometrie
+            try:
+                geom = item.adresseerbaar_object.geometrie.centroid
+            except AttributeError:
+                geom = None
             if geom:
                 # Convert to wgs
-                geom_wgs = geom.transform('wgs84')
+                geom_wgs = geom.transform('wgs84', clone=True).coords
+                geom = geom.coords
             dict_item = self._model_to_dict(item)
             dict_item.update({'geometrie_rd': geom, 'geometrie_wgs': geom_wgs})
             data.append(dict_item)
