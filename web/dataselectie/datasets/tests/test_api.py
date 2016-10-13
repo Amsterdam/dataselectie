@@ -60,10 +60,10 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
-        q = dict(page=1, stadsdeel_naam='Centrum')
+        q = {'page':1, 'stadsdeel_naam': 'Centrum'}
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
-
+        print(response)
         res = loads(response.content.decode('utf-8'))
         assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 9)
