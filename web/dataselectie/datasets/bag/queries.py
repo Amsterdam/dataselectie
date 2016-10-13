@@ -12,7 +12,7 @@
 from django.conf import settings
 
 
-def meta_Q(query, add_aggs=True, add_count_aggs=True):
+def meta_q(query, add_aggs=True, add_count_aggs=True):
     # @TODO change to setting
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {

@@ -32,6 +32,8 @@ SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', 'insecure')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+IN_TEST_MODE = True
+
 
 ALLOWED_HOSTS = []
 SITE_ID = 1
@@ -163,4 +165,4 @@ STATIC_URL = '/static/'
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 DEBUG = True
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
-IN_TEST_MODE = True
+IN_TEST_MODE = False

@@ -66,14 +66,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     doc.woonplaats = 'Amsterdam'
     # Identifing the spatial object
     obj = item.adresseerbaar_object
-    # if item.verblijfsobject:
-    #     obj = item.verblijfsobject
-    # elif item.ligplaats:
-    #     obj = item.ligplaats
-    # elif item.standplaats:
-    #     obj = item.standplaats
-    # else:
-    #     obj = None
     for key in headers:
         setattr(doc, key, getattr(item, key, None))
     if obj:
@@ -113,17 +105,3 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
             pass 
 
     return doc
-
-def get_centroid(geom, transform=None):
-    """
-    Finds the centroid of a geometrie object
-    An optional transform string can be given noting
-    the name of the system to translate to, i.e. 'wgs84'
-    """
-    if not geom:
-        return None
-
-    result = geom.centroid
-    if transform:
-        result.transform(transform)
-    return result.coords

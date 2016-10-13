@@ -1,12 +1,12 @@
 # Python
 import csv
 from datetime import datetime
-from pytz import timezone
 
 from django.http import StreamingHttpResponse
+from pytz import timezone
 
 from datasets.bag import models
-from datasets.bag.queries import meta_Q
+from datasets.bag.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
 
 
@@ -17,17 +17,33 @@ class BagBase(object):
     model = models.Nummeraanduiding
     index = 'DS_BAG'
     db = 'BAG'
-    q_func = meta_Q
+    q_func = meta_q
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam',
         'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
 
+    @staticmethod
+    def keywords_is_raw():
+        return {
+            'buurt_naam': True,
+            'buurt_code': False,
+            'buurtcombinatie_code': False,
+            'buurtcombinatie_naam': True,
+            'ggw_naam': True,
+            'ggw_code': False,
+            'stadsdeel_naam': True,
+            'stadsdeel_code': False,
+            'naam': True,
+            'postcode': False
+        }
+
 
 class BagSearch(BagBase, TableSearchView):
     def elastic_query(self, query):
-        return meta_Q(query)
+        res = meta_q(query)
+        return res
 
     def save_context_data(self, response):
         """
@@ -90,7 +106,7 @@ class BagCSV(BagBase, CSVExportView):
                'status_id', 'geometrie_rd', 'geometrie_wgs')
 
     def elastic_query(self, query):
-        return meta_Q(query, add_aggs=False)
+        return meta_q(query, add_aggs=False)
 
     def _convert_to_dicts(self, qs):
         """
