@@ -5,6 +5,8 @@ from json import loads
 from urllib.parse import urlencode
 from django.core.management import call_command
 from django.test import TestCase
+
+from dataselectie import test_settings
 from datasets.bag import models
 from datasets.tests import fixture_utils
 from elasticsearch import Elasticsearch
@@ -20,7 +22,7 @@ class ESTestCase(TestCase):
         """
         Rebuild the elastic search index for tests
         """
-        es = Elasticsearch()
+        es = Elasticsearch(hosts=test_settings.ELASTIC_SEARCH_HOSTS)
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,

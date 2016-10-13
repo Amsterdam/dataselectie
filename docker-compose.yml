@@ -37,5 +37,6 @@ dataselectie:
         - elasticsearch:elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
+        - test_elasticsearch:test_elasticsearch
     ports:
         - "8100:8000"
