@@ -34,4 +34,5 @@ DATABASES = {
 
 
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
+JENKINS_TEST_RUNNER = 'dataselectie.utils.JenkinsManagedModelTestRunner'
 IN_TEST_MODE = True

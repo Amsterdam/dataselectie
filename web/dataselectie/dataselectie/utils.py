@@ -1,5 +1,7 @@
-from django.test.runner import DiscoverRunner
+# Packages
 from django.apps import apps
+from django.test.runner import DiscoverRunner
+import django_jenkins
 
 
 class ManagedModelTestRunner(DiscoverRunner):
@@ -21,3 +23,8 @@ class ManagedModelTestRunner(DiscoverRunner):
         # reset unmanaged models
         for m in self.unmanaged_models:
             m._meta.managed = False
+
+class JenkinsManagedModelTestRunner(django_jenkins.runner.CITestSuiteRunner, ManagedModelTestRunner):
+
+    def __init__(self, *args, **kwargs):
+        super(JenkinsManagedModelTestRunner, self).__init__(*args, **kwargs)
