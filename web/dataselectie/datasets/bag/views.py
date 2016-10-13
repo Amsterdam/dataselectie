@@ -15,7 +15,7 @@ class BagBase(object):
     Base class mixing for data settings
     """
     model = models.Nummeraanduiding
-    index = 'ZB_BAG'
+    index = 'DS_BAG'
     db = 'BAG'
     q_func = meta_Q
     keywords = (
@@ -87,10 +87,28 @@ class BagCSV(BagBase, CSVExportView):
                'postcode', 'type', 'document_mutatie', 'date_modified',
                'openbare_ruimte_id', 'mutatie_gebruiker', 'standplaats_id',
                'landelijk_id', 'verblijfsobject_id', 'ligplaats_id',
-               'status_id')
+               'status_id', 'geometrie_rd', 'geometrie_wgs')
 
     def elastic_query(self, query):
         return meta_Q(query, add_aggs=False)
+
+    def _convert_to_dicts(self, qs):
+        """
+        Overwriting the default conversion so that location data
+        can be retrieved through the adresseerbaar_object
+        and convert to wgs84 
+        """
+        data = []
+        for item in qs:
+            geom_wgs = None
+            geom = item.adresseerbaar_object.geometrie
+            if geom:
+                # Convert to wgs
+                geom_wgs = geom.transform('wgs84')
+            dict_item = self._model_to_dict(item)
+            dict_item.update({'geometrie_rd': geom, 'geometrie_wgs': geom_wgs})
+            data.append(dict_item)
+        return data
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV

@@ -2,7 +2,9 @@
 import json
 from datetime import date, datetime
 
+# Packages
 from django.conf import settings
+from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
@@ -119,7 +121,7 @@ class TableSearchView(ListView):
         filters = []
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
-            if val:
+            if val != None:
                 filters.append({'term': {filter_keyword + '.raw': val}})
         # If any filters were given, add them, creating a bool query
         if filters:
@@ -175,7 +177,7 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index='zb_bag', body=query)
+        response = self.elastic.search(index=settings.ELASTIC_INDICES['DS_BAG'], body=query)
 
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
@@ -278,7 +280,8 @@ class CSVExportView(TableSearchView):
             if len(items) < batch_size:
                 more = False
             # Retriving the database data
-            qs = self.model.objects.filter(id__in=list(items.keys())).values()
+            qs = self.model.objects.filter(id__in=list(items.keys())).select_related()
+            qs = self._convert_to_dicts(qs)
             # Pairing the data
             data = self._combine_data(qs, items)
             for item in data:
@@ -294,8 +297,34 @@ class CSVExportView(TableSearchView):
             return header[1:]
         return header
 
-    def _combine_data(self, qs, es):
-        data = list(qs)
+    def _model_to_dict(self, item):
+        """
+        Converts a django model to a dict.
+        It does not do a deep conversion
+        """
+        data = {}
+        properties = item._meta
+        for field in properties.concrete_fields + properties.many_to_many:
+            if isinstance(field, ManyToManyField):
+                data[field.name] = list(field.value_from_object(item).values_list('pk', flat=True))
+            else:
+                data[field.name] = field.value_from_object(item)
+        return data
+
+    def _convert_to_dicts(self, qs):
+        """
+        Converts every item in the queryset to a dict
+        with property name as key and property value as value
+        Overwrite this fnction for custom fields, or following
+        relations
+        """
+        return [self._model_to_dict(d) for d in qs]
+
+    def _combine_data(self, data, es):
+        """
+        Combines the elastic data with the
+        data retrieved from the query
+        """
         for item in data:
             # Making sure all the data is in string form
             item.update(

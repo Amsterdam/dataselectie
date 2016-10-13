@@ -50,7 +50,8 @@ class NummeraanduidingMeta(es.DocType):
     stadsdeel_code = es.String()
     stadsdeel_naam = es.String(
         fields={'raw': es.String(index='not_analyzed')}
-    )
+    ),
+    centroid = es.GeoPoint()
 
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
@@ -64,42 +65,65 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         doc.naam = ''
     doc.woonplaats = 'Amsterdam'
     # Identifing the spatial object
-    if item.verblijfsobject:
-        obj = item.verblijfsobject
-    elif item.ligplaats:
-        obj = item.ligplaats
-    elif item.standplaats:
-        obj = item.standplaats
-    else:
-        obj = None
+    obj = item.adresseerbaar_object
+    # if item.verblijfsobject:
+    #     obj = item.verblijfsobject
+    # elif item.ligplaats:
+    #     obj = item.ligplaats
+    # elif item.standplaats:
+    #     obj = item.standplaats
+    # else:
+    #     obj = None
     for key in headers:
         setattr(doc, key, getattr(item, key, None))
     if obj:
+        # Saving centroind of it exists
         try:
-            buurtcombinatie = models.Buurtcombinatie.objects.filter(
-                geometrie__contains=obj.geometrie).first()
+            doc.centroid = obj.geometrie.centroid.transform('wgs84')
+        except:
+            doc.centroid = None
+
+        # Adding the buurt -> stadsdeel data
+        try:
             ggw = models.Gebiedsgerichtwerken.objects.filter(
                 geometrie__contains=obj.geometrie).first()
-        except Exception as e:
-            buurtcombinatie = None
-            ggw = None
+            if ggw:
+                doc.ggw_code = ggw.code
+                doc.ggw_naam = ggw.naam
+        except:
+            pass
         try:
             doc.buurt_naam = obj.buurt.naam
             doc.buurt_code = '%s%s' % (
-                str(obj.buurt.stadsdeel.code), str(obj.buurt.code))
+                str(obj.buurt.stadsdeel.code), str(obj.buurt.code)
+            )
+        except:
+            pass
+        try:
+            doc.buurtcombinatie_naam = obj.buurt.buurtcombinatie.naam
+            doc.buurtcombinatie_code = '%s%s' % (
+                obj.buurt.stadsdeel.code, str(obj.buurt.buurtcombinatie.code)
+            )
+        except:
+            pass
+        try:
             doc.stadsdeel_code = obj.buurt.stadsdeel.code
             doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
-        except Exception as e:
-            print(repr(e))
-        if buurtcombinatie:
-            doc.buurtcombinatie_naam = buurtcombinatie.naam
-            try:
-                doc.buurtcombinatie_code = '%s%s' % (
-                    obj.buurt.stadsdeel.code, str(buurtcombinatie.code))
-            except Exception as e:
-                print(repr(e))
-        if ggw:
-            doc.ggw_code = ggw.code
-            doc.ggw_naam = ggw.naam
+        except:
+            pass 
 
     return doc
+
+def get_centroid(geom, transform=None):
+    """
+    Finds the centroid of a geometrie object
+    An optional transform string can be given noting
+    the name of the system to translate to, i.e. 'wgs84'
+    """
+    if not geom:
+        return None
+
+    result = geom.centroid
+    if transform:
+        result.transform(transform)
+    return result.coords
