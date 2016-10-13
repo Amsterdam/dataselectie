@@ -135,7 +135,7 @@ class BagCSV(BagBase, CSVExportView):
         pseudo_buffer = Echo()
 
         # Creating the writer
-        writer = csv.DictWriter(pseudo_buffer, self.headers)
+        writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
 
         # Streaming!
         gen = self.result_generator(self.headers, context['object_list'])
