@@ -121,7 +121,7 @@ class TableSearchView(ListView):
         filters = []
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
-            if val != None:
+            if val is not None:
                 filters.append({'term': {filter_keyword + '.raw': val}})
         # If any filters were given, add them, creating a bool query
         if filters:
