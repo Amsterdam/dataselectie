@@ -20,8 +20,7 @@ class BagBase(object):
     q_func = meta_q
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-        'buurtcombinatie_naam',
-        'ggw_naam', 'ggw_code',
+        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
 
     @staticmethod

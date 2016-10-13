@@ -50,7 +50,7 @@ class NummeraanduidingMeta(es.DocType):
     stadsdeel_code = es.String()
     stadsdeel_naam = es.String(
         fields={'raw': es.String(index='not_analyzed')}
-    ),
+    )
     centroid = es.GeoPoint()
 
 
@@ -99,8 +99,8 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         except:
             pass
         try:
-            doc.stadsdeel_code = obj.buurt.stadsdeel.code
-            doc.stadsdeel_naam = obj.buurt.stadsdeel.naam
+            doc.stadsdeel_code = item.stadsdeel.code
+            doc.stadsdeel_naam = item.stadsdeel.naam
         except:
             print('Cannot add stadsdeel') 
 
