@@ -21,7 +21,7 @@ el-backup:
     - elasticsearch:el
   command: >
     bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-            && curl -X PUT http://el:9200/_snapshot/backup/zb_bag?wait_for_completion=true -d '{ \"indices\": \"zb_bag\" }' "
+            && curl -X PUT http://el:9200/_snapshot/backup/db_bag?wait_for_completion=true -d '{ \"indices\": \"db_bag\" }' "
 
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
