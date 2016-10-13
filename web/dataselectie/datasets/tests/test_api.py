@@ -65,7 +65,6 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        print(res)
         assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 9)
         self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
@@ -80,7 +79,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        print(res)
         _ = models.Nummeraanduiding.objects.count()
         self.assertEqual(res['object_count'], 9)
         self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
