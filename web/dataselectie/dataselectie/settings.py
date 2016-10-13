@@ -118,7 +118,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
 
 ELASTIC_INDICES = {
-    'ZB_BAG': 'zb_bag',
+    'DS_BAG': 'ds_bag',
 }
 MAX_SEARCH_ITEMS = 10000
 
