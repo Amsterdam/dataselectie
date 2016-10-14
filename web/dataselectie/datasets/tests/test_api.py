@@ -31,7 +31,7 @@ class ESTestCase(TestCase):
 
 class DataselectieApiTest(ESTestCase):
     multi_db = True
-    #fixtures = ['bag_testdata.json']
+    # fixtures = ['bag_testdata.json']
 
     @classmethod
     def setUpTestData(cls):
@@ -42,7 +42,6 @@ class DataselectieApiTest(ESTestCase):
     def setUp(self):
         self.client = Client()
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag(self):
         """
         Fetch all records (gets the first 100 records)
@@ -57,8 +56,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Problem connectong stadsdeel")
-    def test_get_dataselectie_bag_stadsdeel_naam(self):
+    def test_get_dataselectie_bag_stadsdeel_naam(self) -> None:
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
@@ -98,7 +96,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 1)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurtcombinatie_naam(self):
         """
         Test the elastic while querying on field `buurtcombinatie_naam`
@@ -113,7 +110,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 7)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurtcombinatie_code(self):
         """
         Test the elastic while querying on field `buurtcombinatie_code`
@@ -126,7 +122,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 7)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurt_naam(self):
         """
         Test the elastic while querying on field `buurt_naam`
@@ -139,7 +134,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 2)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_postcode(self):
         """
         Test the elastic while querying on field `buurt_naam`
