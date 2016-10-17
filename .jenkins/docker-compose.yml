@@ -13,7 +13,7 @@ test_elasticsearch:
    command: elasticsearch -Des.network.host=0.0.0.0
    ports:
        - "9210:9200"
-       - "9330:9300"
+       - "9310:9300"
 
 el-backup:
   image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
@@ -45,7 +45,8 @@ tests:
   build: ../web
   links:
     - database_dataselectie:database_dataselectie
-    - elasticsearch:test_elasticsearch
+    - elasticsearch:elasticsearch
+    - test_elasticsearch:test_elasticsearch
     - database_BAG:database_BAG
   environment:
     DATABASE_NAME: dataselectie
@@ -59,6 +60,7 @@ importer:
     build: ../web
     links:
         - elasticsearch:elasticsearch
+        - test_elasticsearch:test_elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
 

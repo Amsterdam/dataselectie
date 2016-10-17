@@ -12,13 +12,11 @@ class ManagedModelTestRunner(DiscoverRunner):
     """
     def __init__(self, *args, **kwargs):
         super(ManagedModelTestRunner, self).__init__(*args, **kwargs)
-        self.verbosity = 2
-        self.fail_fast = True
+        self.verbosity = 0
 
     def setup_test_environment(self, *args, **kwargs):
 
         self.unmanaged_models = [model for _, model in apps.all_models['bag'].items() if not model._meta.managed]
-        print(self.unmanaged_models);
         for m in self.unmanaged_models:
             m._meta.managed = True
         super(ManagedModelTestRunner, self).setup_test_environment(*args, **kwargs)
