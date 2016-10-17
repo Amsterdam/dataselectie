@@ -6,63 +6,54 @@ from datasets.generic import model_mixins as mixins
 
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = True
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
 
 class RedenAfvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Reden Afvoer"
         verbose_name_plural = "Reden Afvoer"
 
 
 class RedenOpvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Reden Opvoer"
         verbose_name_plural = "Reden Opvoer"
 
 
 class Eigendomsverhouding(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Eigendomsverhouding"
         verbose_name_plural = "Eigendomsverhoudingen"
 
 
 class Financieringswijze(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Financieringswijze"
         verbose_name_plural = "Financieringswijzes"
 
 
 class Ligging(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Ligging"
         verbose_name_plural = "Ligging"
 
 
 class Gebruik(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Gebruik"
         verbose_name_plural = "Gebruik"
 
 
 class LocatieIngang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Locatie Ingang"
         verbose_name_plural = "Locaties Ingang"
 
 
 class Toegang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
-        managed = False
         verbose_name = "Toegang"
         verbose_name_plural = "Toegang"
 
@@ -75,7 +66,6 @@ class Gemeente(mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
     vervallen = models.NullBooleanField(default=None)
 
     class Meta:
-        managed = False
         verbose_name = "Gemeente"
         verbose_name_plural = "Gemeentes"
 
@@ -96,7 +86,6 @@ class Woonplaats(mixins.GeldigheidMixin,
     gemeente = models.ForeignKey(Gemeente, related_name='woonplaatsen')
 
     class Meta:
-        managed = False
         verbose_name = "Woonplaats"
         verbose_name_plural = "Woonplaatsen"
 
@@ -118,7 +107,6 @@ class Hoofdklasse(mixins.ImportStatusMixin, models.Model):
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         abstract = True
 
 
@@ -139,7 +127,6 @@ class Stadsdeel(mixins.GeldigheidMixin, Hoofdklasse):
     gemeente = models.ForeignKey(Gemeente, related_name='stadsdelen')
 
     class Meta:
-        managed = False
         verbose_name = "Stadsdeel"
         verbose_name_plural = "Stadsdelen"
 
@@ -167,7 +154,6 @@ class Buurt(mixins.GeldigheidMixin, Hoofdklasse):
         'Buurtcombinatie', related_name='buurten', null=True)
 
     class Meta:
-        managed = False
         verbose_name = "Buurt"
         verbose_name_plural = "Buurten"
         ordering = ('vollcode',)
@@ -196,7 +182,6 @@ class Bouwblok(mixins.GeldigheidMixin, Hoofdklasse):
     ingang_cyclus = models.DateField(null=True)
 
     class Meta:
-        managed = False
         verbose_name = "Bouwblok"
         verbose_name_plural = "Bouwblokken"
         ordering = ('code',)
@@ -267,7 +252,6 @@ class OpenbareRuimte(mixins.GeldigheidMixin,
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Openbare Ruimte"
         verbose_name_plural = "Openbare Ruimtes"
         ordering = ('naam', 'id')
@@ -352,7 +336,6 @@ class Nummeraanduiding(mixins.GeldigheidMixin,
     _openbare_ruimte_naam = models.CharField(max_length=150, null=True)
 
     class Meta:
-        managed = False
         verbose_name = "Nummeraanduiding"
         verbose_name_plural = "Nummeraanduidingen"
         ordering = (
@@ -517,7 +500,6 @@ class Ligplaats(mixins.GeldigheidMixin,
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Ligplaats"
         verbose_name_plural = "Ligplaatsen"
         ordering = (
@@ -587,7 +569,6 @@ class Standplaats(mixins.GeldigheidMixin,
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Standplaats"
         verbose_name_plural = "Standplaatsen"
         ordering = (
@@ -682,7 +663,6 @@ class Verblijfsobject(mixins.GeldigheidMixin,
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Verblijfsobject"
         verbose_name_plural = "Verblijfsobjecten"
         ordering = (
@@ -775,7 +755,6 @@ class Pand(
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Pand"
         verbose_name_plural = "Panden"
 
@@ -805,7 +784,6 @@ class VerblijfsobjectPandRelatie(mixins.ImportStatusMixin, models.Model):
     verblijfsobject = models.ForeignKey(Verblijfsobject)
 
     class Meta:
-        managed = False
         verbose_name = "Verblijfsobject-Pand relatie"
         verbose_name_plural = "Verblijfsobject-Pand relaties"
 
@@ -845,7 +823,6 @@ class Buurtcombinatie(mixins.GeldigheidMixin, mixins.ImportStatusMixin,
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Buurtcombinatie"
         verbose_name_plural = "Buurtcombinaties"
         ordering = ('code',)
@@ -878,7 +855,6 @@ class Gebiedsgerichtwerken(mixins.ImportStatusMixin, models.Model):
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Gebiedsgerichtwerken"
         verbose_name_plural = "Gebiedsgerichtwerken"
         ordering = ('code',)
@@ -903,7 +879,6 @@ class Grootstedelijkgebied(mixins.ImportStatusMixin, models.Model):
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Grootstedelijkgebied"
         verbose_name_plural = "Grootstedelijke gebieden"
 
@@ -927,7 +902,6 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
     objects = geo.GeoManager()
 
     class Meta:
-        managed = False
         verbose_name = "Unesco"
         verbose_name_plural = "Unesco"
 
