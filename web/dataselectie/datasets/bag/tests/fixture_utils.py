@@ -1,6 +1,5 @@
-from ..bag import models
-# from django.contrib.gis.db.models.fields import (GeometryCollectionField, GeometryField, LineStringField, MultiLineStringField, MultiPointField, MultiPolygonField, PointField, PolygonField, RasterField,)
-# from django.contrib.gis.db.models.manager import GeoManager
+# Project
+from datasets.bag import models
 
 
 def create_stadsdeel_fixtures():

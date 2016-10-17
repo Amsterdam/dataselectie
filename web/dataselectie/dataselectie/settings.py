@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'django_jenkins',
     'batch',
     'api',
-    'datasets.tests',
     # Datasets
     'datasets.bag',
 

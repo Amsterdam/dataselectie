@@ -1,16 +1,16 @@
-from django.test import Client
-from django.conf import settings
+# Python
 from json import loads
-
+from unittest import skip
 from urllib.parse import urlencode
+# Packages
+from django.conf import settings
 from django.core.management import call_command
-from django.test import TestCase
-
+from django.test import Client, TestCase
+from elasticsearch import Elasticsearch
+# Project
 from dataselectie import test_settings
 from datasets.bag import models
-from datasets.tests import fixture_utils
-from elasticsearch import Elasticsearch
-from unittest import skip
+from datasets.bag.tests import fixture_utils
 
 
 class ESTestCase(TestCase):
@@ -31,7 +31,6 @@ class ESTestCase(TestCase):
 
 class DataselectieApiTest(ESTestCase):
     multi_db = True
-    #fixtures = ['bag_testdata.json']
 
     @classmethod
     def setUpTestData(cls):

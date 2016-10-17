@@ -99,7 +99,6 @@ class ImportIndexTask(object):
 
         # total batches in this (partial) bacth job
         total_batches = int(chunk_size / batch_size)
-        print('query:', qs.query)
         for i, start in enumerate(range(start_index, end_part, batch_size)):
             end = min(start + batch_size, end_part)
             yield (i+1, total_batches+1, start, end, total, qs[start:end])

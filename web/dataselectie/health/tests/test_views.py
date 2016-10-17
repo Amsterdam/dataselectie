@@ -1,6 +1,6 @@
 # from unittest.mock import Mock
 # from django.http import HttpResponse
-from datasets.tests.factories import NummeraanduidingFactory
+from datasets.bag.tests.factories import NummeraanduidingFactory
 
 from django.test import TestCase
 from django.test import Client
