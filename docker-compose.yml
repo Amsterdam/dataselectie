@@ -30,7 +30,6 @@ database_BAG:
         POSTGRES_DB: atlas
         POSTGRES_PASSWORD: insecure
 
-
 dataselectie:
     build: ./web
     links:

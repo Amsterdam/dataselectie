@@ -10,11 +10,15 @@ class ManagedModelTestRunner(DiscoverRunner):
     project managed for the duration of the test run, so that one doesn't need
     to execute the SQL manually to create them.
     """
+    def __init__(self, *args, **kwargs):
+        super(ManagedModelTestRunner, self).__init__(*args, **kwargs)
+        self.verbosity = 2
+        self.fail_fast = True
 
     def setup_test_environment(self, *args, **kwargs):
 
         self.unmanaged_models = [model for _, model in apps.all_models['bag'].items() if not model._meta.managed]
-
+        print(self.unmanaged_models);
         for m in self.unmanaged_models:
             m._meta.managed = True
         super(ManagedModelTestRunner, self).setup_test_environment(*args, **kwargs)

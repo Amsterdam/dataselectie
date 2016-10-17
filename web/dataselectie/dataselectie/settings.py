@@ -12,14 +12,13 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 
 import os
 import re
-
+import sys
 
 def _get_docker_host():
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
     return '127.0.0.1'
-
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,10 +28,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', 'insecure')
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-IN_TEST_MODE = True
 
 
 ALLOWED_HOSTS = []
@@ -52,6 +47,7 @@ INSTALLED_APPS = [
     'django_jenkins',
     'batch',
     'api',
+    'datasets.tests',
     # Datasets
     'datasets.bag',
 
@@ -100,21 +96,21 @@ DATABASES = {
         'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', 5435),
         'CONN_MAX_AGE': 60,
-    # },
+    },
 
-    # 'BAG': {
-    #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #     'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
-    #     'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
-    #     'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
-    #     'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
-    #     'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
-    #     'CONN_MAX_AGE': 60,
+    'bag': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
+        'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
+        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
+        'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
+        'CONN_MAX_AGE': 60,
     }
 }
 
 # DB routing
-#DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter',]
+DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter',]
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
@@ -162,7 +158,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Checking if running inside some test mode
+TESTING = 'test' in sys.argv or 'jenkins' in sys.argv
+
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 DEBUG = True
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
-IN_TEST_MODE = False
+JENKINS_TEST_RUNNER = 'dataselectie.utils.JenkinsManagedModelTestRunner'
+IN_TEST_MODE = TESTING

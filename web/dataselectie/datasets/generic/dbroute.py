@@ -25,7 +25,7 @@ class DatasetsRouter(object):
         Attempts to read auth models go to auth_db.
         """
         if self._model_in_datasets(model._meta.app_label):
-            return model._meta.app_label.upper()
+            return model._meta.app_label
         return None
 
     def db_for_write(self, model, **hints):
@@ -35,7 +35,7 @@ class DatasetsRouter(object):
         if self._model_in_datasets(model._meta.app_label):
             # Only allow writing in testing
             if settings.IN_TEST_MODE:
-                return model._meta.app_label.upper()
+                return model._meta.app_label
             return False
         # Not a dataset app.
         return None
@@ -48,6 +48,6 @@ class DatasetsRouter(object):
         Do Not allowe migration of datasets. This should already be handled by
         managed=False, but jsu tto be sure
         """
-        if self._model_in_datasets(app_label):
+        if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
             return False
         return None
