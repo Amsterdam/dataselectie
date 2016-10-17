@@ -232,11 +232,7 @@ class TableSearchView(ListView):
         :param val: the value we are searching for
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
-        from datasets.bag.views import BagBase
-        if BagBase.keywords_is_raw()[filter_keyword]:
-            return {filter_keyword + '.raw': val}
-
-        return {filter_keyword: val.lower()}
+        return {filter_keyword: val}
 
 
 class CSVExportView(TableSearchView):
