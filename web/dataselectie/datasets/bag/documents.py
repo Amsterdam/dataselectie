@@ -25,32 +25,17 @@ class NummeraanduidingMeta(es.DocType):
     huisnummer = es.Integer()
     toevoeging = es.String()
     huisletter = es.String()
-    postcode = es.String(
-        analyzer=analyzers.postcode,
-        fields={'raw': es.String(index='not_analyzed')}
-        )
-    woonplaats = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
+    postcode = es.String(index='not_analyzed')
+    woonplaats = es.String(index='not_analyzed')
     hoofdadres = es.Boolean()
-    buurt_code = es.String()
-    buurt_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
-    buurtcombinatie_code = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
-    buurtcombinatie_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
-    ggw_code = es.String()
-    ggw_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
-    stadsdeel_code = es.String()
-    stadsdeel_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
+    buurt_code = es.String(index='not_analyzed')
+    buurt_naam = es.String(index='not_analyzed')
+    buurtcombinatie_code = es.String(index='not_analyzed')
+    buurtcombinatie_naam = es.String(index='not_analyzed')
+    ggw_code = es.String(index='not_analyzed')
+    ggw_naam = es.String(index='not_analyzed')
+    stadsdeel_code = es.String(index='not_analyzed')
+    stadsdeel_naam = es.String(index='not_analyzed')
     centroid = es.GeoPoint()
 
 
