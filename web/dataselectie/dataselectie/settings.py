@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     # dataselectie
     'django_jenkins',
     'batch',
-    'atlas',
+    'api',
     # Datasets
     'datasets.bag',
 

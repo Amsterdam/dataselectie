@@ -31,7 +31,7 @@ class ESTestCase(TestCase):
 
 class DataselectieApiTest(ESTestCase):
     multi_db = True
-    #fixtures = ['bag_testdata.json']
+    # fixtures = ['bag_testdata.json']
 
     @classmethod
     def setUpTestData(cls):
@@ -56,7 +56,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_stadsdeel_naam(self):
+    def test_get_dataselectie_bag_stadsdeel_naam(self) -> None:
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """

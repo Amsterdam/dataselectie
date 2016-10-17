@@ -2,14 +2,17 @@
 
 from dataselectie.settings import *
 
+
 def _get_docker_host():
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
     return '127.0.0.1'
 
+
 ELASTIC_SEARCH_HOSTS = [
-    "{}:{}".format(os.getenv('TEST_ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()), os.getenv('TEST_ELASTICSEARCH_PORT_9200_TCP_PORT', 9210))
+    "{}:{}".format(os.getenv('TEST_ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
+                   os.getenv('TEST_ELASTICSEARCH_PORT_9200_TCP_PORT', 9210))
 ]
 
 ELASTIC_INDICES = {
@@ -31,7 +34,6 @@ DATABASES = {
         'CONN_MAX_AGE': 60,
     }
 }
-
 
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
 JENKINS_TEST_RUNNER = 'dataselectie.utils.JenkinsManagedModelTestRunner'
