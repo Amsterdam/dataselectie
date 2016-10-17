@@ -19,21 +19,21 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
         'aggs': {
             'postcode': {
                 'terms': {
-                    'field': 'postcode.raw',
+                    'field': 'postcode',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'naam': {
                 'terms': {
-                    'field': 'naam.raw',
+                    'field': 'naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
             'buurtcombinatie_naam': {
                 'terms': {
-                    'field': 'buurtcombinatie_naam.raw',
+                    'field': 'buurtcombinatie_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
@@ -54,14 +54,14 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
             },
             'buurt_naam': {
                 'terms': {
-                    'field': 'buurt_naam.raw',
+                    'field': 'buurt_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'ggw_naam': {
                 'terms': {
-                    'field': 'ggw_naam.raw',
+                    'field': 'ggw_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
@@ -75,7 +75,7 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
             },
             'stadsdeel_naam': {
                 'terms': {
-                    'field': 'stadsdeel_naam.raw',
+                    'field': 'stadsdeel_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
