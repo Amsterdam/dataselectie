@@ -100,21 +100,21 @@ DATABASES = {
         'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', 5435),
         'CONN_MAX_AGE': 60,
-    },
+    # },
 
-    'BAG': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
-        'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
-        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
-        'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
-        'CONN_MAX_AGE': 60,
+    # 'BAG': {
+    #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #     'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
+    #     'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
+    #     'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', 'insecure'),
+    #     'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
+    #     'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
+    #     'CONN_MAX_AGE': 60,
     }
 }
 
 # DB routing
-DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter',]
+#DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter',]
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]

@@ -42,7 +42,6 @@ class DataselectieApiTest(ESTestCase):
     def setUp(self):
         self.client = Client()
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag(self):
         """
         Fetch all records (gets the first 100 records)
@@ -57,7 +56,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Problem connectong stadsdeel")
     def test_get_dataselectie_bag_stadsdeel_naam(self):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
@@ -70,7 +68,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 9)
         self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
 
-    @skip("Problem connectong stadsdeel")
     def test_get_dataselectie_bag_stadsdeel_code(self):
         """
         Test the elastic while querying on field `stadsdeel_code`
@@ -84,7 +81,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 9)
         self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
 
-    @skip("Eerst de fixtures fixen")
     def test_get_dataselectie_bag_ggw_naam(self):
         """
         Test the elastic while querying on field `ggw_naam`
@@ -98,7 +94,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 1)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurtcombinatie_naam(self):
         """
         Test the elastic while querying on field `buurtcombinatie_naam`
@@ -113,7 +108,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 7)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurtcombinatie_code(self):
         """
         Test the elastic while querying on field `buurtcombinatie_code`
@@ -126,7 +120,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 7)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_buurt_naam(self):
         """
         Test the elastic while querying on field `buurt_naam`
@@ -139,7 +132,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 2)
         self.assertEqual(res['page_count'], 1)
 
-    @skip("Needs fixing")
     def test_get_dataselectie_bag_postcode(self):
         """
         Test the elastic while querying on field `buurt_naam`
