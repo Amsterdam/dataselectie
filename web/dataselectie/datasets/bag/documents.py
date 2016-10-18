@@ -11,6 +11,9 @@ class NummeraanduidingMeta(es.DocType):
     Used in the dataselectie portal
     """
     nummeraanduiding_id = es.String(index='not_analyzed')
+    _openbare_ruimte_naam = es.String(
+        fields={'raw': es.String(index='not_analyzed')}
+    )
     naam = es.String(
         analyzer=analyzers.adres,
         fields={
@@ -41,7 +44,8 @@ class NummeraanduidingMeta(es.DocType):
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     headers = (
-        'huisnummer', 'huisletter', 'toevoeging', 'postcode', 'hoofdadres',)
+        'huisnummer', 'huisletter', 'toevoeging', 'postcode',
+        'hoofdadres', '_openbare_ruimte_naam')
     doc = NummeraanduidingMeta(_id=item.id)
     doc.nummeraanduiding_id = item.id
     try:

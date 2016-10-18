@@ -54,7 +54,27 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_stadsdeel_naam(self) -> None:
+    def test_sortorder_dataselectie_bag(self):
+        """
+        Fetch all records (gets the first 100 records)
+        """
+        q = dict(page=1)
+        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        previous = ''
+        for olist in res['object_list']:
+            sortcriterium = olist['_openbare_ruimte_naam'].strip() + \
+                            olist['huisnummer'].strip().zfill(5) + \
+                            olist['huisletter'].strip() + \
+                            olist['huisnummer_toevoeging'].strip()
+            self.assertGreaterEqual(sortcriterium, previous)
+            previous = sortcriterium
+
+    def test_get_dataselectie_bag_stadsdeel_naam(self):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
