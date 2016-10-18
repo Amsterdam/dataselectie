@@ -189,9 +189,11 @@ class TableSearchView(ListView):
         Generates a query set based on the ids retrieved from elastic
         """
         ids = elastic_data.get('ids', None)
+
         if ids:
             return self.model.objects.filter(id__in=ids).order_by(
-                '_openbare_ruimte_naam').values()[:self.preview_size]
+                '_openbare_ruimte_naam', 'huisnummer', 'huisletter',
+                'huisnummer_toevoeging').values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()
