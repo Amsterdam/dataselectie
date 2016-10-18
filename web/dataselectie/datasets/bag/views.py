@@ -16,7 +16,7 @@ class BagBase(object):
     """
     model = models.Nummeraanduiding
     index = 'DS_BAG'
-    db = 'BAG'
+    db = 'bag'
     q_func = meta_q
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',

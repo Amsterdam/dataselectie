@@ -5,8 +5,7 @@ class DatasetsRouter(object):
     """
     Routes Datasets to their applicable databases
     For this to work the name of the database settings and the name
-    of the dataset application need to match. Database setings
-    should be uppercase
+    of the dataset application need to match.
 
     example: bag dataset with BAG database settings
     """

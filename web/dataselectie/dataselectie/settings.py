@@ -96,7 +96,6 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', 5435),
         'CONN_MAX_AGE': 60,
     },
-
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
