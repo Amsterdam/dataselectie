@@ -16,27 +16,12 @@ class BagBase(object):
     """
     model = models.Nummeraanduiding
     index = 'DS_BAG'
-    db = 'BAG'
+    db = 'bag'
     q_func = meta_q
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
-
-    @staticmethod
-    def keywords_is_raw():
-        return {
-            'buurt_naam': True,
-            'buurt_code': False,
-            'buurtcombinatie_code': False,
-            'buurtcombinatie_naam': True,
-            'ggw_naam': True,
-            'ggw_code': False,
-            'stadsdeel_naam': True,
-            'stadsdeel_code': False,
-            'naam': True,
-            'postcode': False
-        }
 
 
 class BagSearch(BagBase, TableSearchView):

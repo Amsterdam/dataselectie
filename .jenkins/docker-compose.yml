@@ -46,7 +46,6 @@ tests:
   links:
     - database_dataselectie:database_dataselectie
     - elasticsearch:elasticsearch
-    - test_elasticsearch:test_elasticsearch
     - database_BAG:database_BAG
   environment:
     DATABASE_NAME: dataselectie
@@ -60,7 +59,6 @@ importer:
     build: ../web
     links:
         - elasticsearch:elasticsearch
-        - test_elasticsearch:test_elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
 

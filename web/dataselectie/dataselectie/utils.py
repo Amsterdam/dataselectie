@@ -12,7 +12,7 @@ class ManagedModelTestRunner(DiscoverRunner):
     """
     def __init__(self, *args, **kwargs):
         super(ManagedModelTestRunner, self).__init__(*args, **kwargs)
-        self.verbosity = 0
+        self.verbosity = 2
 
     def setup_test_environment(self, *args, **kwargs):
 

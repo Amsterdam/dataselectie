@@ -96,7 +96,6 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', 5435),
         'CONN_MAX_AGE': 60,
     },
-
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
@@ -117,6 +116,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
 ELASTIC_INDICES = {
     'DS_BAG': 'ds_bag',
 }
+
 MAX_SEARCH_ITEMS = 10000
 
 # The size of the preview to fetch from elastic
@@ -165,3 +165,7 @@ DEBUG = True
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
 JENKINS_TEST_RUNNER = 'dataselectie.utils.JenkinsManagedModelTestRunner'
 IN_TEST_MODE = TESTING
+# Setting test prefix on index names in test
+if TESTING:
+    for k, v in ELASTIC_INDICES.items():
+        ELASTIC_INDICES[k] = 'test_{}'.format(v)

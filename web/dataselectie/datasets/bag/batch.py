@@ -29,7 +29,6 @@ class IndexBagTask(index.ImportIndexTask):
             prefetch_related('openbare_ruimte')
     else:
         queryset = models.Nummeraanduiding.objects. \
-            using('BAG'). \
             prefetch_related('verblijfsobject').\
             prefetch_related('standplaats').\
             prefetch_related('ligplaats').\
