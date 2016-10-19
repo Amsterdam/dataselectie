@@ -83,8 +83,8 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
         assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
-        self.assertEqual(res['object_count'], 9)
-        self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(res['object_count'], 10)
+        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_stadsdeel_code(self):
         """
@@ -96,8 +96,8 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         _ = models.Nummeraanduiding.objects.count()
-        self.assertEqual(res['object_count'], 9)
-        self.assertEqual(res['page_count'], int(9 / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(res['object_count'], 10)
+        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     @skip('Needs to add geo matching for this test to work')
     def test_get_dataselectie_bag_ggw_naam(self):
@@ -124,7 +124,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 7)
+        self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_bag_buurtcombinatie_code(self):
@@ -136,7 +136,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 7)
+        self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_bag_buurt_naam(self):
@@ -148,7 +148,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 2)
+        self.assertEqual(res['object_count'], 3)
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_bag_postcode(self):

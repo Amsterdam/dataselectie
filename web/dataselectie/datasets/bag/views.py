@@ -78,13 +78,13 @@ class BagCSV(BagBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ('_openbare_ruimte_naam', 'huisnummer','huisletter', 'huisnummer_toevoeging', 
-                'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam','ggw_code',
-                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-                'buurt_code', 'bouwblok', 'geometrie_rd',
-                'geometrie_wgs', 'hoofdadres',
-                'type', 'status_id', 'openbare_ruimte_id', 'verblijfsobject_id', 
-                'ligplaats_id', 'standplaats_id', )
+    headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+               'buurt_code', 'bouwblok', 'geometrie_rd',
+               'geometrie_wgs', 'hoofdadres',
+               'type', 'status_id', 'openbare_ruimte_id', 'verblijfsobject_id',
+               'ligplaats_id', 'standplaats_id',)
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
