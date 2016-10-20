@@ -92,16 +92,16 @@ class BagCSV(BagBase, CSVExportView):
     headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
                'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-               'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_x',
+               'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
                'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
-               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type', 'openbare_ruimte_id', 
-               'panden', 'verblijfsobject_id', 'ligplaats_id', 'standplaats_id', 'id')
+               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type', 'status', 'openbare_ruimte', 
+               'panden', 'verblijfsobject', 'ligplaats', 'standplaats', 'landelijk_id')
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
                'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
                'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-               'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)'
-               'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel'
-               'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype'
+               'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)',
+               'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel',
+               'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
                'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie', 
                'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
                'Nummeraanduidingidentificatie')
@@ -128,22 +128,50 @@ class BagCSV(BagBase, CSVExportView):
                 geom = geom.coords
             dict_item = self._model_to_dict(item)
             dict_item.update({
-                'geometrie_rd_x': geom[0],
-                'geometrie_rd_y': geom[1],
-                'geometrie_wgs_lat': geom_wgs[0],
-                'geometrie_wgs_lon': geom_wgs[1]
+                'geometrie_rd_x': int(geom[0]),
+                'geometrie_rd_y': int(geom[1]),
+                'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+                'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
             })
+            # Changing true/flase to yes/no
+            dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
             # Adding Verblijfobject specifiek data
             if item.verblijfsobject:
-                verblijfsobject_data = ['bouwblok', 'gebruiksdoel_omschrijving', 'oppervlakte']
+                verblijfsobject_data = ['gebruiksdoel_omschrijving', 'oppervlakte']
                 for meta in verblijfsobject_data:
                     dict_item[meta] = getattr(item.verblijfsobject, meta, '')
                 # Fetelijk gebruik
-                dict_item['gebruik'] = item.verblijfsobject.gebruik.omschrijving
-                dict_item['status'] = item.verblijfsobject.status.omschrijving
-                dict_item['panden'] = item.verblijfsobject.panden.join('/')
-            # Updating type
-            dict_item['type'] = self.model.OBJECT_TYPE_CHOICES(dict_item['type'])
+                try:
+                    dict_item['bouwblok'] = item.verblijfsobject.bouwblok.code
+                except AttributeError:
+                    dict_item['bouwblok'] = ''
+                try:
+                    dict_item['gebruik'] = item.verblijfsobject.gebruik.omschrijving
+                except AttributeError:
+                    dict_item['gebruik'] = ''
+                try:
+                    dict_item['status'] = item.verblijfsobject.status.omschrijving
+                except AttributeError:
+                    print('No status')
+                    dict_item['status'] = ''
+                try:
+                    dict_item['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
+                except AttributeError:
+                    dict_item['panden'] = ''
+                # Trying to update to landelijk id
+                landelijk_ids = ['openbare_ruimte', 'verblijfsobject', 'ligplaats', 'standplaats']
+                for sub_item_name in landelijk_ids:
+                    try:
+                        ref_item = getattr(item, sub_item_name, None)
+                        dict_item['sub_item_name'] = ref_item.landelijk_id
+                    except:
+                        pass
+
+            # Converting type
+            type_code = int(dict_item['type']) - 1
+            dict_item['type'] = self.model.OBJECT_TYPE_CHOICES[type_code][1]
+
+            # Saving the dict
             data.append(dict_item)
         return data
 

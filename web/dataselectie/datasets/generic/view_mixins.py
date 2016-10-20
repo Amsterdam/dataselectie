@@ -275,8 +275,8 @@ class CSVExportView(TableSearchView):
         """
         # Als eerst geef de headers terug
         header_dict = {}
-        for h in self.pretty_headers:
-            header_dict[h] = self.sanitize(h)
+        for i in range(len(self.headers)):
+            header_dict[self.headers[i]] = self.pretty_headers[i]
         yield header_dict
         more = True
         counter = 0
@@ -305,12 +305,6 @@ class CSVExportView(TableSearchView):
                 for key in self.headers:
                     resp[key] = item.get(key, '')
                 yield resp
-
-    @staticmethod
-    def sanitize(header):
-        if header[0] in ('_', '-'):
-            return header[1:]
-        return header
 
     def _model_to_dict(self, item):
         """
