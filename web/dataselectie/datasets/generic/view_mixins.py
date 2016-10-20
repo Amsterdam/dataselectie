@@ -341,7 +341,9 @@ class CSVExportView(TableSearchView):
                  not isinstance(v, str)}
             )
             # Adding the elastic context
-            item.update(es[item['id']]['_source'])
+            for key, value in es[item['id']]['_source'].items():
+                if key not in item:
+                    item[key] = value
         return data
 
 

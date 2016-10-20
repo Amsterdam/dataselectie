@@ -159,7 +159,6 @@ class BagCSV(BagBase, CSVExportView):
             # Converting type
             type_code = int(dict_item['type']) - 1
             dict_item['type'] = self.model.OBJECT_TYPE_CHOICES[type_code][1]
-
             # Saving the dict
             data.append(dict_item)
         return data
