@@ -246,6 +246,7 @@ class CSVExportView(TableSearchView):
 
     preview_size = None  # This is not relevant for csv export
     headers = []  # The headers of the csv
+    pretty_headers = []  # The pretty version of the headers
 
     def get_context_data(self, **kwargs):
         """
@@ -268,13 +269,13 @@ class CSVExportView(TableSearchView):
         # Returning the elastic generator
         return scan(self.elastic, query=query)
 
-    def result_generator(self, headers, es_generator, batch_size=100):
+    def result_generator(self, es_generator, batch_size=100):
         """
         Generate the result set for the CSV eport
         """
         # Als eerst geef de headers terug
         header_dict = {}
-        for h in headers:
+        for h in self.pretty_headers:
             header_dict[h] = self.sanitize(h)
         yield header_dict
         more = True
@@ -301,7 +302,7 @@ class CSVExportView(TableSearchView):
             for item in data:
                 # Only returning fields from the headers
                 resp = {}
-                for key in headers:
+                for key in self.headers:
                     resp[key] = item.get(key, '')
                 yield resp
 

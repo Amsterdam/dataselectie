@@ -92,10 +92,19 @@ class BagCSV(BagBase, CSVExportView):
     headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
                'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-               'buurt_code', 'bouwblok', 'geometrie_rd',
-               'geometrie_wgs', 'hoofdadres',
-               'type', 'status_id', 'openbare_ruimte_id', 'verblijfsobject_id',
-               'ligplaats_id', 'standplaats_id',)
+               'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_x',
+               'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
+               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type', 'openbare_ruimte_id', 
+               'panden', 'verblijfsobject_id', 'ligplaats_id', 'standplaats_id', 'id')
+    pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
+               'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
+               'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
+               'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)'
+               'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel'
+               'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype'
+               'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie', 
+               'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
+               'Nummeraanduidingidentificatie')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
@@ -118,7 +127,23 @@ class BagCSV(BagBase, CSVExportView):
                 geom_wgs = geom.transform('wgs84', clone=True).coords
                 geom = geom.coords
             dict_item = self._model_to_dict(item)
-            dict_item.update({'geometrie_rd': geom, 'geometrie_wgs': geom_wgs})
+            dict_item.update({
+                'geometrie_rd_x': geom[0],
+                'geometrie_rd_y': geom[1],
+                'geometrie_wgs_lat': geom_wgs[0],
+                'geometrie_wgs_lon': geom_wgs[1]
+            })
+            # Adding Verblijfobject specifiek data
+            if item.verblijfsobject:
+                verblijfsobject_data = ['bouwblok', 'gebruiksdoel_omschrijving', 'oppervlakte']
+                for meta in verblijfsobject_data:
+                    dict_item[meta] = getattr(item.verblijfsobject, meta, '')
+                # Fetelijk gebruik
+                dict_item['gebruik'] = item.verblijfsobject.gebruik.omschrijving
+                dict_item['status'] = item.verblijfsobject.status.omschrijving
+                dict_item['panden'] = item.verblijfsobject.panden.join('/')
+            # Updating type
+            dict_item['type'] = self.model.OBJECT_TYPE_CHOICES(dict_item['type'])
             data.append(dict_item)
         return data
 
@@ -130,7 +155,7 @@ class BagCSV(BagBase, CSVExportView):
         writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
 
         # Streaming!
-        gen = self.result_generator(self.headers, context['object_list'])
+        gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(
             (writer.writerow(row) for row in gen), content_type="text/csv")
         response['Content-Disposition'] = \
