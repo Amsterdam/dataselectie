@@ -73,16 +73,6 @@ class BagSearch(BagBase, TableSearchView):
         context['total'] = self.extra_context_data['total']
         return context
 
-    @staticmethod
-    def get_term_and_value(filter_keyword, val):
-        """
-        Overwrtiting for specific class implementation
-        """
-        # Currently only openbare ruimte naam has more then only raw
-        if filter_keyword == 'naam':
-            filter_keyword = 'naam.raw'
-        return {filter_keyword: val}
-
 
 class BagCSV(BagBase, CSVExportView):
     """

@@ -8,7 +8,7 @@ from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
-from datasets.bag import models
+from datasets.bag import models, views
 from datasets.bag.tests import fixture_utils
 
 
@@ -164,6 +164,25 @@ class DataselectieApiTest(ESTestCase):
         postcode_count = models.Nummeraanduiding.objects.filter(postcode=q['postcode']).count()
         self.assertEqual(res['object_count'], postcode_count)
         self.assertEqual(res['page_count'], int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
+
+    def test_setting_raw_fields(self):
+        """
+        Tests that the query generated adds raw where it is needed
+        """
+        table_view = views.BagSearch()
+        filter_dict = {}
+        extra_field = 'this_is_clearly_not_a_field_in_elastic_so_we_can_use_it'
+        fields = table_view.raw_fields + [extra_field]
+        for item in fields:
+            filter_dict.update(table_view.get_term_and_value(item, 'Value'))
+        # Now to check that every field in the raw has the .raw finish but not the last item
+        for field in table_view.raw_fields:
+            self.assertIn('{}.raw'.format(field), filter_dict.keys())
+            self.assertNotIn(field, filter_dict.keys())
+        # Making sure the not raw field is in without the raw
+        self.assertIn(extra_field, filter_dict.keys())
+        self.assertNotIn('{}.raw'.format(extra_field), filter_dict.keys())
+
 
     def tearDown(self):
         pass
