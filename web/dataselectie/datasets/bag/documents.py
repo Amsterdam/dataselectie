@@ -12,7 +12,7 @@ class NummeraanduidingMeta(es.DocType):
     """
     nummeraanduiding_id = es.String(index='not_analyzed')
     _openbare_ruimte_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
+        fields={'raw':es.String(index='not_analyzed')}
     )
     naam = es.String(
         analyzer=analyzers.adres,
@@ -22,7 +22,6 @@ class NummeraanduidingMeta(es.DocType):
                 analyzer=analyzers.autocomplete, search_analyzer='standard'
             ),
             'keyword': es.String(analyzer=analyzers.subtype),
-
         }
     )
     huisnummer = es.Integer()
@@ -90,7 +89,7 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         try:
             doc.stadsdeel_code = item.stadsdeel.code
             doc.stadsdeel_naam = item.stadsdeel.naam
-        except:
-            print('Cannot add stadsdeel') 
+        except Exception as e:
+            print('Cannot add stadsdeel', repr(e)) 
 
     return doc

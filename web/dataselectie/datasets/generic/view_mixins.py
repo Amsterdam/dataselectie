@@ -26,6 +26,7 @@ class TableSearchView(ListView):
     model = None  # The model class to use
     index = ''  # The name of the index to search in
     keywords = []  # A set of optional keywords to filter the results further
+    raw_fields = []  # Fields in elastic that should be used in raw version
     preview_size = settings.SEARCH_PREVIEW_SIZE
 
     def __init__(self):
@@ -225,8 +226,7 @@ class TableSearchView(ListView):
         """
         return context
 
-    @staticmethod
-    def get_term_and_value(filter_keyword, val):
+    def get_term_and_value(self, filter_keyword, val):
         """
         Some fields need to be searched raw while others are analysed with the default string analyser which will
         automatically convert the fields to lowercase in de the index.
@@ -234,6 +234,8 @@ class TableSearchView(ListView):
         :param val: the value we are searching for
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
+        if filter_keyword in self.raw_fields:
+            filter_keyword = "{}.raw".format(filter_keyword)
         return {filter_keyword: val}
 
 

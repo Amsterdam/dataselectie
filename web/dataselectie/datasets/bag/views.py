@@ -22,6 +22,7 @@ class BagBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+    raw_fields = ['naam', '_openbare_ruimte_naam']
 
 
 class BagSearch(BagBase, TableSearchView):
@@ -71,6 +72,16 @@ class BagSearch(BagBase, TableSearchView):
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
+
+    @staticmethod
+    def get_term_and_value(filter_keyword, val):
+        """
+        Overwrtiting for specific class implementation
+        """
+        # Currently only openbare ruimte naam has more then only raw
+        if filter_keyword == 'naam':
+            filter_keyword = 'naam.raw'
+        return {filter_keyword: val}
 
 
 class BagCSV(BagBase, CSVExportView):

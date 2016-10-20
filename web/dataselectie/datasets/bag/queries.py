@@ -26,7 +26,7 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
             },
             'naam': {
                 'terms': {
-                    'field': 'naam',
+                    'field': 'naam.raw',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
