@@ -183,4 +183,6 @@ class BagCSV(BagBase, CSVExportView):
         return response
 
     def paginate(self, offset, q):
+        if 'size' in q:
+            del(q['size'])
         return q
