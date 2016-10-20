@@ -140,10 +140,6 @@ class BagCSV(BagBase, CSVExportView):
                 except AttributeError:
                     pass
                 try:
-                    dict_item['status'] = item.verblijfsobject.status.omschrijving
-                except AttributeError:
-                    pass
-                try:
                     dict_item['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
                 except AttributeError:
                     pass
@@ -155,7 +151,10 @@ class BagCSV(BagBase, CSVExportView):
                         dict_item[sub_item_name] = ref_item.landelijk_id
                     except:
                         pass
-
+            try:
+                dict_item['status'] = item.adresseerbaar_object.status.omschrijving
+            except AttributeError:
+                pass
             # Converting type
             type_code = int(dict_item['type']) - 1
             dict_item['type'] = self.model.OBJECT_TYPE_CHOICES[type_code][1]
