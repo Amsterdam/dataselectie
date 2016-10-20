@@ -142,7 +142,6 @@ class BagCSV(BagBase, CSVExportView):
                 try:
                     dict_item['status'] = item.verblijfsobject.status.omschrijving
                 except AttributeError:
-                    print('No status')
                     dict_item['status'] = ''
                 try:
                     dict_item['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])

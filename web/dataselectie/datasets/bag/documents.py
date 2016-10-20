@@ -90,6 +90,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
             doc.stadsdeel_code = item.stadsdeel.code
             doc.stadsdeel_naam = item.stadsdeel.naam
         except Exception as e:
-            print('Cannot add stadsdeel', repr(e)) 
+            pass
 
     return doc
