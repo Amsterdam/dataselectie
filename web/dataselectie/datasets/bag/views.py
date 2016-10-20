@@ -134,25 +134,25 @@ class BagCSV(BagBase, CSVExportView):
                 try:
                     dict_item['bouwblok'] = item.verblijfsobject.bouwblok.code
                 except AttributeError:
-                    dict_item['bouwblok'] = ''
+                    pass
                 try:
                     dict_item['gebruik'] = item.verblijfsobject.gebruik.omschrijving
                 except AttributeError:
-                    dict_item['gebruik'] = ''
+                    pass
                 try:
                     dict_item['status'] = item.verblijfsobject.status.omschrijving
                 except AttributeError:
-                    dict_item['status'] = ''
+                    pass
                 try:
                     dict_item['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
                 except AttributeError:
-                    dict_item['panden'] = ''
+                    pass
                 # Trying to update to landelijk id
                 landelijk_ids = ['openbare_ruimte', 'verblijfsobject', 'ligplaats', 'standplaats']
                 for sub_item_name in landelijk_ids:
                     try:
                         ref_item = getattr(item, sub_item_name, None)
-                        dict_item['sub_item_name'] = ref_item.landelijk_id
+                        dict_item[sub_item_name] = ref_item.landelijk_id
                     except:
                         pass
 
