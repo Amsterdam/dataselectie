@@ -178,6 +178,7 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
+        print(query)
         response = self.elastic.search(index=settings.ELASTIC_INDICES['DS_BAG'], body=query)
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
@@ -266,6 +267,7 @@ class CSVExportView(TableSearchView):
         # Making sure there is no pagination
         if query is not None and 'from' in query:
             del (query['from'])
+        print(query)
         # Returning the elastic generator
         return scan(self.elastic, query=query)
 

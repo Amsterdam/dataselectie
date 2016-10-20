@@ -107,6 +107,7 @@ class BagCSV(BagBase, CSVExportView):
         """
         data = []
         for item in qs:
+            dict_item = self._model_to_dict(item)
             geom_wgs = None
             try:
                 geom = item.adresseerbaar_object.geometrie.centroid
@@ -116,13 +117,12 @@ class BagCSV(BagBase, CSVExportView):
                 # Convert to wgs
                 geom_wgs = geom.transform('wgs84', clone=True).coords
                 geom = geom.coords
-            dict_item = self._model_to_dict(item)
-            dict_item.update({
-                'geometrie_rd_x': int(geom[0]),
-                'geometrie_rd_y': int(geom[1]),
-                'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
-                'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
-            })
+                dict_item.update({
+                    'geometrie_rd_x': int(geom[0]),
+                    'geometrie_rd_y': int(geom[1]),
+                    'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+                    'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
+                })
             # Changing true/flase to yes/no
             dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
             # Adding Verblijfobject specifiek data
