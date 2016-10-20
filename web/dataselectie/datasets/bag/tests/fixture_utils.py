@@ -96,7 +96,7 @@ def create_gemeente_fixture():
     :return: returns a list with a gemeente fixture
     """
     return [models.Gemeente.objects.get_or_create(id='03630000000000', code='0363', naam='Amsterdam',
-                                                  verzorginsgebied=True, vervallen=False)]
+                                                  verzorgingsgebied=True, vervallen=False)]
 
 
 def create_woonplaats_fixture():
@@ -173,6 +173,13 @@ def create_verblijfsobject_fixtures():
                                                      _openbare_ruimte_naam="Leidsestraat", _huisnummer=15,
                                                      _huisletter='', _huisnummer_toevoeging="",
                                                      buurt_id="2"),
+        models.Verblijfsobject.objects.get_or_create(id="03630000543295", landelijk_id="0363010000543295",
+                                                     gebruiksdoel_code="1010", gebruiksdoel_omschrijving="BEST-woning",
+                                                     oppervlakte=48, bouwlaag_toegang=2, woningvoorraad=True,
+                                                     aantal_kamers=2, vervallen=0,
+                                                     _openbare_ruimte_naam="Leidsestraat", _huisnummer=15,
+                                                     _huisletter='', _huisnummer_toevoeging="",
+                                                     buurt_id="2"),
         models.Verblijfsobject.objects.get_or_create(id="03630000543296", landelijk_id="0363010000543296",
                                                      gebruiksdoel_code="1010", gebruiksdoel_omschrijving="BEST-woning",
                                                      oppervlakte=32, bouwlaag_toegang=1, woningvoorraad=True,
@@ -243,6 +250,7 @@ def create_nummeraanduiding_fixtures():
     depends on openbare_ruimte_fixtures, verblijfsobject_fixtures, standplaats_fixtures and ligplaats_fixtures
     :return: a list of nummeraanduiding objects
     """
+    create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
     create_openbare_ruimte_fixtures()
     create_verblijfsobject_fixtures()

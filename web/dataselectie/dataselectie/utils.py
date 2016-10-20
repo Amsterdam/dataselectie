@@ -1,7 +1,6 @@
 # Packages
 from django.apps import apps
 from django.test.runner import DiscoverRunner
-from django_jenkins.runner import CITestSuiteRunner
 
 
 class ManagedModelTestRunner(DiscoverRunner):
@@ -19,15 +18,10 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.unmanaged_models = [model for _, model in apps.all_models['bag'].items() if not model._meta.managed]
         for m in self.unmanaged_models:
             m._meta.managed = True
-        super(ManagedModelTestRunner, self).setup_test_environment(*args, **kwargs)
+        super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
 
     def teardown_test_environment(self, *args, **kwargs):
-        super(ManagedModelTestRunner, self).teardown_test_environment(*args, **kwargs)
+        super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
         # reset unmanaged models
         for m in self.unmanaged_models:
             m._meta.managed = False
-
-
-class JenkinsManagedModelTestRunner(CITestSuiteRunner, ManagedModelTestRunner):
-    def __init__(self, *args, **kwargs):
-        super(JenkinsManagedModelTestRunner, self).__init__(*args, **kwargs)
