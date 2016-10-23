@@ -342,8 +342,8 @@ class CSVExportView(TableSearchView):
             )
             # Adding the elastic context
             for key, value in es[item['id']]['_source'].items():
-                if key not in item:
-                    item[key] = value
+                #if key not in item:
+                item[key] = value
         return data
 
 
