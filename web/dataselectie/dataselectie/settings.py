@@ -15,7 +15,7 @@ import re
 import sys
 
 
-def _get_docker_host():
+def _get_docker_host() -> str:
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
@@ -32,7 +32,7 @@ insecure_key = 'insecure'
 SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', insecure_key)
 DEBUG = SECRET_KEY == insecure_key
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = []  # type: List[str]
 SITE_ID = 1
 
 # Application definition
@@ -94,7 +94,7 @@ DATABASES = {
         'USER': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_USER', 'dataselectie'),
         'PASSWORD': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', 5435),
+        'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', '5435'),
         'CONN_MAX_AGE': 60,
     },
     'bag': {
@@ -103,7 +103,7 @@ DATABASES = {
         'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', 5436),
+        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
         'CONN_MAX_AGE': 60,
     }
 }
@@ -112,7 +112,7 @@ DATABASES = {
 DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
-    os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', 9200))]
+    os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', '9200'))]
 
 ELASTIC_INDICES = {
     'DS_BAG': 'ds_bag',

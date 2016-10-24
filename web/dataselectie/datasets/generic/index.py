@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 class DeleteIndexTask(object):
     index = ''
-    doc_types = []
+    doc_types = []  # type: List[str]
     name = 'remove index'
 
     def __init__(self):

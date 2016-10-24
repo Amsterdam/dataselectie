@@ -1,7 +1,7 @@
 # Python
-import json
 from datetime import date, datetime
-
+import json
+from typing import List
 # Packages
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
@@ -23,10 +23,14 @@ class TableSearchView(ListView):
     """
     # attributes:
     # ---------------------
-    model = None  # The model class to use
-    index = ''  # The name of the index to search in
-    keywords = []  # A set of optional keywords to filter the results further
-    raw_fields = []  # Fields in elastic that should be used in raw version
+    # The model class to use
+    model = None  # type: object
+    # The name of the index to search in
+    index = ''  # type: str
+    # A set of optional keywords to filter the results further
+    keywords = []  # type: List[str]
+    # Fields in elastic that should be used in raw version
+    raw_fields = []  # type: List[str]
     preview_size = settings.SEARCH_PREVIEW_SIZE
 
     def __init__(self):
@@ -243,10 +247,12 @@ class CSVExportView(TableSearchView):
     """
     A base class to generate csv exports
     """
-
-    preview_size = None  # This is not relevant for csv export
-    headers = []  # The headers of the csv
-    pretty_headers = []  # The pretty version of the headers
+    # This is not relevant for csv export
+    preview_size = None  # type: int
+    # The headers of the csv
+    headers = []  # type: List[str]
+    # The pretty version of the headers
+    pretty_headers = []  # type: List[str]
 
     def get_context_data(self, **kwargs):
         """

@@ -49,7 +49,6 @@ class NummeraanduidingMeta(es.DocType):
     hoofdadres = es.String(index='not_analyzed')  # Is there a choice option?
     # Landelijke codes
     openabre_ruimte_landelijk_id = es.String(index='not_analyzed')
-    nummeraanduiding_landelijk_id = es.String(index='not_analyzed')
     verblijfsobject = es.String(index='not_analyzed')
     ligplaats = es.String(index='not_analyzed')
     standplaats = es.String(index='not_analyzed')
@@ -62,9 +61,10 @@ class NummeraanduidingMeta(es.DocType):
     panden = es.String(index='not_analyzed')
 
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
+def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
     doc = NummeraanduidingMeta(_id=item.id)
     parameters = [
+        ('nummeraanduiding_id', 'id'),
         ('naam', 'openbare_ruimte.naam'),
         ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
         ('huisnummer', 'huisnummer'),
@@ -73,12 +73,11 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
-        ('buurtcombinatie_naam', 'adresseerbaar_object.buurtcombinatie.naam'),
+        ('buurtcombinatie_naam', 'adresseerbaar_object.buurt.buurtcombinatie.naam'),
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
         # Landelijke IDs
-        ('nummeraanduiding_id', 'id'),
         ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
@@ -120,10 +119,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[int(item.type) - 1][1]
     except Exception as e:
         print('9', repr(e))
-    try:
-        doc.hoofdadres = 'Ja' if item.hoofdadres else 'Nee'
-    except:
-        print('15', repr(e))
 
     # Verblijfsobject specific
     if item.verblijfsobject:
@@ -144,7 +139,7 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     return doc
 
 
-def update_doc_from_param_list(doc, item, params):
+def update_doc_from_param_list(doc: dict, item: object, params: list) -> None:
     for (attr, obj_link) in params:
         value = item
         obj_link = obj_link.split('.')

@@ -40,7 +40,5 @@ class DataselectieExportTest(ESTestCase):
     def setUp(self):
         self.client = Client()
 
-
     def tearDown(self):
         pass
-

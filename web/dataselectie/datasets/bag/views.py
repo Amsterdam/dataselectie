@@ -161,7 +161,10 @@ class BagCSV(BagBase, CSVExportView):
             # ------------------------
             # Adding geometry
             dict_item.update(self.create_geometry_dict(item))
-
+            try:
+                dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
+            except:
+                pass
             # Saving the dict
             data.append(dict_item)
         return data
