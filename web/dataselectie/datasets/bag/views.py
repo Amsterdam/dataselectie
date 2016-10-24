@@ -84,21 +84,20 @@ class BagCSV(BagBase, CSVExportView):
                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
                'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
                'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
-               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status', 'openbare_ruimte', 
+               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status', 'openbare_ruimte',
                'panden', 'verblijfsobject', 'ligplaats', 'standplaats', 'landelijk_id')
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
-               'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
-               'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-               'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)',
-               'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel',
-               'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
-               'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie', 
-               'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
-               'Nummeraanduidingidentificatie')
+                      'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
+                      'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
+                      'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)',
+                      'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel',
+                      'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
+                      'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
+                      'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
+                      'Nummeraanduidingidentificatie')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
-
 
     def create_geometry_dict(self, db_item):
         """
@@ -153,37 +152,16 @@ class BagCSV(BagBase, CSVExportView):
         """
         Overwriting the default conversion so that location data
         can be retrieved through the adresseerbaar_object
-        and convert to wgs84 
+        and convert to wgs84
         """
         data = []
         for item in qs:
             dict_item = self._model_to_dict(item)
             # BAG Specific updates.
-            #------------------------
+            # ------------------------
             # Adding geometry
             dict_item.update(self.create_geometry_dict(item))
-            # Updating status to description
-            # try:
-            #     dict_item['status'] = item.adresseerbaar_object.status.omschrijving
-            # except AttributeError:
-            #     pass
-            # # Converting type
-            #type_code = int(dict_item['type']) - 1
-            #dict_item['type'] = self.model.OBJECT_TYPE_CHOICES[type_code][1]
-            # Changing true/flase to yes/no
-            #dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
-            # Updating to landelijk id
-            # landelijk_ids = ['openbare_ruimte', 'adresseerbaar_object']
-            # for sub_item_name in landelijk_ids:
-            #     try:
-            #         ref_item = getattr(item, sub_item_name, None)
-            #         dict_item[sub_item_name] = ref_item.landelijk_id
-            #     except:
-            #         pass
-            # Adding Verblijfobject specifiek data
-            #if item.verblijfsobject:
-            #    dict_item.update(self.verblijfsobject_updates(item))
-                    
+
             # Saving the dict
             data.append(dict_item)
         return data

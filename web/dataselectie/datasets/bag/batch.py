@@ -18,7 +18,6 @@ class DeleteBagIndexTask(index.DeleteIndexTask):
     doc_types = BAG_DOC_TYPES
 
 
-
 class IndexBagTask(index.ImportIndexTask):
     name = "index bag data"
     if settings.IN_TEST_MODE:

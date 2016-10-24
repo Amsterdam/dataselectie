@@ -75,7 +75,9 @@ class Command(BaseCommand):
 
     def act_on_result(self, job_execution):
         if job_execution.status == JobExecution.STATUS_FAILED:
-            self.stderr.write("Job {} failed, exiting".format(job_execution.name))
+            self.stderr.write(
+                "Job {} failed, exiting".format(job_execution.name)
+            )
             sys.exit(1)
 
     def handle(self, *args, **options):

@@ -13,7 +13,7 @@ class NummeraanduidingMeta(es.DocType):
     nummeraanduiding_id = es.String(index='not_analyzed')
 
     _openbare_ruimte_naam = es.String(
-        fields={'raw':es.String(index='not_analyzed')}
+        fields={'raw': es.String(index='not_analyzed')}
     )
     naam = es.String(
         analyzer=analyzers.adres,
@@ -85,7 +85,7 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
-    
+
     # Saving centroind of it exists
     try:
         doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84')
@@ -142,6 +142,7 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
             print('13', repr(e))
 
     return doc
+
 
 def update_doc_from_param_list(doc, item, params):
     for (attr, obj_link) in params:

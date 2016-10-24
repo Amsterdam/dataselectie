@@ -78,7 +78,7 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
-        q = {'page':1, 'stadsdeel_naam': 'Centrum'}
+        q = {'page': 1, 'stadsdeel_naam': 'Centrum'}
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
@@ -182,7 +182,6 @@ class DataselectieApiTest(ESTestCase):
         # Making sure the not raw field is in without the raw
         self.assertIn(extra_field, filter_dict.keys())
         self.assertNotIn('{}.raw'.format(extra_field), filter_dict.keys())
-
 
     def tearDown(self):
         pass
