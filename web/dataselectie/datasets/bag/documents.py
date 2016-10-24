@@ -64,64 +64,58 @@ class NummeraanduidingMeta(es.DocType):
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
     doc = NummeraanduidingMeta(_id=item.id)
-    doc.nummeraanduiding_id = item.id
+    parameters = [
+        ('naam', 'openbare_ruimte.naam'),
+        ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
+        ('huisnummer', 'huisnummer'),
+        ('huisletter', 'huisletter'),
+        ('toevoeging', 'toevoeging'),
+        ('postcode', 'postcode'),
+        ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
+        ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
+        ('buurtcombinatie_naam', 'adresseerbaar_object.buurtcombinatie.naam'),
+        ('status', 'adresseerbaar_object.status.omschrijving'),
+        ('stadsdeel_code', 'stadsdeel.code'),
+        ('stadsdeel_naam', 'stadsdeel.naam'),
+        # Landelijke IDs
+        ('nummeraanduiding_id', 'id'),
+        ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
+        ('ligplaats', 'ligplaats.landelijk_id'),
+        ('standplaats', 'standplaats.landelijk_id'),
+    ]
+    # Adding the attributes
+    update_doc_from_param_list(doc, item, parameters)
+    
+    # Saving centroind of it exists
     try:
-        doc.naam = item.openbare_ruimte.naam
+        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84')
     except Exception as e:
-        print('1', repr(e))
-        doc.naam = ''
-    try:
-        doc.woonplaats = item.openbare_ruimte.woonplaats.naam
-    except Exception as e:
-        print('2', repr(e))
-    # Identifing the spatial object
-    obj = item.adresseerbaar_object
-    headers = (
-        'huisnummer', 'huisletter', 'toevoeging', 'postcode',
-        '_openbare_ruimte_naam')
-    for key in headers:
-        setattr(doc, key, getattr(item, key, None))
-    if obj:
-        # Saving centroind of it exists
-        try:
-            doc.centroid = obj.geometrie.centroid.transform('wgs84')
-        except Exception as e:
-            print('3', repr(e))
-            doc.centroid = None
+        print('3', repr(e))
+        doc.centroid = None
 
-        # Adding the buurt -> stadsdeel data
-        try:
-            ggw = models.Gebiedsgerichtwerken.objects.filter(
-                geometrie__contains=obj.geometrie).first()
-            if ggw:
-                doc.ggw_code = ggw.code
-                doc.ggw_naam = ggw.naam
-        except Exception as e:
-            print('4', repr(e))
-        try:
-            doc.buurt_naam = obj.buurt.naam
-            doc.buurt_code = '%s%s' % (
-                str(obj.buurt.stadsdeel.code), str(obj.buurt.code)
-            )
-        except Exception as e:
-            print('5', repr(e))
-        try:
-            doc.buurtcombinatie_naam = obj.buurt.buurtcombinatie.naam
-            doc.buurtcombinatie_code = '%s%s' % (
-                obj.buurt.stadsdeel.code, str(obj.buurt.buurtcombinatie.code)
-            )
-        except Exception as e:
-            print('6', repr(e))
-        # Extended information
-        try:
-            doc.status = obj.status.omschrijving
-        except Exception as e:
-            print('7', repr(e))
+    # Adding the ggw data
     try:
-        doc.stadsdeel_code = item.stadsdeel.code
-        doc.stadsdeel_naam = item.stadsdeel.naam
+        ggw = models.Gebiedsgerichtwerken.objects.filter(
+            geometrie__contains=item.adresseerbaar_object.geometrie).first()
+        if ggw:
+            doc.ggw_code = ggw.code
+            doc.ggw_naam = ggw.naam
     except Exception as e:
-        print('8', repr(e))
+        print('4', repr(e))
+    try:
+        doc.buurt_code = '%s%s' % (
+            str(item.adresseerbaar_object.buurt.stadsdeel.code),
+            str(item.adresseerbaar_object.buurt.code)
+        )
+    except Exception as e:
+        print('5', repr(e))
+    try:
+        doc.buurtcombinatie_code = '%s%s' % (
+            str(item.adresseerbaar_object.buurt.stadsdeel.code),
+            str(item.adresseerbaar_object.buurt.buurtcombinatie.code)
+        )
+    except Exception as e:
+        print('6', repr(e))
     try:
         doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[int(item.type) - 1][1]
     except Exception as e:
@@ -130,45 +124,32 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
         doc.hoofdadres = 'Ja' if item.hoofdadres else 'Nee'
     except:
         print('15', repr(e))
-    # Landelijke IDs
-    try:
-        doc.openabre_ruimte_landelijk_id = item.openbare_ruimte.landelijk_id
-    except Exception as e:
-        print('16', repr(e))
-    try:
-        doc.verblijfsobject = item.verblijfsobject.landelijk_id
-    except Exception as e:
-        print('17', repr(e))
-    try:
-        doc.ligplaats = item.ligplaats.landelijk_id
-    except Exception as e:
-        print('18', repr(e))
-    try:
-        doc.standplaats = item.standplaats.landelijk_id
-    except Exception as e:
-        print('19', repr(e))
 
     # Verblijfsobject specific
     if item.verblijfsobject:
+        obj = item.verblijfsobject
+        verblijfsobject_extra = [
+            ('verblijfsobject', 'landelijk_id'),
+            ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
+            ('oppervlakte', 'oppervlakte'),
+            ('bouwblok', 'bouwblok.code'),
+            ('gebruik', 'gebruik.omschrijving')
+        ]
+        update_doc_from_param_list(doc, obj, verblijfsobject_extra)
         try:
-            doc.gebruiksdoel_omschrijving = item.verblijfsobject.gebruiksdoel_omschrijving
-        except Exception as e:
-            print('14', repr(e))
-        try:
-            doc.oppervlakte = item.verblijfsobject.oppervlakte
-        except Exception as e:
-            print('10', repr(e))
-        try:
-            doc.bouwblok = item.verblijfsobject.bouwblok.code
-        except Exception as e:
-            print('11', repr(e))
-        try:
-            doc.gebruik = item.verblijfsobject.gebruik.omschrijving
-        except Exception as e:
-            print('12', repr(e))
-        try:
-            doc.panden = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
+            doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
         except Exception as e:
             print('13', repr(e))
 
     return doc
+
+def update_doc_from_param_list(doc, item, params):
+    for (attr, obj_link) in params:
+        value = item
+        obj_link = obj_link.split('.')
+        try:
+            for link in obj_link:
+                value = getattr(value, link, None)
+            setattr(doc, attr, value)
+        except Exception as e:
+            print(attr, repr(e))
