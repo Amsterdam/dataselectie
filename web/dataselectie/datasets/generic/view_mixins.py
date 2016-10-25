@@ -1,7 +1,8 @@
 # Python
 from datetime import date, datetime
 import json
-from typing import List
+from typing import Any
+#from typing import List, Tuple
 # Packages
 from django.conf import settings
 from django.db import models
@@ -11,7 +12,8 @@ from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
-
+# Project
+from datasets.bag.models import Nummeraanduiding
 
 # =============================================================
 # Views
@@ -29,10 +31,10 @@ class TableSearchView(ListView):
     # The name of the index to search in
     index = ''  # type: str
     # A set of optional keywords to filter the results further
-    keywords = None  # type: Tuple[str]
+    keywords = None  # type: tuple[str]
     # Fields in elastic that should be used in raw version
-    raw_fields = []  # type: List[str]
-    preview_size = settings.SEARCH_PREVIEW_SIZE
+    raw_fields = None  # type: list[str]
+    preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -251,9 +253,9 @@ class CSVExportView(TableSearchView):
     # This is not relevant for csv export
     preview_size = None  # type: int
     # The headers of the csv
-    headers = []  # type: List[str]
+    headers = []  # type: list[str]
     # The pretty version of the headers
-    pretty_headers = []  # type: List[str]
+    pretty_headers = []  # type: list[str]
 
     def get_context_data(self, **kwargs):
         """
@@ -313,12 +315,12 @@ class CSVExportView(TableSearchView):
                     resp[key] = item.get(key, '')
                 yield resp
 
-    def _model_to_dict(self, item):
+    def _model_to_dict(self, item: Nummeraanduiding):
         """
         Converts a django model to a dict.
         It does not do a deep conversion
         """
-        data = {}
+        data = {}  # type dict[str, str]
         properties = item._meta
         for field in properties.concrete_fields + properties.many_to_many:
             if isinstance(field, ManyToManyField):

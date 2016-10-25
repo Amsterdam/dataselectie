@@ -1,5 +1,6 @@
 # Python
 import datetime
+import typing
 # Package
 from django.db import models
 
@@ -8,6 +9,7 @@ class ImportStatusMixin(models.Model):
     date_modified = models.DateTimeField(auto_now=True)  # type: datetime.datetime
 
     class Meta(object):
+        # type object
         abstract = True
 
 
