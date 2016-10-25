@@ -1,20 +1,21 @@
+# Python
 import logging
-
+import time
+# Packages
 from django.conf import settings
-from elasticsearch import helpers
+from django.db.models.query import QuerySet
 import elasticsearch
-import elasticsearch_dsl as es
-
+from elasticsearch import helpers
 from elasticsearch.exceptions import NotFoundError
+import elasticsearch_dsl as es
 from elasticsearch_dsl.connections import connections
 
-import time
 
 log = logging.getLogger(__name__)
 
 
 class DeleteIndexTask(object):
-    index = ''
+    index = ''  # type: str
     doc_types = []  # type: List[str]
     name = 'remove index'
 
@@ -51,7 +52,7 @@ class DeleteIndexTask(object):
 
 
 class ImportIndexTask(object):
-    queryset = None
+    queryset = None  # type: QuerySet
     batch_size = 10000
 
     def get_queryset(self):

@@ -1,6 +1,8 @@
+# Python
+from typing import List, cast
 # Packages
 import elasticsearch_dsl as es
-
+# Project
 from datasets.bag import models
 from datasets.generic import analyzers
 
@@ -89,7 +91,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
     try:
         doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84')
     except Exception as e:
-        print('3', repr(e))
         doc.centroid = None
 
     # Adding the ggw data
@@ -100,25 +101,26 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
             doc.ggw_code = ggw.code
             doc.ggw_naam = ggw.naam
     except Exception as e:
-        print('4', repr(e))
+        pass
     try:
         doc.buurt_code = '%s%s' % (
             str(item.adresseerbaar_object.buurt.stadsdeel.code),
             str(item.adresseerbaar_object.buurt.code)
         )
     except Exception as e:
-        print('5', repr(e))
+        pass
     try:
         doc.buurtcombinatie_code = '%s%s' % (
             str(item.adresseerbaar_object.buurt.stadsdeel.code),
             str(item.adresseerbaar_object.buurt.buurtcombinatie.code)
         )
     except Exception as e:
-        print('6', repr(e))
+        pass
     try:
-        doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[int(item.type) - 1][1]
+        idx = int(item.type) - 1  # type: int
+        doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
     except Exception as e:
-        print('9', repr(e))
+        pass
 
     # Verblijfsobject specific
     if item.verblijfsobject:
@@ -148,4 +150,4 @@ def update_doc_from_param_list(doc: dict, item: object, params: list) -> None:
                 value = getattr(value, link, None)
             setattr(doc, attr, value)
         except Exception as e:
-            print(attr, repr(e))
+            pass

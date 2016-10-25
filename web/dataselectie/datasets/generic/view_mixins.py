@@ -4,6 +4,7 @@ import json
 from typing import List
 # Packages
 from django.conf import settings
+from django.db import models
 from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -24,11 +25,11 @@ class TableSearchView(ListView):
     # attributes:
     # ---------------------
     # The model class to use
-    model = None  # type: object
+    model = None  # type: models.Model
     # The name of the index to search in
     index = ''  # type: str
     # A set of optional keywords to filter the results further
-    keywords = []  # type: List[str]
+    keywords = None  # type: Tuple[str]
     # Fields in elastic that should be used in raw version
     raw_fields = []  # type: List[str]
     preview_size = settings.SEARCH_PREVIEW_SIZE
