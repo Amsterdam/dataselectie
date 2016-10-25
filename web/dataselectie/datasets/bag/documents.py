@@ -13,8 +13,8 @@ class NummeraanduidingMeta(es.DocType):
     Used in the dataselectie portal
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super(NummeraanduidingMeta, self).__init__(*args, **kwargs)
 
     nummeraanduiding_id = es.String(index='not_analyzed')
 
