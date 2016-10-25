@@ -597,18 +597,18 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterIndexTogether(
             name='verblijfsobject',
-            index_together=set([('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')]),
+            index_together={('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')},
         ),
         migrations.AlterIndexTogether(
             name='standplaats',
-            index_together=set([('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')]),
+            index_together={('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')},
         ),
         migrations.AlterIndexTogether(
             name='nummeraanduiding',
-            index_together=set([('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging')]),
+            index_together={('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging')},
         ),
         migrations.AlterIndexTogether(
             name='ligplaats',
-            index_together=set([('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')]),
+            index_together={('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')},
         ),
     ]

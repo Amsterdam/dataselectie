@@ -12,6 +12,10 @@ class NummeraanduidingMeta(es.DocType):
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal
     """
+
+    def __init__(self):
+        super().__init__()
+
     nummeraanduiding_id = es.String(index='not_analyzed')
 
     _openbare_ruimte_naam = es.String(
