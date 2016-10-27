@@ -50,18 +50,18 @@ def check_data(request):
         log.exception("No BAG data found")
         message += "\nNo BAG data found."
         status = 500
-        
+
     # check elastic
     try:
         client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
         assert Search().using(client)\
-                .index(settings.ELASTIC_INDICES['DS_BAG'])\
-                .query("match_all", size=0)
+                       .index(settings.ELASTIC_INDICES['DS_BAG'])\
+                       .query("match_all", size=0)
     except:
         log.exception("Autocomplete failed")
         message += "\nAutocomplete failed."
         status = 500
-    
+
     if not message:
         message = "Data Ok"
 

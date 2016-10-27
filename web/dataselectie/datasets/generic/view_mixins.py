@@ -1,16 +1,19 @@
 # Python
-import json
 from datetime import date, datetime
-
+import json
+from typing import Any
+#from typing import List, Tuple
 # Packages
 from django.conf import settings
+from django.db import models
 from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
-
+# Project
+from datasets.bag.models import Nummeraanduiding
 
 # =============================================================
 # Views
@@ -23,10 +26,15 @@ class TableSearchView(ListView):
     """
     # attributes:
     # ---------------------
-    model = None  # The model class to use
-    index = ''  # The name of the index to search in
-    keywords = []  # A set of optional keywords to filter the results further
-    preview_size = settings.SEARCH_PREVIEW_SIZE
+    # The model class to use
+    model = None  # type: models.Model
+    # The name of the index to search in
+    index = ''  # type: str
+    # A set of optional keywords to filter the results further
+    keywords = None  # type: tuple[str]
+    # Fields in elastic that should be used in raw version
+    raw_fields = None  # type: list[str]
+    preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -225,8 +233,7 @@ class TableSearchView(ListView):
         """
         return context
 
-    @staticmethod
-    def get_term_and_value(filter_keyword, val):
+    def get_term_and_value(self, filter_keyword, val):
         """
         Some fields need to be searched raw while others are analysed with the default string analyser which will
         automatically convert the fields to lowercase in de the index.
@@ -234,6 +241,8 @@ class TableSearchView(ListView):
         :param val: the value we are searching for
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
+        if filter_keyword in self.raw_fields:
+            filter_keyword = "{}.raw".format(filter_keyword)
         return {filter_keyword: val}
 
 
@@ -241,9 +250,12 @@ class CSVExportView(TableSearchView):
     """
     A base class to generate csv exports
     """
-
-    preview_size = None  # This is not relevant for csv export
-    headers = []  # The headers of the csv
+    # This is not relevant for csv export
+    preview_size = None  # type: int
+    # The headers of the csv
+    headers = []  # type: list[str]
+    # The pretty version of the headers
+    pretty_headers = []  # type: list[str]
 
     def get_context_data(self, **kwargs):
         """
@@ -266,14 +278,14 @@ class CSVExportView(TableSearchView):
         # Returning the elastic generator
         return scan(self.elastic, query=query)
 
-    def result_generator(self, headers, es_generator, batch_size=100):
+    def result_generator(self, es_generator, batch_size=100):
         """
         Generate the result set for the CSV eport
         """
         # Als eerst geef de headers terug
         header_dict = {}
-        for h in headers:
-            header_dict[h] = self.sanitize(h)
+        for i in range(len(self.headers)):
+            header_dict[self.headers[i]] = self.pretty_headers[i]
         yield header_dict
         more = True
         counter = 0
@@ -299,22 +311,16 @@ class CSVExportView(TableSearchView):
             for item in data:
                 # Only returning fields from the headers
                 resp = {}
-                for key in headers:
+                for key in self.headers:
                     resp[key] = item.get(key, '')
                 yield resp
 
-    @staticmethod
-    def sanitize(header):
-        if header[0] in ('_', '-'):
-            return header[1:]
-        return header
-
-    def _model_to_dict(self, item):
+    def _model_to_dict(self, item: Nummeraanduiding):
         """
         Converts a django model to a dict.
         It does not do a deep conversion
         """
-        data = {}
+        data = {}  # type dict[str, str]
         properties = item._meta
         for field in properties.concrete_fields + properties.many_to_many:
             if isinstance(field, ManyToManyField):
@@ -344,7 +350,8 @@ class CSVExportView(TableSearchView):
                  not isinstance(v, str)}
             )
             # Adding the elastic context
-            item.update(es[item['id']]['_source'])
+            for key, value in es[item['id']]['_source'].items():
+                item[key] = value
         return data
 
 

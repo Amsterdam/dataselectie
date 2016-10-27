@@ -52,7 +52,7 @@ tests:
     DATABASE_USER: dataselectie
     DATABASE_PASSWORD: insecure
     DJANGO_SETTINGS_MODULE: dataselectie.settings
-  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py jenkins"
+  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
 
 
 importer:

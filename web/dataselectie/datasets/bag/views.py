@@ -22,6 +22,7 @@ class BagBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+    raw_fields = ['naam', '_openbare_ruimte_naam']
 
 
 class BagSearch(BagBase, TableSearchView):
@@ -78,36 +79,93 @@ class BagCSV(BagBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ('_openbare_ruimte_naam', 'huisnummer','huisletter', 'huisnummer_toevoeging', 
-                'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam','ggw_code',
-                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-                'buurt_code', 'bouwblok', 'geometrie_rd',
-                'geometrie_wgs', 'hoofdadres',
-                'type', 'status_id', 'openbare_ruimte_id', 'verblijfsobject_id', 
-                'ligplaats_id', 'standplaats_id', )
+    headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+               'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
+               'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
+               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status', 'openbare_ruimte',
+               'panden', 'verblijfsobject', 'ligplaats', 'standplaats', 'landelijk_id')
+    pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
+                      'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
+                      'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
+                      'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)',
+                      'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel',
+                      'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
+                      'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
+                      'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
+                      'Nummeraanduidingidentificatie')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
+
+    def create_geometry_dict(self, db_item):
+        """
+        Creates a geometry dict that can be used to add
+        geometry information to the result set
+
+        Returns a dict with geometry information if one
+        can be created. If not, an empty dict is returned
+        """
+        res = {}
+        try:
+            geom = db_item.adresseerbaar_object.geometrie.centroid
+        except AttributeError:
+            geom = None
+        if geom:
+            # Convert to wgs
+            geom_wgs = geom.transform('wgs84', clone=True).coords
+            geom = geom.coords
+            res = {
+                'geometrie_rd_x': int(geom[0]),
+                'geometrie_rd_y': int(geom[1]),
+                'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+                'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
+            }
+        return res
+
+    def verblijfsobject_updates(self, item):
+        """
+        Creates a dict with verblijfsobject specific data
+        A dict is always returned, even if no data is found, in which case
+        an empty dict is returned
+        """
+        verblijfsobject = {}
+        verblijfsobject_data = ['gebruiksdoel_omschrijving', 'oppervlakte']
+        for meta in verblijfsobject_data:
+            verblijfsobject[meta] = getattr(Opp, meta, '')
+        try:
+            verblijfsobject['bouwblok'] = item.verblijfsobject.bouwblok.code
+        except AttributeError:
+            pass
+        try:
+            verblijfsobject['gebruik'] = item.verblijfsobject.gebruik.omschrijving
+        except AttributeError:
+            pass
+        try:
+            verblijfsobject['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
+        except AttributeError:
+            pass
+        return verblijfsobject
 
     def _convert_to_dicts(self, qs):
         """
         Overwriting the default conversion so that location data
         can be retrieved through the adresseerbaar_object
-        and convert to wgs84 
+        and convert to wgs84
         """
         data = []
         for item in qs:
-            geom_wgs = None
-            try:
-                geom = item.adresseerbaar_object.geometrie.centroid
-            except AttributeError:
-                geom = None
-            if geom:
-                # Convert to wgs
-                geom_wgs = geom.transform('wgs84', clone=True).coords
-                geom = geom.coords
             dict_item = self._model_to_dict(item)
-            dict_item.update({'geometrie_rd': geom, 'geometrie_wgs': geom_wgs})
+            # BAG Specific updates.
+            # ------------------------
+            # Adding geometry
+            dict_item.update(self.create_geometry_dict(item))
+            try:
+                dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
+            except:
+                pass
+            # Saving the dict
             data.append(dict_item)
         return data
 
@@ -119,7 +177,7 @@ class BagCSV(BagBase, CSVExportView):
         writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
 
         # Streaming!
-        gen = self.result_generator(self.headers, context['object_list'])
+        gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(
             (writer.writerow(row) for row in gen), content_type="text/csv")
         response['Content-Disposition'] = \
@@ -129,4 +187,6 @@ class BagCSV(BagBase, CSVExportView):
         return response
 
     def paginate(self, offset, q):
+        if 'size' in q:
+            del(q['size'])
         return q

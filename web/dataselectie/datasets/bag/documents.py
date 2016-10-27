@@ -1,6 +1,8 @@
+# Python
+from typing import List, cast
 # Packages
 import elasticsearch_dsl as es
-
+# Project
 from datasets.bag import models
 from datasets.generic import analyzers
 
@@ -10,7 +12,12 @@ class NummeraanduidingMeta(es.DocType):
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal
     """
+
+    def __init__(self, *args, **kwargs):
+        super(NummeraanduidingMeta, self).__init__(*args, **kwargs)
+
     nummeraanduiding_id = es.String(index='not_analyzed')
+
     _openbare_ruimte_naam = es.String(
         fields={'raw': es.String(index='not_analyzed')}
     )
@@ -22,7 +29,6 @@ class NummeraanduidingMeta(es.DocType):
                 analyzer=analyzers.autocomplete, search_analyzer='standard'
             ),
             'keyword': es.String(analyzer=analyzers.subtype),
-
         }
     )
     huisnummer = es.Integer()
@@ -30,7 +36,9 @@ class NummeraanduidingMeta(es.DocType):
     huisletter = es.String()
     postcode = es.String(index='not_analyzed')
     woonplaats = es.String(index='not_analyzed')
+
     hoofdadres = es.Boolean()
+
     buurt_code = es.String(index='not_analyzed')
     buurt_naam = es.String(index='not_analyzed')
     buurtcombinatie_code = es.String(index='not_analyzed')
@@ -39,58 +47,111 @@ class NummeraanduidingMeta(es.DocType):
     ggw_naam = es.String(index='not_analyzed')
     stadsdeel_code = es.String(index='not_analyzed')
     stadsdeel_naam = es.String(index='not_analyzed')
+
+    # Extended information
     centroid = es.GeoPoint()
+    status = es.String(index='not_analyzed')
+    type_desc = es.String(index='not_analyzed')
+    hoofdadres = es.String(index='not_analyzed')  # Is there a choice option?
+    # Landelijke codes
+    openabre_ruimte_landelijk_id = es.String(index='not_analyzed')
+    verblijfsobject = es.String(index='not_analyzed')
+    ligplaats = es.String(index='not_analyzed')
+    standplaats = es.String(index='not_analyzed')
+
+    # Verblijfsobject specific data
+    gebruiksdoel_omschrijving = es.String(index='not_analyzed')
+    oppervlakte = es.Integer()
+    bouwblok = es.String(index='not_analyzed')
+    gebruik = es.String(index='not_analyzed')
+    panden = es.String(index='not_analyzed')
 
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding):
-    headers = (
-        'huisnummer', 'huisletter', 'toevoeging', 'postcode',
-        'hoofdadres', '_openbare_ruimte_naam')
+def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
     doc = NummeraanduidingMeta(_id=item.id)
-    doc.nummeraanduiding_id = item.id
-    try:
-        doc.naam = item.openbare_ruimte.naam
-    except Exception as e:
-        doc.naam = ''
-    doc.woonplaats = 'Amsterdam'
-    # Identifing the spatial object
-    obj = item.adresseerbaar_object
-    for key in headers:
-        setattr(doc, key, getattr(item, key, None))
-    if obj:
-        # Saving centroind of it exists
-        try:
-            doc.centroid = obj.geometrie.centroid.transform('wgs84')
-        except:
-            doc.centroid = None
+    parameters = [
+        ('nummeraanduiding_id', 'id'),
+        ('naam', 'openbare_ruimte.naam'),
+        ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
+        ('huisnummer', 'huisnummer'),
+        ('huisletter', 'huisletter'),
+        ('toevoeging', 'toevoeging'),
+        ('postcode', 'postcode'),
+        ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
+        ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
+        ('buurtcombinatie_naam', 'adresseerbaar_object.buurt.buurtcombinatie.naam'),
+        ('status', 'adresseerbaar_object.status.omschrijving'),
+        ('stadsdeel_code', 'stadsdeel.code'),
+        ('stadsdeel_naam', 'stadsdeel.naam'),
+        # Landelijke IDs
+        ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
+        ('ligplaats', 'ligplaats.landelijk_id'),
+        ('standplaats', 'standplaats.landelijk_id'),
+    ]
+    # Adding the attributes
+    update_doc_from_param_list(doc, item, parameters)
 
-        # Adding the buurt -> stadsdeel data
+    # Saving centroind of it exists
+    try:
+        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84')
+    except Exception as e:
+        doc.centroid = None
+
+    # Adding the ggw data
+    try:
+        ggw = models.Gebiedsgerichtwerken.objects.filter(
+            geometrie__contains=item.adresseerbaar_object.geometrie).first()
+        if ggw:
+            doc.ggw_code = ggw.code
+            doc.ggw_naam = ggw.naam
+    except Exception as e:
+        pass
+    try:
+        doc.buurt_code = '%s%s' % (
+            str(item.adresseerbaar_object.buurt.stadsdeel.code),
+            str(item.adresseerbaar_object.buurt.code)
+        )
+    except Exception as e:
+        pass
+    try:
+        doc.buurtcombinatie_code = '%s%s' % (
+            str(item.adresseerbaar_object.buurt.stadsdeel.code),
+            str(item.adresseerbaar_object.buurt.buurtcombinatie.code)
+        )
+    except Exception as e:
+        pass
+    try:
+        idx = int(item.type) - 1  # type: int
+        doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
+    except Exception as e:
+        pass
+
+    # Verblijfsobject specific
+    if item.verblijfsobject:
+        obj = item.verblijfsobject
+        verblijfsobject_extra = [
+            ('verblijfsobject', 'landelijk_id'),
+            ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
+            ('oppervlakte', 'oppervlakte'),
+            ('bouwblok', 'bouwblok.code'),
+            ('gebruik', 'gebruik.omschrijving')
+        ]
+        update_doc_from_param_list(doc, obj, verblijfsobject_extra)
         try:
-            ggw = models.Gebiedsgerichtwerken.objects.filter(
-                geometrie__contains=obj.geometrie).first()
-            if ggw:
-                doc.ggw_code = ggw.code
-                doc.ggw_naam = ggw.naam
-        except:
-            pass
-        try:
-            doc.buurt_naam = obj.buurt.naam
-            doc.buurt_code = '%s%s' % (
-                str(obj.buurt.stadsdeel.code), str(obj.buurt.code)
-            )
-        except:
-            pass
-        try:
-            doc.buurtcombinatie_naam = obj.buurt.buurtcombinatie.naam
-            doc.buurtcombinatie_code = '%s%s' % (
-                obj.buurt.stadsdeel.code, str(obj.buurt.buurtcombinatie.code)
-            )
-        except:
-            pass
-        try:
-            doc.stadsdeel_code = item.stadsdeel.code
-            doc.stadsdeel_naam = item.stadsdeel.naam
-        except:
-            print('Cannot add stadsdeel') 
+            doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
+        except Exception as e:
+            print('13', repr(e))
 
     return doc
+
+
+def update_doc_from_param_list(doc: dict, item: object, params: list) -> None:
+    for (attr, obj_link) in params:
+        value = item
+        obj_link = obj_link.split('.')
+        try:
+            for link in obj_link:
+                value = getattr(value, link, None)
+            setattr(doc, attr, value)
+        except Exception as e:
+            pass

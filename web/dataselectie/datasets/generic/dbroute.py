@@ -15,7 +15,7 @@ class DatasetsRouter(object):
     def _model_in_datasets(self, app):
         """
         Checks that the app the model belongs to is
-        a dataset app 
+        a dataset app
         """
         return app in self.datasets
 

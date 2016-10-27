@@ -1,85 +1,88 @@
+# Python
+import datetime
+# Package
 from django.contrib.gis.db import models as geo
 from django.db import models
-
+# Project
 from datasets.generic import model_mixins as mixins
 
 
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = True
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
 
 class RedenAfvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Reden Afvoer"
         verbose_name_plural = "Reden Afvoer"
 
 
 class RedenOpvoer(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Reden Opvoer"
         verbose_name_plural = "Reden Opvoer"
 
 
 class Eigendomsverhouding(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Eigendomsverhouding"
         verbose_name_plural = "Eigendomsverhoudingen"
 
 
 class Financieringswijze(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Financieringswijze"
         verbose_name_plural = "Financieringswijzes"
 
 
 class Ligging(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Ligging"
         verbose_name_plural = "Ligging"
 
 
 class Gebruik(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Gebruik"
         verbose_name_plural = "Gebruik"
 
 
 class LocatieIngang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Locatie Ingang"
         verbose_name_plural = "Locaties Ingang"
 
 
 class Toegang(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Toegang"
         verbose_name_plural = "Toegang"
 
 
 class Gemeente(mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
-    id = models.CharField(max_length=14, primary_key=True)
-    code = models.CharField(max_length=4, unique=True)
-    naam = models.CharField(max_length=40)
-    verzorgingsgebied = models.NullBooleanField(default=None)
-    vervallen = models.NullBooleanField(default=None)
+    id = models.CharField(max_length=14, primary_key=True)  # type: str
+    code = models.CharField(max_length=4, unique=True)  # type: str
+    naam = models.CharField(max_length=40)  # type: str
+    verzorgingsgebied = models.NullBooleanField(default=None)  # type: bool
+    vervallen = models.NullBooleanField(default=None)  # type: bool
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Gemeente"
         verbose_name_plural = "Gemeentes"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.naam
 
 
@@ -88,19 +91,19 @@ class Woonplaats(mixins.GeldigheidMixin,
                  mixins.ImportStatusMixin,
                  mixins.DocumentStatusMixin, models.Model):
 
-    id = models.CharField(max_length=14, primary_key=True)
-    landelijk_id = models.CharField(max_length=4, unique=True)
-    naam = models.CharField(max_length=80)
-    naam_ptt = models.CharField(max_length=18, null=True)
-    vervallen = models.NullBooleanField(default=None)
+    id = models.CharField(max_length=14, primary_key=True)  # type: str
+    landelijk_id = models.CharField(max_length=4, unique=True)  # type: str
+    naam = models.CharField(max_length=80)  # type: str
+    naam_ptt = models.CharField(max_length=18, null=True)  # type: str
+    vervallen = models.NullBooleanField(default=None)  # type: bool
     gemeente = models.ForeignKey(Gemeente, related_name='woonplaatsen')
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Woonplaats"
         verbose_name_plural = "Woonplaatsen"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.naam
 
 
@@ -117,7 +120,7 @@ class Hoofdklasse(mixins.ImportStatusMixin, models.Model):
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         abstract = True
 
@@ -129,21 +132,21 @@ class Stadsdeel(mixins.GeldigheidMixin, Hoofdklasse):
 
     http://www.amsterdam.nl/stelselpedia/gebieden-index/catalogus/stadsdeel/
     """
-    id = models.CharField(max_length=14, primary_key=True)
-    code = models.CharField(max_length=3, unique=True)
-    naam = models.CharField(max_length=40)
-    vervallen = models.NullBooleanField(default=None)
-    ingang_cyclus = models.DateField(null=True)
-    brondocument_naam = models.CharField(max_length=100, null=True)
-    brondocument_datum = models.DateField(null=True)
+    id = models.CharField(max_length=14, primary_key=True)  # type: str
+    code = models.CharField(max_length=3, unique=True)  # type: str
+    naam = models.CharField(max_length=40)  # type: str
+    vervallen = models.NullBooleanField(default=None)  # type: bool
+    ingang_cyclus = models.DateField(null=True)  # type: datetime.date
+    brondocument_naam = models.CharField(max_length=100, null=True)  # type: str
+    brondocument_datum = models.DateField(null=True)  # type: datetime.date
     gemeente = models.ForeignKey(Gemeente, related_name='stadsdelen')
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Stadsdeel"
         verbose_name_plural = "Stadsdelen"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.naam
 
 
@@ -154,29 +157,29 @@ class Buurt(mixins.GeldigheidMixin, Hoofdklasse):
 
     http://www.amsterdam.nl/stelselpedia/gebieden-index/catalogus/buurt/
     """
-    id = models.CharField(max_length=14, primary_key=True)
-    code = models.CharField(max_length=3, unique=True)
-    vollcode = models.CharField(max_length=4)
-    naam = models.CharField(max_length=40)
-    vervallen = models.NullBooleanField(default=None)
-    ingang_cyclus = models.DateField(null=True)
-    brondocument_naam = models.CharField(max_length=100, null=True)
-    brondocument_datum = models.DateField(null=True)
+    id = models.CharField(max_length=14, primary_key=True)  # type: str
+    code = models.CharField(max_length=3, unique=True)  # type: str
+    vollcode = models.CharField(max_length=4)  # type: str
+    naam = models.CharField(max_length=40)  # type: str
+    vervallen = models.NullBooleanField(default=None)  # type: bool
+    ingang_cyclus = models.DateField(null=True)  # type: datetime.date
+    brondocument_naam = models.CharField(max_length=100, null=True)  # type: str
+    brondocument_datum = models.DateField(null=True) # type: datetime.date
     stadsdeel = models.ForeignKey(Stadsdeel, related_name='buurten')
     buurtcombinatie = models.ForeignKey(
         'Buurtcombinatie', related_name='buurten', null=True)
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Buurt"
         verbose_name_plural = "Buurten"
         ordering = ('vollcode',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{} ({})".format(self.naam, self.vollcode)
 
     @property
-    def _gemeente(self):
+    def _gemeente(self) -> models.Model:
         return self.stadsdeel.gemeente
 
 
@@ -190,22 +193,23 @@ class Bouwblok(mixins.GeldigheidMixin, Hoofdklasse):
 
     https://www.amsterdam.nl/stelselpedia/gebieden-index/catalogus/bouwblok/
     """
-    id = models.CharField(max_length=14, primary_key=True)
-    code = models.CharField(max_length=4, unique=True)  # Bouwbloknummer
+    id = models.CharField(max_length=14, primary_key=True)  # type: str
+    # Bouwbloknummer
+    code = models.CharField(max_length=4, unique=True)  # type: str
     buurt = models.ForeignKey(Buurt, related_name='bouwblokken', null=True)
-    ingang_cyclus = models.DateField(null=True)
+    ingang_cyclus = models.DateField(null=True)  # type: datetime.date
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Bouwblok"
         verbose_name_plural = "Bouwblokken"
         ordering = ('code',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "{}".format(self.code)
 
     @property
-    def _buurtcombinatie(self):
+    def _buurtcombinatie(self) -> models.Model:
         return self.buurt.buurtcombinatie if self.buurt else None
 
     @property
@@ -266,7 +270,7 @@ class OpenbareRuimte(mixins.GeldigheidMixin,
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Openbare Ruimte"
         verbose_name_plural = "Openbare Ruimtes"
@@ -351,7 +355,7 @@ class Nummeraanduiding(mixins.GeldigheidMixin,
     # gedenormaliseerde velden
     _openbare_ruimte_naam = models.CharField(max_length=150, null=True)
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Nummeraanduiding"
         verbose_name_plural = "Nummeraanduidingen"
@@ -516,7 +520,7 @@ class Ligplaats(mixins.GeldigheidMixin,
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Ligplaats"
         verbose_name_plural = "Ligplaatsen"
@@ -586,7 +590,7 @@ class Standplaats(mixins.GeldigheidMixin,
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Standplaats"
         verbose_name_plural = "Standplaatsen"
@@ -681,7 +685,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Verblijfsobject"
         verbose_name_plural = "Verblijfsobjecten"
@@ -694,7 +698,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
                 '_huisletter', '_huisnummer_toevoeging')
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = '{} {}'.format(self._openbare_ruimte_naam, self._huisnummer)
         if self._huisletter:
             result += self._huisletter
@@ -703,7 +707,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         return result
 
     # store pand for bouwblok reference
-    _pand = None
+    _pand = None  # type: models.Model
 
     @property
     def willekeurig_pand(self):
@@ -774,7 +778,7 @@ class Pand(
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Pand"
         verbose_name_plural = "Panden"
@@ -804,7 +808,7 @@ class VerblijfsobjectPandRelatie(mixins.ImportStatusMixin, models.Model):
     pand = models.ForeignKey(Pand)
     verblijfsobject = models.ForeignKey(Verblijfsobject)
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Verblijfsobject-Pand relatie"
         verbose_name_plural = "Verblijfsobject-Pand relaties"
@@ -844,7 +848,7 @@ class Buurtcombinatie(mixins.GeldigheidMixin, mixins.ImportStatusMixin,
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Buurtcombinatie"
         verbose_name_plural = "Buurtcombinaties"
@@ -877,7 +881,7 @@ class Gebiedsgerichtwerken(mixins.ImportStatusMixin, models.Model):
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Gebiedsgerichtwerken"
         verbose_name_plural = "Gebiedsgerichtwerken"
@@ -902,7 +906,7 @@ class Grootstedelijkgebied(mixins.ImportStatusMixin, models.Model):
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Grootstedelijkgebied"
         verbose_name_plural = "Grootstedelijke gebieden"
@@ -926,7 +930,7 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
     objects = geo.GeoManager()
 
-    class Meta:
+    class Meta(object):
         managed = False
         verbose_name = "Unesco"
         verbose_name_plural = "Unesco"

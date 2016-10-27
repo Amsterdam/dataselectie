@@ -25,20 +25,29 @@ def create_gebiedsgericht_werken_fixtures():
         create_ggw(id="DX02", naam="Centrum-Oost", code="DX02", stadsdeel_id="03630000000018"),
     ]
 
+
 def create_buurt_combinaties():
     """"
     """
     create_stadsdeel_fixtures()
     create_bc = models.Buurtcombinatie.objects.get_or_create
     return [
-        create_bc(id="3630012052028", naam="Grachtengordel-West", code="02", vollcode="A02", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052029", naam="Haarlemmerbuurt", code="05", vollcode="A05", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052031", naam="Weesperbuurt/Plantage", code="08", vollcode="A08", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052032", naam="De Weteringschans", code="07", vollcode="A07", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052033", naam="Nieuwmarkt/Lastage", code="04", vollcode="A04", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052034", naam="Grachtengordel-Zuid", code="03", vollcode="A03", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01", vollcode="A01", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052037", naam="Jordaan", code="06", vollcode="A06", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052028", naam="Grachtengordel-West", code="02",
+                  vollcode="A02", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052029", naam="Haarlemmerbuurt", code="05",
+                  vollcode="A05", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052031", naam="Weesperbuurt/Plantage", code="08",
+                  vollcode="A08", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052032", naam="De Weteringschans", code="07",
+                  vollcode="A07", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052033", naam="Nieuwmarkt/Lastage", code="04",
+                  vollcode="A04", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052034", naam="Grachtengordel-Zuid", code="03",
+                  vollcode="A03", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01",
+                  vollcode="A01", stadsdeel_id="03630000000018"),
+        create_bc(id="3630012052037", naam="Jordaan", code="06",
+                  vollcode="A06", stadsdeel_id="03630000000018"),
     ]
 
 
@@ -75,7 +84,6 @@ def create_buurt_fixtures():
                      buurtcombinatie_id="3630012052028", stadsdeel_id="03630000000018", id="11"),
         create_buurt(code="02d", vollcode="A02d", naam="Leidsegracht Noord", vervallen=False,
                      buurtcombinatie_id="3630012052028", stadsdeel_id="03630000000018", id="12"),
-
     ]
 
 
@@ -87,7 +95,8 @@ def create_status_fixtures():
     return [
         models.Status.objects.get_or_create(code='33', omschrijving='Ligplaats aangewezen'),
         models.Status.objects.get_or_create(code='35', omschrijving='Naamgeving uitgegeven'),
-        models.Status.objects.get_or_create(code='37', omschrijving='Standplaats toegewezen'),]
+        models.Status.objects.get_or_create(code='37', omschrijving='Standplaats toegewezen'),
+    ]
 
 
 def create_gemeente_fixture():
@@ -96,7 +105,7 @@ def create_gemeente_fixture():
     :return: returns a list with a gemeente fixture
     """
     return [models.Gemeente.objects.get_or_create(id='03630000000000', code='0363', naam='Amsterdam',
-                                                  verzorginsgebied=True, vervallen=False)]
+                                                  verzorgingsgebied=True, vervallen=False)]
 
 
 def create_woonplaats_fixture():
@@ -173,6 +182,13 @@ def create_verblijfsobject_fixtures():
                                                      _openbare_ruimte_naam="Leidsestraat", _huisnummer=15,
                                                      _huisletter='', _huisnummer_toevoeging="",
                                                      buurt_id="2"),
+        models.Verblijfsobject.objects.get_or_create(id="03630000543295", landelijk_id="0363010000543295",
+                                                     gebruiksdoel_code="1010", gebruiksdoel_omschrijving="BEST-woning",
+                                                     oppervlakte=48, bouwlaag_toegang=2, woningvoorraad=True,
+                                                     aantal_kamers=2, vervallen=0,
+                                                     _openbare_ruimte_naam="Leidsestraat", _huisnummer=15,
+                                                     _huisletter='', _huisnummer_toevoeging="",
+                                                     buurt_id="2"),
         models.Verblijfsobject.objects.get_or_create(id="03630000543296", landelijk_id="0363010000543296",
                                                      gebruiksdoel_code="1010", gebruiksdoel_omschrijving="BEST-woning",
                                                      oppervlakte=32, bouwlaag_toegang=1, woningvoorraad=True,
@@ -209,6 +225,7 @@ def create_verblijfsobject_fixtures():
                                                      _huisletter='', _huisnummer_toevoeging="1",
                                                      buurt_id="7")]
 
+
 def create_ligplaats_fixtures():
     """
 
@@ -243,6 +260,7 @@ def create_nummeraanduiding_fixtures():
     depends on openbare_ruimte_fixtures, verblijfsobject_fixtures, standplaats_fixtures and ligplaats_fixtures
     :return: a list of nummeraanduiding objects
     """
+    create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
     create_openbare_ruimte_fixtures()
     create_verblijfsobject_fixtures()
