@@ -42,3 +42,19 @@ class DataselectieExportTest(ESTestCase):
 
     def tearDown(self):
         pass
+
+    def test_response_is_streaming(self):
+        """Verify that the response is streaming"""
+        response = self.client.get('/dataselectie/bag/export/')
+        self.assertTrue(response.streaming)
+
+    def test_complete_export(self):
+        response = self.client.get('/dataselectie/bag/export/')
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = (b''.join(response.streaming_content)).decode('utf-8').strip()
+        res = res.split('\r\n')
+        # 11 lines: headers + 10 items
+        self.assertEqual(len(res), 11)
+
