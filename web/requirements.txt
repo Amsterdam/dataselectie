@@ -1,13 +1,13 @@
 Django==1.10.2
+Faker==0.7.3
+django-jenkins==0.110.0
 elasticsearch==2.4.0
 elasticsearch-dsl==2.1.0
+factory-boy==2.7.0
+fake-factory==0.7.2
 psycopg2==2.6.2
 python-dateutil==2.5.3
+pytz==2016.7
 requests==2.11.1
 six==1.10.0
-urllib3==1.18
-pytz==2016.7
-
-# Testing
-factory-boy==2.7.0
-faker==0.7.3
+urllib3==1.18.1
