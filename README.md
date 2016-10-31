@@ -27,7 +27,7 @@ Lokale setup voor dataselectie
 
 ```
 $ docker-compose up
-$ docker-compose exec database_BAG update-atlas.sh
+$ docker-compose exec database_BAG update-db.sh atlas
 $ docker-compose exec dataselectie python manage.py migrate
 $ docker-compose exec elasticsearch update-dataselectie.sh
 ```
