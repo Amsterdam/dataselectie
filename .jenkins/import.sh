@@ -17,5 +17,11 @@ sleep 10 # waiting for postgres to start
 dc exec -T database_BAG update-db.sh atlas
 
 dc run --rm importer
+
+# create the new elastic indexes
+dc up importer_el1 importer_el2 importer_el3
+# wait until all building is done
+docker wait jenkins_importer_el1_1 jenkins_importer_el2_1 jenkins_importer_el3_1
+
 dc run --rm el-backup
 dc down 
