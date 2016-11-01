@@ -43,4 +43,4 @@ class DeleteIndexDsBagJob(object):
 
     @staticmethod
     def tasks():
-        return [DeleteBagIndexTask()]
+        return [DeleteDsBagIndexTask()]
