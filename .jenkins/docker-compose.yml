@@ -105,6 +105,6 @@ importer:
 
     command: >
         bash -c "/app/docker-wait.sh \
-                && python manage.py migrate
+                && python manage.py migrate \
                 && python manage.py elastic_indices --delete"
 
