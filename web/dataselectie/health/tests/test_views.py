@@ -17,7 +17,6 @@ class StatusViewsTest(TestCase):
         """check health url"""
         response = self.client.get('/status/health')
         # Making sure its a 200
-        print(response.content)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b'Connectivity OK')
 
