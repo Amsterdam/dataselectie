@@ -152,7 +152,6 @@ class TableSearchView(ListView):
             except ValueError:
                 # offset is not an int
                 pass
-
         return self.paginate(offset, query)
 
     def paginate(self, offset, q):
@@ -185,7 +184,7 @@ class TableSearchView(ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index=settings.ELASTIC_INDICES['DS_BAG'], body=query)
+        response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
         # Enrich result data with neede info
@@ -276,7 +275,7 @@ class CSVExportView(TableSearchView):
         if query is not None and 'from' in query:
             del (query['from'])
         # Returning the elastic generator
-        return scan(self.elastic, query=query)
+        return scan(self.elastic, query=query, index=settings.ELASTIC_INDICES[self.index])
 
     def result_generator(self, es_generator, batch_size=100):
         """
@@ -304,7 +303,7 @@ class CSVExportView(TableSearchView):
             if len(items) < batch_size:
                 more = False
             # Retriving the database data
-            qs = self.model.objects.filter(id__in=list(items.keys())).select_related()
+            qs = self.model.objects.filter(id__in=list(items.keys()))
             qs = self._convert_to_dicts(qs)
             # Pairing the data
             data = self._combine_data(qs, items)
@@ -347,7 +346,7 @@ class CSVExportView(TableSearchView):
             # Making sure all the data is in string form
             item.update(
                 {k: self._stringify_item_value(v) for k, v in item.items() if
-                 not isinstance(v, str)}
+                 not isinstance(v, str) or v is None}
             )
             # Adding the elastic context
             for key, value in es[item['id']]['_source'].items():

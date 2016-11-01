@@ -84,8 +84,9 @@ class BagCSV(BagBase, CSVExportView):
                'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
                'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
                'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
-               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status', 'openbare_ruimte',
-               'panden', 'verblijfsobject', 'ligplaats', 'standplaats', 'landelijk_id')
+               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+               'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
+               'landelijk_id')
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
                       'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
                       'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
@@ -123,30 +124,6 @@ class BagCSV(BagBase, CSVExportView):
                 'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
             }
         return res
-
-    def verblijfsobject_updates(self, item):
-        """
-        Creates a dict with verblijfsobject specific data
-        A dict is always returned, even if no data is found, in which case
-        an empty dict is returned
-        """
-        verblijfsobject = {}
-        verblijfsobject_data = ['gebruiksdoel_omschrijving', 'oppervlakte']
-        for meta in verblijfsobject_data:
-            verblijfsobject[meta] = getattr(Opp, meta, '')
-        try:
-            verblijfsobject['bouwblok'] = item.verblijfsobject.bouwblok.code
-        except AttributeError:
-            pass
-        try:
-            verblijfsobject['gebruik'] = item.verblijfsobject.gebruik.omschrijving
-        except AttributeError:
-            pass
-        try:
-            verblijfsobject['panden'] = '/'.join([i.landelijk_id for i in item.verblijfsobject.panden.all()])
-        except AttributeError:
-            pass
-        return verblijfsobject
 
     def _convert_to_dicts(self, qs):
         """
