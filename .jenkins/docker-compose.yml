@@ -34,17 +34,30 @@ database_BAG:
         POSTGRES_DB: atlas
         POSTGRES_PASSWORD: insecure
 
-tests:
-  build: ../web
-  links:
-    - database_dataselectie:database_dataselectie
-    - elasticsearch:elasticsearch
-    - database_BAG:database_BAG
-  environment:
-    DATABASE_NAME: dataselectie
-    DATABASE_USER: dataselectie
-    DATABASE_PASSWORD: insecure
-  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
+# tests:
+#   build: ../web
+#   links:
+#     - database_dataselectie:database_dataselectie
+#     - elasticsearch:elasticsearch
+#     - database_BAG:database_BAG
+#   environment:
+#     DATABASE_NAME: dataselectie
+#     DATABASE_USER: dataselectie
+#     DATABASE_PASSWORD: insecure
+#   command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
+
+importer:
+    build: ../web
+    links:
+        - elasticsearch:elasticsearch
+        - database_dataselectie:database_dataselectie
+        - database_BAG:database_BAG
+
+    command: >
+        bash -c "/app/docker-wait.sh \
+                && python manage.py migrate \
+                && python manage.py elastic_indices --delete"
+
 
 importer_el1:
     build: ../web
@@ -78,16 +91,3 @@ importer_el3:
     command: >
         bash -c "/app/docker-wait.sh \
                 && python manage.py elastic_indices --partial=3/3 --build"
-
-importer:
-    build: ../web
-    links:
-        - elasticsearch:elasticsearch
-        - database_dataselectie:database_dataselectie
-        - database_BAG:database_BAG
-
-    command: >
-        bash -c "/app/docker-wait.sh \
-                && python manage.py migrate \
-                && python manage.py elastic_indices --delete"
-

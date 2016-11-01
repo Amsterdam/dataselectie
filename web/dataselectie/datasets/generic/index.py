@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models.query import QuerySet
 import elasticsearch
 from elasticsearch import helpers
-from elasticsearch.exceptions import NotFoundError, RequestError
+from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as es
 from elasticsearch_dsl.connections import connections
 
@@ -47,10 +47,8 @@ class DeleteIndexTask(object):
 
         for dt in self.doc_types:
             idx.doc_type(dt)
-        try:
-            idx.create()
-        except RequestError:
-            log.warning('Failed to create index, It already exists')
+
+        idx.create()
 
 
 class ImportIndexTask(object):
