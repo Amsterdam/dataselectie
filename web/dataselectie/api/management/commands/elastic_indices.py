@@ -13,11 +13,11 @@ class Command(BaseCommand):
     ordered = ['ds_bag']
 
     indexes = {
-        'ds_bag': [datasets.bag.batch.BuildIndexBagJob],
+        'ds_bag': [datasets.bag.batch.BuildIndexDsBagJob],
     }
 
     delete_indexes = {
-        'ds_bag': [datasets.bag.batch.DeleteIndexBagJob],
+        'ds_bag': [datasets.bag.batch.DeleteIndexDsBagJob],
     }
 
     def add_arguments(self, parser):
