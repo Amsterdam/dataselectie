@@ -139,8 +139,8 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
         update_doc_from_param_list(doc, obj, verblijfsobject_extra)
         try:
             doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
-        except Exception as e:
-            print('13', repr(e))
+        except:
+            pass
 
     return doc
 
