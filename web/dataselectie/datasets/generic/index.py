@@ -112,7 +112,7 @@ class ImportIndexTask(object):
             retry_on_timeout=True,
             refresh=True
         )
-
+        print(client)
         start_time = time.time()
         duration = time.time()
         loop_time = elapsed = duration - start_time

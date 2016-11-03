@@ -58,7 +58,6 @@ importer:
                 && python manage.py migrate \
                 && python manage.py elastic_indices --delete"
 
-
 importer_el1:
     build: ../web
     links:
