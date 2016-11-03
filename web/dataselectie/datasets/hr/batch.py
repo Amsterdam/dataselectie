@@ -38,7 +38,7 @@ class BuildIndexHrJob(object):
     def tasks():
         return [
             DeleteHrIndexTask(),
-            IndexHrTask(),
+            IndexHrTask(), ''
         ]
 
 
@@ -48,3 +48,8 @@ class DeleteIndexHrJob(object):
     @staticmethod
     def tasks():
         return [DeleteHrIndexTask()]
+
+        return [DeleteBagIndexTask()]
+
+def indexElastic(Indexname, documenttypes, searchfields):
+    pass
