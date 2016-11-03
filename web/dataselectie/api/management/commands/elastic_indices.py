@@ -82,7 +82,7 @@ class Command(BaseCommand):
         self.set_partial_config(sets, options)
 
         for ds in sets:
-            print(ds)
+            print('working on datasets')
             if options['delete_indexes']:
                 for job_class in self.delete_indexes[ds]:
                     batch.execute(job_class())
@@ -91,7 +91,6 @@ class Command(BaseCommand):
 
             if options['build_index']:
                 for job_class in self.indexes[ds]:
-                    print(job_class)
                     batch.execute(job_class(), )
 
         self.stdout.write(
