@@ -29,7 +29,6 @@ class DeleteIndexTask(object):
 
         connections.create_connection(
             hosts=settings.ELASTIC_SEARCH_HOSTS,
-            # sniff_on_start=True,
             retry_on_timeout=True,
         )
 
@@ -43,7 +42,7 @@ class DeleteIndexTask(object):
         except AttributeError:
             log.warning("Could not delete index '%s', ignoring", self.index)
         except NotFoundError:
-            log.warning("Could not delete index '%s', ignoring", self.index)
+            log.warning("Index '%s' not found, ignoring", self.index)
 
         for dt in self.doc_types:
             idx.doc_type(dt)
@@ -97,7 +96,6 @@ class ImportIndexTask(object):
 
         log.info("START: %s END %s COUNT: %s CHUNK %s TOTAL_COUNT: %s" % (
             start_index, end_part, chunk_size, batch_size, count))
-
         # total batches in this (partial) bacth job
         total_batches = int(chunk_size / batch_size)
         for i, start in enumerate(range(start_index, end_part, batch_size)):
@@ -131,7 +129,6 @@ class ImportIndexTask(object):
                 )
 
             log.debug(progres_msg)
-
             helpers.bulk(
                 client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),
