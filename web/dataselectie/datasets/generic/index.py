@@ -57,6 +57,7 @@ class ImportIndexTask(object):
 
     def get_queryset(self):
         return self.queryset.order_by('id')
+        # return self.queryset.iterator()
 
     def convert(self, obj):
         raise NotImplementedError()
@@ -109,10 +110,11 @@ class ImportIndexTask(object):
         """
         client = elasticsearch.Elasticsearch(
             hosts=settings.ELASTIC_SEARCH_HOSTS,
+            # sniff_on_start=True,
             retry_on_timeout=True,
             refresh=True
         )
-        print(client)
+
         start_time = time.time()
         duration = time.time()
         loop_time = elapsed = duration - start_time
