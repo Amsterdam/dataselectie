@@ -15,7 +15,8 @@ faker_instance = faker.Factory.create(locale='nl_NL')
 class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
 
     def fuzz(self):
-        return Point(random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
+        return Point(
+            random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
 
 
 class EigendomsverhoudingFactory(factory.DjangoModelFactory):
@@ -79,7 +80,7 @@ class GemeenteFactory(factory.DjangoModelFactory):
         model = models.Gemeente
         django_get_or_create = ('code',)
 
-    id = fuzzy.FuzzyInteger(low=44444, high=54444, step=1)
+    id = fuzzy.FuzzyInteger(low=1, high=994444)
     code = fuzzy.FuzzyText(length=4)
     naam = 'Amsterdam'
 
@@ -175,13 +176,15 @@ class NummeraanduidingFactory(factory.DjangoModelFactory):
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
-    huisnummer = factory.LazyAttribute(lambda o: int(faker_instance.building_number()))
+    huisnummer = factory.LazyAttribute(
+        lambda o: int(faker_instance.building_number()))
     openbare_ruimte = factory.SubFactory(OpenbareRuimteFactory)
     verblijfsobject = factory.SubFactory(VerblijfsobjectFactory)
     type = '01'  # default verblijfsobject
     postcode = '1000AN'  # default postcode..
 
-    _openbare_ruimte_naam = factory.LazyAttribute(lambda o: o.openbare_ruimte.naam)
+    _openbare_ruimte_naam = factory.LazyAttribute(
+        lambda o: o.openbare_ruimte.naam)
 
 
 class GrootstedelijkGebiedFactory(factory.DjangoModelFactory):

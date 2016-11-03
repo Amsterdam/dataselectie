@@ -45,13 +45,15 @@ class DataselectieApiTest(ESTestCase):
         Fetch all records (gets the first 100 records)
         """
         q = {'page': 1}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
 
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
+        self.assertEqual(
+            res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
     def test_sortorder_dataselectie_bag(self):
@@ -59,7 +61,8 @@ class DataselectieApiTest(ESTestCase):
         Fetch all records (gets the first 100 records)
         """
         q = dict(page=1)
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
 
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
@@ -79,10 +82,12 @@ class DataselectieApiTest(ESTestCase):
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
         q = {'page': 1, 'stadsdeel_naam': 'Centrum'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
+        self.assertEqual(
+            models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 10)
         self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
