@@ -36,6 +36,8 @@ database_BAG:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
         - "5432"
+    volumes:
+      - /mnt/dumps:/tmp/import
     environment:
         POSTGRES_USER: atlas
         POSTGRES_DB: atlas
