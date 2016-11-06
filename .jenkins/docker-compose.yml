@@ -15,14 +15,6 @@ test_elasticsearch:
        - "9210:9200"
        - "9310:9300"
 
-el-backup:
-  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
-  links:
-    - elasticsearch:el
-  command: >
-    bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-            && curl -X PUT http://el:9200/_snapshot/backup/ds_bag?wait_for_completion=true -d '{ \"indices\": \"ds_bag\" }' "
-
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
@@ -72,3 +64,14 @@ importer:
                 && python manage.py migrate \
                 && python manage.py elastic_indices --build"
 
+el-backup:
+  image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
+  links:
+    - elasticsearch:el
+  volumes:
+    - ./backups/elasticsearch:/tmp/backups
+  user: root
+  command: >
+    bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+            && curl -X PUT http://el:9200/_snapshot/backup/ds_bag?wait_for_completion=true -d '{ \"indices\": \"ds_bag\" }' \
+            && chown -R 997:997 /tmp/backups"
