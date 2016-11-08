@@ -10,7 +10,7 @@ from . import documents
 log = logging.getLogger(__name__)
 
 HR_DOC_TYPES = (
-    documents.sbicodeMeta,
+    documents.HandelsregisterMeta,
 )
 
 
@@ -21,14 +21,10 @@ class DeleteHrIndexTask(index.DeleteIndexTask):
 
 class IndexGenericTask(index.ImportIndexTask):
     name = "index generic data"
-    queryset = models.Nummeraanduiding.objects. \
-        prefetch_related('verblijfsobject').\
-        prefetch_related('standplaats').\
-        prefetch_related('ligplaats').\
-        prefetch_related('openbare_ruimte')
+    queryset = models.HandelsRegister.objects
 
     def convert(self, obj):
-        return documents.meta_from_nummeraanduiding(obj)
+        return documents.meta_from_handelsregister(obj)
 
 
 class BuildIndexHrJob(object):

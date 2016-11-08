@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'api',
     # Datasets
     'datasets.bag',
+    'datasets.hr',
 
 ]
 
@@ -104,6 +105,7 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
+        'TEST': { 'DEPENDENCIES': ['hr']},
         'CONN_MAX_AGE': 60,
     },
     'hr': {
@@ -124,6 +126,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
 
 ELASTIC_INDICES = {
     'DS_BAG': 'ds_bag',
+    'DS_HR': 'ds_hr'
 }
 
 MAX_SEARCH_ITEMS = 10000
@@ -167,7 +170,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Checking if running inside some test mode
-TESTING = 'test' in sys.argv
+#TESTING = 'test' in sys.argv
+TESTING = True
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'

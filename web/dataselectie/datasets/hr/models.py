@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import JSONField
 class HandelsRegister(models.Model):
 
     class Meta(object):
-        managed = False
+        # managed = False
         verbose_name = "Handelsregister dataselectie"
         verbose_name_plural = "Handelsregister dataselecties"
         ordering = ('id',)
