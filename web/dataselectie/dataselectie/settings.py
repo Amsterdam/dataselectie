@@ -15,6 +15,8 @@ import re
 import sys
 
 
+TESTING = True
+
 def _get_docker_host() -> str:
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
@@ -49,8 +51,8 @@ INSTALLED_APPS = [
     'batch',
     'api',
     # Datasets
-    'datasets.bag',
     'datasets.hr',
+    'datasets.bag',
 
 ]
 
@@ -105,7 +107,6 @@ DATABASES = {
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
-        'TEST': { 'DEPENDENCIES': ['hr']},
         'CONN_MAX_AGE': 60,
     },
     'hr': {
@@ -118,8 +119,12 @@ DATABASES = {
     }
 }
 
+if TESTING:
+    del DATABASES['bag']
+    del DATABASES['hr']
+    DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
+
 # DB routing
-DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', '9200'))]
@@ -171,7 +176,7 @@ STATIC_URL = '/static/'
 
 # Checking if running inside some test mode
 #TESTING = 'test' in sys.argv
-TESTING = True
+
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'

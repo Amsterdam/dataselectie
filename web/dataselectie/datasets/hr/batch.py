@@ -27,7 +27,7 @@ class IndexGenericTask(index.ImportIndexTask):
         return documents.meta_from_handelsregister(obj)
 
 
-class BuildIndexHrJob(object):
+class BuildIndexDsHrJob(object):
     name = "Create new search-index for all HR data from database"
 
     @staticmethod
@@ -44,8 +44,6 @@ class DeleteIndexHrJob(object):
     @staticmethod
     def tasks():
         return [DeleteHrIndexTask()]
-
-        return [DeleteBagIndexTask()]
 
 def indexElastic(Indexname, documenttypes, searchfields):
     pass

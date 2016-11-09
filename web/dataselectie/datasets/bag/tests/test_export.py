@@ -29,7 +29,7 @@ class ESTestCase(TestCase):
 
 
 class DataselectieExportTest(ESTestCase):
-    multi_db = True
+    # multi_db = True
 
     @classmethod
     def setUpTestData(cls):

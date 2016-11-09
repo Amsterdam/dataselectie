@@ -14,8 +14,9 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.verbosity = 2
 
     def setup_test_environment(self, *args, **kwargs):
-
-        self.unmanaged_models = [model for _, model in apps.all_models['bag'].items() if not model._meta.managed]
+        print(apps)
+        print(apps.all_models)
+        self.unmanaged_models = [model for _, model in apps.all_models['bag', 'hr'].items() if not model._meta.managed]
         for m in self.unmanaged_models:
             m._meta.managed = True
         super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
