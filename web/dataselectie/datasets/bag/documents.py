@@ -1,6 +1,7 @@
 # Python
 from typing import List, cast
 # Packages
+from django.conf import settings
 import elasticsearch_dsl as es
 import rapidjson
 # Project
@@ -71,8 +72,12 @@ class NummeraanduidingMeta(es.DocType):
     vestigingsnummer = es.String(multi=True)
     sbi_codes = es.Nested()
 
+    class Meta(object):
+        index = settings.ELASTIC_INDICES['DS_BAG']
+        all = es.MetaField(enabled=False)
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
+
+def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> NummeraanduidingMeta:
     doc = NummeraanduidingMeta(_id=item.id)
     parameters = [
         ('nummeraanduiding_id', 'id'),

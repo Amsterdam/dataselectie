@@ -20,6 +20,8 @@ class DeleteDsBagIndexTask(index.DeleteIndexTask):
 
 class IndexDsBagTask(index.ImportIndexTask):
     name = "index bag data"
+    index = settings.ELASTIC_INDICES['DS_BAG']
+
     queryset = models.Nummeraanduiding.objects.\
         prefetch_related('verblijfsobject').\
         prefetch_related('standplaats').\
@@ -35,10 +37,7 @@ class BuildIndexDsBagJob(object):
 
     @staticmethod
     def tasks():
-        return [
-            DeleteDsBagIndexTask(),
-            IndexDsBagTask(),
-        ]
+        return [IndexDsBagTask()]
 
 
 class DeleteIndexDsBagJob(object):
@@ -46,4 +45,4 @@ class DeleteIndexDsBagJob(object):
 
     @staticmethod
     def tasks():
-        return [DeleteBagIndexTask()]
+        return [DeleteDsBagIndexTask()]
