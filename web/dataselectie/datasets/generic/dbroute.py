@@ -42,11 +42,11 @@ class DatasetsRouter(object):
     def allow_relation(self, obj1, obj2, **hints):
         return None
 
-    def allow_migrate(self, db, app_label, model_name=None, **hints):
-        """
-        Do Not allowe migration of datasets. This should already be handled by
-        managed=False, but jsu tto be sure
-        """
-        if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
-            return False
-        return None
+    # def allow_migrate(self, db, app_label, model_name=None, **hints):
+    #     """
+    #     Do Not allowe migration of datasets. This should already be handled by
+    #     managed=False, but jsu tto be sure
+    #     """
+    #     if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
+    #         return False
+    #     return None

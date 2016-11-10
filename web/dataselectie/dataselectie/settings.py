@@ -15,7 +15,7 @@ import re
 import sys
 
 
-TESTING = True
+TESTING = 'test' in sys.argv
 
 def _get_docker_host() -> str:
     d_host = os.getenv('DOCKER_HOST', None)
@@ -118,20 +118,19 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_PORT_5432_TCP_PORT', '5406'),
     }
 }
-
 if TESTING:
     del DATABASES['bag']
     del DATABASES['hr']
+else:
+    # DB routing
     DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 
-# DB routing
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', '9200'))]
 
 ELASTIC_INDICES = {
-    'DS_BAG': 'ds_bag',
-    'DS_HR': 'ds_hr'
+    'DS_BAG': 'ds_bag'
 }
 
 MAX_SEARCH_ITEMS = 10000
@@ -175,11 +174,10 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 # Checking if running inside some test mode
-#TESTING = 'test' in sys.argv
 
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
-TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
+# TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
 IN_TEST_MODE = TESTING
 # Setting test prefix on index names in test
 if TESTING:

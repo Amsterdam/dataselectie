@@ -98,7 +98,7 @@ class ImportIndexTask(object):
         log.info("START: %s END %s COUNT: %s CHUNK %s TOTAL_COUNT: %s" % (
             start_index, end_part, chunk_size, batch_size, count))
 
-        # total batches in this (partial) bacth job
+        # total batches in this (partial) batch job
         total_batches = int(chunk_size / batch_size)
         for i, start in enumerate(range(start_index, end_part, batch_size)):
             end = min(start + batch_size, end_part)

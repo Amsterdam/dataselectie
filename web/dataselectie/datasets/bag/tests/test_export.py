@@ -1,14 +1,9 @@
-# Python
-from json import loads
-from unittest import skip
-from urllib.parse import urlencode
 # Packages
 from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
-from datasets.bag import models, views
 from datasets.bag.tests import fixture_utils
 
 
@@ -29,7 +24,6 @@ class ESTestCase(TestCase):
 
 
 class DataselectieExportTest(ESTestCase):
-    # multi_db = True
 
     @classmethod
     def setUpTestData(cls):

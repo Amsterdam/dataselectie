@@ -10,10 +10,16 @@
 
 # Packages
 from django.conf import settings
+from ..generic.queries import create_query
 
 
 def meta_q(query, add_aggs=True, add_count_aggs=True):
     # @TODO change to setting
+    aggs = bld_agg()
+    return create_query(query, add_aggs, add_count_aggs, aggs)
+
+
+def bld_agg():
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
@@ -89,27 +95,4 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
             },
         }
     }
-
-    if query:
-        q = {
-            'query': {'match': {'_all': query}},
-        }
-    else:
-        q = {
-            'query': {'match_all': {}}
-        }
-
-    if add_aggs:
-        if add_count_aggs:
-            count_aggs = {}
-            # Creating count aggs per aggregatie settings.AGGS_VALUE_SIZE
-            for key, value in aggs['aggs'].items():
-                count_aggs[key + '_count'] = {
-                    'cardinality': {
-                        'field': aggs['aggs'][key]['terms']['field'],
-                        'precision_threshold': 1000
-                    }
-                }
-            aggs['aggs'].update(count_aggs)
-        q.update(aggs)
-    return q
+    return aggs

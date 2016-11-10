@@ -2,8 +2,10 @@
 from typing import List, cast
 # Packages
 import elasticsearch_dsl as es
+import rapidjson
 # Project
 from datasets.bag import models
+from datasets.hr import models as hrmodels
 from datasets.generic import analyzers
 
 
@@ -65,6 +67,9 @@ class NummeraanduidingMeta(es.DocType):
     bouwblok = es.String(index='not_analyzed')
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
+
+    vestigingsnummer = es.String(multi=True)
+    sbi_codes = es.Nested()
 
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
@@ -141,6 +146,13 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> dict:
             doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
         except:
             pass
+
+    doc.vestigingsnummer = []
+    doc.sbi_codes = []
+    for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+        api_dict = rapidjson.loads(hrinfo.api_json)
+        doc.vestigingsnummer.append(api_dict['vestigingsnummer'])
+        doc.sbi_codes = api_dict['sbi_codes']
 
     return doc
 

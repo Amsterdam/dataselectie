@@ -3,23 +3,20 @@ from django.core.management import BaseCommand
 from django.conf import settings
 
 import datasets.bag.batch
-import datasets.hr.batch
 from batch import batch
 import time
 
 
 class Command(BaseCommand):
 
-    ordered = ['ds_bag', 'ds_hr']
+    ordered = ['ds_bag']
 
     indexes = {
         'ds_bag': [datasets.bag.batch.BuildIndexDsBagJob],
-        'ds_hr': [datasets.hr.batch.BuildIndexDsHrJob],
     }
 
     delete_indexes = {
         'ds_bag': [datasets.bag.batch.DeleteIndexDsBagJob],
-        'ds_hr': [datasets.hr.batch.DeleteIndexDsHrJob],
     }
 
     def add_arguments(self, parser):

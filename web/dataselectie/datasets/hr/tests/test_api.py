@@ -9,7 +9,7 @@ from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
 from datasets.bag import models, views
-from datasets.bag.tests import fixture_utils
+from .factories import DataSelectieHrFactory
 
 
 class ESTestCase(TestCase):
@@ -32,19 +32,19 @@ class DataselectieApiTest(ESTestCase):
 
     @classmethod
     def setUpTestData(cls):
+        DataSelectieHrFactory()
         super(ESTestCase, cls).setUpTestData()
-        fixture_utils.create_nummeraanduiding_fixtures()
         cls.rebuild_elastic_index()
 
     def setUp(self):
         self.client = Client()
 
-    def test_get_dataselectie_bag(self):
+    def test_get_dataselectie_hr(self):
         """
         Fetch all records (gets the first 100 records)
         """
         q = {'page': 1}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
 
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
@@ -53,12 +53,12 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
 
-    def test_sortorder_dataselectie_bag(self):
+    def test_sortorder_dataselectie_hr(self):
         """
         Fetch all records (gets the first 100 records)
         """
         q = dict(page=1)
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
 
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
@@ -73,7 +73,7 @@ class DataselectieApiTest(ESTestCase):
             self.assertGreaterEqual(sortcriterium, previous)
             previous = sortcriterium
 
-    def test_get_dataselectie_bag_stadsdeel_naam(self):
+    def test_get_dataselectie_hr_stadsdeel_naam(self):
         """
         Test the elastic while querying on field `stadsdeel_naam` top-down
         """
@@ -85,7 +85,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 10)
         self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
-    def test_get_dataselectie_bag_stadsdeel_code(self):
+    def test_get_dataselectie_hr_stadsdeel_code(self):
         """
         Test the elastic while querying on field `stadsdeel_code`
         """
@@ -99,7 +99,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     @skip('Needs to add geo matching for this test to work')
-    def test_get_dataselectie_bag_ggw_naam(self):
+    def test_get_dataselectie_hr_ggw_naam(self):
         """
         Test the elastic while querying on field `ggw_naam`
         """
@@ -112,7 +112,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 1)
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_buurtcombinatie_naam(self):
+    def test_get_dataselectie_hr_buurtcombinatie_naam(self):
         """
         Test the elastic while querying on field `buurtcombinatie_naam`
         """
@@ -126,7 +126,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_buurtcombinatie_code(self):
+    def test_get_dataselectie_hr_buurtcombinatie_code(self):
         """
         Test the elastic while querying on field `buurtcombinatie_code`
         """
@@ -138,7 +138,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_buurt_naam(self):
+    def test_get_dataselectie_hr_buurt_naam(self):
         """
         Test the elastic while querying on field `buurt_naam`
         """
@@ -150,7 +150,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 3)
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_bag_postcode(self):
+    def test_get_dataselectie_hr_postcode(self):
         """
         Test the elastic while querying on field `buurt_naam`
         """
