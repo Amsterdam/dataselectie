@@ -14,6 +14,9 @@ class NummeraanduidingMeta(es.DocType):
     """
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal
+
+    The link with any data that is being used here is
+    the bag_id.
     """
 
     def __init__(self, *args, **kwargs):
@@ -71,6 +74,7 @@ class NummeraanduidingMeta(es.DocType):
 
     vestigingsnummer = es.String(multi=True)
     sbi_codes = es.Nested()
+    is_hr_address = es.Boolean()
 
     class Meta(object):
         index = settings.ELASTIC_INDICES['DS_BAG']
@@ -154,10 +158,12 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
 
     doc.vestigingsnummer = []
     doc.sbi_codes = []
+    doc.is_hr_address = False
     for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
         api_dict = rapidjson.loads(hrinfo.api_json)
         doc.vestigingsnummer.append(api_dict['vestigingsnummer'])
         doc.sbi_codes = api_dict['sbi_codes']
+        doc.is_hr_address = True
 
     return doc
 

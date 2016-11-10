@@ -24,6 +24,12 @@ def bld_agg() -> dict:
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
+            'is_hr_code': {
+                'terms': {
+                    'field': 'is_hr_code',
+                    'value': True,
+                },
+            },
             'sbi_code': {
                 'terms': {
                     'field': 'sbi_code',
@@ -55,5 +61,5 @@ def bld_agg() -> dict:
         }
     }
 
-    aggs.update(bag_bld_agg())
+    aggs['aggs'].update(bag_bld_agg()['aggs'])
     return aggs

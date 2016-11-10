@@ -27,13 +27,18 @@ class TableSearchView(ListView):
     # attributes:
     # ---------------------
     # The model class to use
-    model = None  # type: models.Model
+    model = None        # type: models.Model
     # The name of the index to search in
-    index = ''  # type: str
+    index = ''          # type: str
     # A set of optional keywords to filter the results further
-    keywords = None  # type: tuple[str]
+    keywords = None     # type: tuple[str]
     # Fields in elastic that should be used in raw version
-    raw_fields = None  # type: list[str]
+    raw_fields = None   # type: list[str]
+    # Fixed filters that are always applied
+    fixed_filters = []  # type: list[dict]
+    # Sorting of the queryset
+    sorts = []          # type: list[str]
+
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
     def __init__(self):
@@ -131,6 +136,8 @@ class TableSearchView(ListView):
             val = self.request.GET.get(filter_keyword, None)
             if val is not None:
                 filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+        for fixed_filter in self.fixed_filters:
+            filters.append( {'term': fixed_filter} )
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {
@@ -198,9 +205,11 @@ class TableSearchView(ListView):
         ids = elastic_data.get('ids', None)
 
         if ids:
-            return self.model.objects.filter(id__in=ids).order_by(
-                '_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-                'huisnummer_toevoeging').values()[:self.preview_size]
+            if self.sorts:
+                qs = self.model.objects.filter(id__in=ids).order_by(*self.sorts)
+            else:
+                qs = self.model.objects.filter(id__in=ids)
+            return qs.values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()

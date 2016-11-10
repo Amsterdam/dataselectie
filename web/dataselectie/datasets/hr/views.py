@@ -18,15 +18,10 @@ class HrBase(object):
     index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
-    keywords = (
-        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode',
-        'sbi_code', 'subcategorie', 'sub_sub_categorie',
-        'hoofdcategorie')
-    raw_fields = ['naam', '_openbare_ruimte_naam',
-                  'subcategorie', 'sub_sub_categorie',
-                  'hoofdcategorie']
+    keywords = ('sbi_code', 'subcategorie', 'sub_sub_categorie',
+        'hoofdcategorie', 'vestigingsnummer')
+
+    fixed_filters = [{'is_hr_address': True}]
 
 
 class HrSearch(HrBase, TableSearchView):

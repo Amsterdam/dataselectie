@@ -269,9 +269,9 @@ def create_nummeraanduiding_fixtures():
     create_standplaats_fixtures()
     create_buurt_combinaties()
     create_buurt_fixtures()
-    hr_factories.DataSelectieHrFactory(vb_objects[1][0], 0, 1)
-    hr_factories.DataSelectieHrFactory(vb_objects[3][0], 2, 2)
-    hr_factories.DataSelectieHrFactory(vb_objects[4][0], 3, 3)
+    hr_factories.DataSelectieHrFactory(vb_objects[1][0], 0, 2)
+    hr_factories.DataSelectieHrFactory(vb_objects[3][0], 2, 3)
+    hr_factories.DataSelectieHrFactory(vb_objects[4][0], 3, 4)
 
     return [
         models.Nummeraanduiding.objects.get_or_create(huisnummer=1, huisletter='A', huisnummer_toevoeging='BIS',

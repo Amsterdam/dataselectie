@@ -23,6 +23,8 @@ class BagBase(object):
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
     raw_fields = ['naam', '_openbare_ruimte_naam']
+    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
+                'huisnummer_toevoeging']
 
 
 class BagSearch(BagBase, TableSearchView):

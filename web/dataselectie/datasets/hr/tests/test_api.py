@@ -9,7 +9,7 @@ from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
 from datasets.bag import models, views
-from .factories import DataSelectieHrFactory
+from ...bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 
 
 class ESTestCase(TestCase):
@@ -32,8 +32,8 @@ class DataselectieApiTest(ESTestCase):
 
     @classmethod
     def setUpTestData(cls):
-        DataSelectieHrFactory()
         super(ESTestCase, cls).setUpTestData()
+        create_nummeraanduiding_fixtures()
         cls.rebuild_elastic_index()
 
     def setUp(self):

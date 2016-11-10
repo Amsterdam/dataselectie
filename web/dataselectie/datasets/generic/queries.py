@@ -40,7 +40,13 @@ def meetbout_Q(query, tokens=None, num=None):
         'Index': ['meetbouten']
     }
 
-def create_query(query, add_aggs, add_count_aggs, aggs):
+def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None):
+
+    if default_query:
+        if query:
+            query += default_query
+        else:
+            query = default_query
 
     if query:
         q = {
