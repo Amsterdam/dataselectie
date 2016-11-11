@@ -23,9 +23,16 @@ from datasets.bag.models import Nummeraanduiding
 class ElasticSearchMixin(object):
     """
     A mixin provinding several elastic search utility functions
+
+    geo_fields tuple format per dict is as follow:
+        - key: the field to use,
+        - value: type of geospatial search
     """
+
     # A set of optional keywords to filter the results further
     keywords = ()  # type: tuple[str]
+    raw_fields = ()  # type: tuple[str]
+    geo_fields = {}  # type: dict
 
     def build_elastic_query(self, query):
         """
@@ -41,6 +48,13 @@ class ElasticSearchMixin(object):
             val = self.request.GET.get(filter_keyword, None)
             if val is not None:
                 filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+        # Adding geo filters
+        for term, geo_type in self.geo_fields.items():
+            val = self.request.GET.get(term, None)
+            if val is not None:
+                # Splitting val to list
+                val = val[1:-1].split(';')  # Assume ';' as list separator
+                filters.append({geo_type: {term: {'points': val}}})
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {
