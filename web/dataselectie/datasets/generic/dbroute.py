@@ -49,4 +49,6 @@ class DatasetsRouter(object):
         """
         if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
             return False
+        elif self._model_in_datasets(app_label) and db != app_label:
+            return False
         return None
