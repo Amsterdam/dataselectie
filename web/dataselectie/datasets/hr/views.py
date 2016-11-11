@@ -3,6 +3,7 @@ import csv
 from datetime import datetime
 
 from django.http import StreamingHttpResponse
+from django.http import HttpRequest
 from pytz import timezone
 
 from datasets.hr import models
@@ -22,6 +23,9 @@ class HrBase(object):
         'hoofdcategorie', 'vestigingsnummer')
 
     fixed_filters = [{'is_hr_address': True}]
+
+    sorts = ['vestigingsnummer']                    # For now this is enough.
+                                                    # Probably complex sorting on content of json!
 
 
 class HrSearch(HrBase, TableSearchView):
@@ -68,6 +72,16 @@ class HrSearch(HrBase, TableSearchView):
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
+
+    def fill_ids(self, response, elastic_data):
+        for hit in response['hits']['hits']:
+            elastic_data['ids'] += hit['vestigingsnummer']
+        return elastic_data
+
+
+    def render_to_response(self, context, **response_kwargs):
+        # Routine to post the JSON as already defined
+        HttpRequest.body = bla
 
 
 class HrCSV(HrBase, CSVExportView):

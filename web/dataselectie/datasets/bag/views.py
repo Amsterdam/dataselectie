@@ -75,7 +75,6 @@ class BagSearch(BagBase, TableSearchView):
         context['total'] = self.extra_context_data['total']
         return context
 
-
 class BagCSV(BagBase, CSVExportView):
     """
     Output CSV

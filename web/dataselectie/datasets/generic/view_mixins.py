@@ -192,10 +192,15 @@ class TableSearchView(ListView):
         query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
+        elastic_data = self.fill_ids(response, elastic_data)
         # Enrich result data with neede info
         self.save_context_data(response)
+        return elastic_data
+
+    def fill_ids(self, response, elastic_data):
+        # Can be overridden in the view to allow for other primary keys
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
         return elastic_data
 
     def create_queryset(self, elastic_data):
