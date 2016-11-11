@@ -22,6 +22,7 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
+        call_command('elastic_indices', '--delete', verbosity=0, interactive=False)
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
@@ -114,7 +115,6 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        print(res)
         self.assertEqual(res['object_count'], 1)
         self.assertEqual(res['page_count'], 1)
 
@@ -161,7 +161,7 @@ class DataselectieApiTest(ESTestCase):
         Test the elastic while querying on field `buurt_naam`
         """
 
-        q = dict(page=1, postcode='1012AA')
+        q = {'page': 1, 'postcode': '1012AA'}
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
@@ -187,6 +187,20 @@ class DataselectieApiTest(ESTestCase):
         # Making sure the not raw field is in without the raw
         self.assertIn(extra_field, filter_dict.keys())
         self.assertNotIn('{}.raw'.format(extra_field), filter_dict.keys())
+
+    def test_get_dataselectie_geolocation(self):
+        """
+        Test elastic for returning only geolocation
+        """
+        response = self.client.get('/dataselectie/bag/geolocation/')
+
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            res['object_count'], models.Nummeraanduiding.objects.count())
+        self.assertNotIn('aggs_list', res)
 
     def tearDown(self):
         pass

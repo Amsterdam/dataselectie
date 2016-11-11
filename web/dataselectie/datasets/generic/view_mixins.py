@@ -107,9 +107,12 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             body=query,
             _source_include=['centroid']
         )
-
+        resp = {
+            'object_count': response['hits']['total'],
+            'object_list': response['hits']['hits']
+        }
         return HttpResponse(
-            json.dumps(response),
+            json.dumps(resp),
             content_type='application/json'
         )
 
