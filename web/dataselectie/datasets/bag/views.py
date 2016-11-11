@@ -7,7 +7,7 @@ from pytz import timezone
 
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
+from datasets.generic.view_mixins import CSVExportView, Echo, GeoLocationSearchView, TableSearchView
 
 
 class BagBase(object):
@@ -25,10 +25,16 @@ class BagBase(object):
     raw_fields = ['naam', '_openbare_ruimte_naam']
 
 
-class BagSearch(BagBase, TableSearchView):
+class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
+
     def elastic_query(self, query):
-        res = meta_q(query)
-        return res
+        return meta_q(query, False, False)
+
+
+class BagSearch(BagBase, TableSearchView):
+
+    def elastic_query(self, query):
+        return meta_q(query)
 
     def save_context_data(self, response):
         """
@@ -111,9 +117,6 @@ class BagCSV(BagBase, CSVExportView):
         res = {}
         try:
             geom = db_item.adresseerbaar_object.geometrie.centroid
-        except AttributeError:
-            geom = None
-        if geom:
             # Convert to wgs
             geom_wgs = geom.transform('wgs84', clone=True).coords
             geom = geom.coords
@@ -123,6 +126,8 @@ class BagCSV(BagBase, CSVExportView):
                 'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
                 'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
             }
+        except AttributeError:
+            geom = None
         return res
 
     def _convert_to_dicts(self, qs):

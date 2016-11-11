@@ -98,8 +98,9 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
 
     # Saving centroind of it exists
     try:
-        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84')
+        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84', clone=True).coords
     except Exception as e:
+        print(repr(e))
         doc.centroid = None
 
     # Adding the ggw data

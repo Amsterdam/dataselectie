@@ -9,7 +9,7 @@ from django.db import models
 from django.db.models.fields.related import ManyToManyField
 from django.http import HttpResponse
 from django.shortcuts import render
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 # Project
@@ -20,7 +20,101 @@ from datasets.bag.models import Nummeraanduiding
 # =============================================================
 
 
-class TableSearchView(ListView):
+class ElasticSearchMixin(object):
+    """
+    A mixin provinding several elastic search utility functions
+    """
+    # A set of optional keywords to filter the results further
+    keywords = ()  # type: tuple[str]
+
+    def build_elastic_query(self, query):
+        """
+        Builds the dictionary query to send to elastic
+        Parameters:
+        query - The q dict returned from the queries file
+        Returns:
+        The query dict to send to elastic
+        """
+        # Adding filters
+        filters = []
+        for filter_keyword in self.keywords:
+            val = self.request.GET.get(filter_keyword, None)
+            if val is not None:
+                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+        # If any filters were given, add them, creating a bool query
+        if filters:
+            query['query'] = {
+                'bool': {
+                    'must': [query['query']],
+                    'filter': filters,
+                }
+            }
+        return self.handle_query_size_offset(query)
+
+    def handle_query_size_offset(self, query):
+        """
+        Handles query size and offseting
+        By defualt it does nothing
+        """
+        return query
+
+    def get_term_and_value(self, filter_keyword, val):
+        """
+        Some fields need to be searched raw while others are analysed with the default string analyser which will
+        automatically convert the fields to lowercase in de the index.
+        :param filter_keyword: the keyword in the index to search on
+        :param val: the value we are searching for
+        :return: a small dict that contains the key/value pair to use in the ES search.
+        """
+        if filter_keyword in self.raw_fields:
+            filter_keyword = "{}.raw".format(filter_keyword)
+        return {filter_keyword: val}
+
+
+class GeoLocationSearchView(ElasticSearchMixin, View):
+    """
+    A base class to search elastic for geolocation
+    of items
+    """
+    http_method_names = ['get', 'head']
+    # To overwrite methods
+    index = ''  # type: str
+
+    def __init__(self):
+        super(View, self).__init__()
+        self.elastic = Elasticsearch(
+            hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True,
+            refresh=True
+        )
+
+    def get(self, request, *args, **kwargs):
+        """
+        Handling the request for goelocation information
+        """
+        # Creating empty result set. Just in case
+        elastic_data = {'ids': [], 'filters': {}}
+        # looking for a query
+        query_string = self.request.GET.get('query', None)
+
+        # Building the query
+        q = self.elastic_query(query_string)
+        query = self.build_elastic_query(q)
+        # Removing size limit
+        query['size'] = settings.MAX_SEARCH_ITEMS
+        # Performing the search
+        response = self.elastic.search(
+            index=settings.ELASTIC_INDICES[self.index],
+            body=query,
+            _source_include=['centroid']
+        )
+
+        return HttpResponse(
+            json.dumps(response),
+            content_type='application/json'
+        )
+
+
+class TableSearchView(ElasticSearchMixin, ListView):
     """
     A base class to generate tables from search results
     """
@@ -30,8 +124,6 @@ class TableSearchView(ListView):
     model = None  # type: models.Model
     # The name of the index to search in
     index = ''  # type: str
-    # A set of optional keywords to filter the results further
-    keywords = None  # type: tuple[str]
     # Fields in elastic that should be used in raw version
     raw_fields = None  # type: list[str]
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
@@ -117,50 +209,6 @@ class TableSearchView(ListView):
         )
 
     # Tableview methods
-    def build_elastic_query(self, query):
-        """
-        Builds the dictionary query to send to elastic
-        Parameters:
-        query - The q dict returned from the queries file
-        Returns:
-        The query dict to send to elastic
-        """
-        # Adding filters
-        filters = []
-        for filter_keyword in self.keywords:
-            val = self.request.GET.get(filter_keyword, None)
-            if val is not None:
-                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
-        # If any filters were given, add them, creating a bool query
-        if filters:
-            query['query'] = {
-                'bool': {
-                    'must': [query['query']],
-                    'filter': filters,
-                }
-            }
-        # Adding sizing if not given
-        if 'size' not in query and self.preview_size:
-            query['size'] = self.preview_size
-        # Adding offset in case of paging
-        offset = self.request.GET.get('page', None)
-        if offset:
-            try:
-                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
-                if offset > 1:
-                    query['from'] = offset
-            except ValueError:
-                # offset is not an int
-                pass
-        return self.paginate(offset, query)
-
-    def paginate(self, offset, q):
-        # Sanity check to make sure we do not pass 10000
-        if offset and settings.MAX_SEARCH_ITEMS:
-            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
-                q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
-        return q
-
     def load_from_elastic(self):
         """
         Loads the data from elastic.
@@ -196,7 +244,6 @@ class TableSearchView(ListView):
         Generates a query set based on the ids retrieved from elastic
         """
         ids = elastic_data.get('ids', None)
-
         if ids:
             return self.model.objects.filter(id__in=ids).order_by(
                 '_openbare_ruimte_naam', 'huisnummer', 'huisletter',
@@ -204,6 +251,33 @@ class TableSearchView(ListView):
         else:
             # No ids where found
             return self.model.objects.none().values()
+
+    def handle_query_size_offset(self, query):
+        """
+        Handles query size and offseting
+        """
+        # Adding sizing if not given
+        if 'size' not in query and self.preview_size:
+            query['size'] = self.preview_size
+        # Adding offset in case of paging
+        offset = self.request.GET.get('page', None)
+        if offset:
+            try:
+                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
+                if offset > 1:
+                    query['from'] = offset
+            except ValueError:
+                # offset is not an int
+                pass
+        return self.paginate(offset, query)
+
+    def paginate(self, offset, q):
+        # Sanity check to make sure we do not pass 10000
+        if offset and settings.MAX_SEARCH_ITEMS:
+            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
+                size = settings.MAX_SEARCH_ITEMS - offset
+                q['size'] = size if size > 0 else 0
+        return q
 
     def get_context_data(self, **kwargs):
         """
@@ -231,18 +305,6 @@ class TableSearchView(ListView):
         Enables the subclasses to update/change the object list
         """
         return context
-
-    def get_term_and_value(self, filter_keyword, val):
-        """
-        Some fields need to be searched raw while others are analysed with the default string analyser which will
-        automatically convert the fields to lowercase in de the index.
-        :param filter_keyword: the keyword in the index to search on
-        :param val: the value we are searching for
-        :return: a small dict that contains the key/value pair to use in the ES search.
-        """
-        if filter_keyword in self.raw_fields:
-            filter_keyword = "{}.raw".format(filter_keyword)
-        return {filter_keyword: val}
 
 
 class CSVExportView(TableSearchView):

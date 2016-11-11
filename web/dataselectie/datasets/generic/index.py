@@ -54,6 +54,11 @@ class ImportIndexTask(object):
     queryset = None  # type: QuerySet
     batch_size = 10000
 
+    # def __init__(self):
+    #     idx = es.Index(self.index)
+    #     for dt in self.doc_types:
+    #         idx.doc_type(dt)
+
     def get_queryset(self):
         return self.queryset.order_by('id')
         # return self.queryset.iterator()
