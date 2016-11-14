@@ -44,13 +44,16 @@ class ElasticSearchMixin(object):
         """
         # Adding filters
         filters = []
+        # Retriving the request parameters
+        request_parameters = getattr(self.request, self.request.method)
+
         for filter_keyword in self.keywords:
-            val = self.request.GET.get(filter_keyword, None)
+            val = request_parameters.get(filter_keyword, None)
             if val is not None:
                 filters.append({'term': self.get_term_and_value(filter_keyword, val)})
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
-            val = self.request.GET.get(term, None)
+            val = request_parameters.get(term, None)
             if val is not None:
                 # Splitting val to list
                 val = val[1:-1].split(';')  # Assume ';' as list separator
@@ -90,7 +93,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
     A base class to search elastic for geolocation
     of items
     """
-    http_method_names = ['get', 'head']
+    http_method_names = ['GET', 'POST']
     # To overwrite methods
     index = ''  # type: str
 
@@ -101,14 +104,26 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             refresh=True
         )
 
-    def get(self, request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
+        print(request.method)
+        self.request_parameters = getattr(request, request.method)
+
+        if request.method in self.http_method_names:
+            return self.handle_request(self, request, *args, **kwargs)
+        else:
+            return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def handle_request(self, request, *args, **kwargs):
         """
         Handling the request for goelocation information
         """
         # Creating empty result set. Just in case
         elastic_data = {'ids': [], 'filters': {}}
+        # Setting request parameters if not set
+        if not self.request_parameters:
+            request_parameters = self.request.GET
         # looking for a query
-        query_string = self.request.GET.get('query', None)
+        query_string = request_parameters.get('query', None)
 
         # Building the query
         q = self.elastic_query(query_string)
@@ -144,6 +159,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # Fields in elastic that should be used in raw version
     raw_fields = None  # type: list[str]
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
+    http_method_names = ['get', 'post']
 
     def __init__(self):
         super(ListView, self).__init__()
@@ -152,6 +168,10 @@ class TableSearchView(ElasticSearchMixin, ListView):
             refresh=True
         )
         self.extra_context_data = None  # Used to store data from elastic used in context
+
+    def dispatch(self, request, *args, **kwargs):
+        self.request_parameters = getattr(request, request.method)
+        return super(TableSearchView, self).dispatch(request, *args, **kwargs)
 
     def _stringify_item_value(self, value):
         """
@@ -201,9 +221,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
     def render_to_response(self, context, **response_kwargs):
         # Checking if pretty and debug
         resp = {}
-        if self.request.GET.get('pretty', False) and settings.DEBUG:
-            # @TODO Add a row to the object list at the start with all the keys
-            return render(self.request, "pretty_elastic.html", context=context)
         resp['object_list'] = list(context['object_list'])
         # Cleaning all but the objects and aggregations
         try:
@@ -243,7 +260,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Creating empty result set. Just in case
         elastic_data = {'ids': [], 'filters': {}}
         # looking for a query
-        query_string = self.request.GET.get('query', None)
+        query_string = self.request_parameters.get('query', None)
 
         # Building the query
         q = self.elastic_query(query_string)
@@ -277,7 +294,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
         # Adding offset in case of paging
-        offset = self.request.GET.get('page', None)
+        offset = self.request_parameters.get('page', None)
         if offset:
             try:
                 offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
@@ -346,7 +363,7 @@ class CSVExportView(TableSearchView):
         """
         Instead of an actual queryset, it returns an elastic scroll api generator
         """
-        query_string = self.request.GET.get('query', None)
+        query_string = self.request_parameters.get('query', None)
         # Building the query
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
