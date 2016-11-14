@@ -31,7 +31,7 @@ class ElasticSearchMixin(object):
 
     # A set of optional keywords to filter the results further
     keywords = ()  # type: tuple[str]
-    raw_fields = ()  # type: tuple[str]
+    raw_fields = []  # type: list[str]
     geo_fields = {}  # type: dict
 
     def build_elastic_query(self, query):
