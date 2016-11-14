@@ -1,8 +1,10 @@
 # Python
 import csv
 from datetime import datetime
+import rapidjson
 
 from django.http import StreamingHttpResponse
+from django.http import HttpResponse
 from pytz import timezone
 
 from datasets.bag import models
@@ -74,6 +76,14 @@ class BagSearch(BagBase, TableSearchView):
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
+
+    def Send_Response(self, resp, response_kwargs):
+        return  HttpResponse(
+                rapidjson.dumps(resp),
+                content_type='application/json',
+                **response_kwargs
+            )
+
 
 class BagCSV(BagBase, CSVExportView):
     """

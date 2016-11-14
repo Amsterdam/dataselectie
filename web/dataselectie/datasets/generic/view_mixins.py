@@ -1,13 +1,12 @@
 # Python
 from datetime import date, datetime
-import json
+import rapidjson
 from typing import Any
 #from typing import List, Tuple
 # Packages
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import ManyToManyField
-from django.http import HttpResponse
 from django.shortcuts import render
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
@@ -38,6 +37,8 @@ class TableSearchView(ListView):
     fixed_filters = []  # type: list[dict]
     # Sorting of the queryset
     sorts = []          # type: list[str]
+    # mapping keywords
+    keyword_mapping = {}
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
@@ -115,11 +116,7 @@ class TableSearchView(ListView):
         except KeyError:
             pass
 
-        return HttpResponse(
-            json.dumps(resp),
-            content_type='application/json',
-            **response_kwargs
-        )
+        return self.Send_Response(resp, response_kwargs)
 
     # Tableview methods
     def build_elastic_query(self, query):
@@ -131,21 +128,40 @@ class TableSearchView(ListView):
         The query dict to send to elastic
         """
         # Adding filters
-        filters = []
+        filters = {None:[]}
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
-            if val is not None:
-                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+            nested_path = None
+            if val is not None:     # Mapping is necessary to indicate that an index is nested
+                if filter_keyword in self.keyword_mapping:
+                    filter_keyword = self.keyword_mapping[filter_keyword]
+                    nested_path = filter_keyword.split('.')[0]
+                    filters[nested_path] = []
+
+                filters[nested_path].append({'term': self.get_term_and_value(filter_keyword, val)})
+
         for fixed_filter in self.fixed_filters:
-            filters.append( {'term': fixed_filter} )
+            filters[None].append( {'term': fixed_filter} )
         # If any filters were given, add them, creating a bool query
-        if filters:
-            query['query'] = {
-                'bool': {
-                    'must': [query['query']],
-                    'filter': filters,
+
+        query['query'] = {}
+        for filterpath, filter in filters.items():
+            if filterpath:
+                nested = {'nested': {
+                    'path': nested_path,
+                    'score_mode': 'avg',
+                    'query': {'bool':
+                            {
+                            'must' : filter
+                            }
+                        }
+                    }
                 }
-            }
+                query.update(nested)
+            else:
+                query['bool'] = {
+                                'must' : filter
+                                }
         # Adding sizing if not given
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
@@ -256,6 +272,7 @@ class TableSearchView(ListView):
         """
         if filter_keyword in self.raw_fields:
             filter_keyword = "{}.raw".format(filter_keyword)
+
         return {filter_keyword: val}
 
 

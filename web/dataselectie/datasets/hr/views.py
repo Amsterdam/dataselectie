@@ -1,9 +1,10 @@
 # Python
 import csv
+import rapidjson
 from datetime import datetime
 
 from django.http import StreamingHttpResponse
-from django.http import HttpRequest
+from django.http import HttpResponse
 from pytz import timezone
 
 from datasets.hr import models
@@ -19,12 +20,19 @@ class HrBase(object):
     index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
-    keywords = ('sbi_code', 'subcategorie', 'sub_sub_categorie',
-        'hoofdcategorie', 'vestigingsnummer')
+    extra_context_keywords = [
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
+    keywords = ['sbi_code'] + extra_context_keywords
+    raw_fields = []
+
+    keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code'}
+
 
     fixed_filters = [{'is_hr_address': True}]
 
-    sorts = ['vestigingsnummer']                    # For now this is enough.
+#    sorts = ['vestigingsnummer']                    # For now this is enough.
                                                     # Probably complex sorting on content of json!
 
 
@@ -40,13 +48,22 @@ class HrSearch(HrBase, TableSearchView):
         """
         self.extra_context_data = {'items': {}}
         for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            for field in self.keywords:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    pass
+            first = True
+            for vestigingsnr in item['_source']['vestigingsnummer']:
+                if first:
+                    self.extra_context_data['items'][vestigingsnr] = {}
+                    for field in self.extra_context_keywords:
+                        try:
+                            self.extra_context_data['items'][vestigingsnr][field] = \
+                                item['_source'][field]
+                        except:
+                            pass
+                    first = False
+                    orig_vestigingsnr = vestigingsnr
+                else:
+                    self.extra_context_data['items'][vestigingsnr] = \
+                        self.extra_context_data['items'][orig_vestigingsnr]
+
         self.extra_context_data['total'] = response['hits']['total']
         # Merging count with regular aggregation
         aggs = response.get('aggregations', {})
@@ -56,6 +73,7 @@ class HrSearch(HrBase, TableSearchView):
             # Removing the individual count aggregation
             del aggs[key]
         self.extra_context_data['aggs_list'] = aggs
+        self.update_keys = self.extra_context_data['items'].values()
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result
@@ -63,25 +81,29 @@ class HrSearch(HrBase, TableSearchView):
             # Making sure all the data is in string form
             context['object_list'][i].update(
                 {k: self._stringify_item_value(v) for k, v in
-                 context['object_list'][i].items() if not isinstance(v, str)}
+                 context['object_list'][i]['api_json'].items() if not isinstance(v, str)}
             )
+
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][
-                                                 context['object_list'][i][
-                                                     'id']])
+                                         context['object_list'][i][
+                                             'id']])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
 
     def fill_ids(self, response, elastic_data):
         for hit in response['hits']['hits']:
-            elastic_data['ids'] += hit['vestigingsnummer']
+            elastic_data['ids'] += hit['_source']['vestigingsnummer']
         return elastic_data
 
+    def Send_Response(self, resp, response_kwargs):
 
-    def render_to_response(self, context, **response_kwargs):
-        # Routine to post the JSON as already defined
-        HttpRequest.body = bla
+        return  HttpResponse(
+                rapidjson.dumps(resp),
+                content_type='application/json',
+                **response_kwargs
+            )
 
 
 class HrCSV(HrBase, CSVExportView):

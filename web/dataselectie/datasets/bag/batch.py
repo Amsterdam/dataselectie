@@ -33,7 +33,7 @@ class IndexDsBagTask(index.ImportIndexTask):
 
 
 class BuildIndexDsBagJob(object):
-    name = "Create new search-index for all BAG data from database"
+    name = "Create new search-index for all BAG/HR data from database"
 
     @staticmethod
     def tasks():
@@ -41,7 +41,7 @@ class BuildIndexDsBagJob(object):
 
 
 class DeleteIndexDsBagJob(object):
-    name = "Delete BAG related indexes"
+    name = "Delete BAG/HR related indexes"
 
     @staticmethod
     def tasks():

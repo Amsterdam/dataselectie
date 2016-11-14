@@ -73,7 +73,14 @@ class NummeraanduidingMeta(es.DocType):
     panden = es.String(index='not_analyzed')
 
     vestigingsnummer = es.String(multi=True)
-    sbi_codes = es.Nested()
+    sbi_codes = es.Nested({
+        'properties': {
+            'sbi_code': es.String(),
+            'hoofdcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'subcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+                }
+    })
     is_hr_address = es.Boolean()
 
     class Meta(object):

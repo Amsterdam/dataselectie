@@ -1,5 +1,5 @@
 # Python
-from json import loads
+from rapidjson import loads
 from unittest import skip
 from urllib.parse import urlencode
 # Packages
@@ -9,6 +9,7 @@ from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
 from datasets.bag import models, views
+from datasets.hr import models as hr_models
 from ...bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 
 
@@ -50,35 +51,16 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], models.Nummeraanduiding.objects.count())
+        self.assertEqual(res['object_count'], 3)
         self.assertEqual(res['page_count'], 1)
 
-    def test_sortorder_dataselectie_hr(self):
+
+    def test_get_dataselectie_hr_sbi_code(self):
         """
-        Fetch all records (gets the first 100 records)
+        Test elastic querying on field `sbi_code` top-down
         """
-        q = dict(page=1)
+        q = {'page': 1, 'sbi_code': '85314'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
-
-        # assert that response status is 200
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        previous = ''
-        for olist in res['object_list']:
-            sortcriterium = olist['_openbare_ruimte_naam'].strip() + \
-                            olist['huisnummer'].strip().zfill(5) + \
-                            olist['huisletter'].strip() + \
-                            olist['huisnummer_toevoeging'].strip()
-            self.assertGreaterEqual(sortcriterium, previous)
-            previous = sortcriterium
-
-    def test_get_dataselectie_hr_stadsdeel_naam(self):
-        """
-        Test the elastic while querying on field `stadsdeel_naam` top-down
-        """
-        q = {'page': 1, 'stadsdeel_naam': 'Centrum'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
         assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
