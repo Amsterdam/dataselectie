@@ -66,7 +66,6 @@ class ElasticSearchMixin(object):
                     'filter': filters,
                 }
             }
-        print(query)
         return self.handle_query_size_offset(query)
 
     def handle_query_size_offset(self, query):
@@ -106,7 +105,6 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         )
 
     def dispatch(self, request, *args, **kwargs):
-        print(request.method)
         self.request_parameters = getattr(request, request.method)
 
         if request.method.lower() in self.http_method_names:
@@ -121,7 +119,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         # Creating empty result set. Just in case
         elastic_data = {'ids': [], 'filters': {}}
         # looking for a query
-        query_string = request_parameters.get('query', None)
+        query_string = self.request_parameters.get('query', None)
 
         # Building the query
         q = self.elastic_query(query_string)
