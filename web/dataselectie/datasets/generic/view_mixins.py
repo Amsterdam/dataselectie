@@ -2,7 +2,6 @@
 from datetime import date, datetime
 import json
 from typing import Any
-#from typing import List, Tuple
 # Packages
 from django.conf import settings
 from django.db import models
@@ -32,7 +31,7 @@ class ElasticSearchMixin(object):
     # A set of optional keywords to filter the results further
     keywords = ()  # type: tuple[str]
     raw_fields = []  # type: list[str]
-    geo_fields = {}  # type: dict
+    geo_fields = {}  # type: dict[str:list]
 
     def build_elastic_query(self, query):
         """
@@ -55,9 +54,10 @@ class ElasticSearchMixin(object):
         for term, geo_type in self.geo_fields.items():
             val = request_parameters.get(term, None)
             if val is not None:
-                # Splitting val to list
-                val = val[1:-1].split(';')  # Assume ';' as list separator
-                filters.append({geo_type: {term: {'points': val}}})
+                # Checking if val needs to be converted from string
+                if isinstance(val, str):
+                    val = json.loads(val)
+                filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {
@@ -66,6 +66,7 @@ class ElasticSearchMixin(object):
                     'filter': filters,
                 }
             }
+        print(query)
         return self.handle_query_size_offset(query)
 
     def handle_query_size_offset(self, query):
@@ -93,7 +94,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
     A base class to search elastic for geolocation
     of items
     """
-    http_method_names = ['GET', 'POST']
+    http_method_names = ['get', 'post']
     # To overwrite methods
     index = ''  # type: str
 
@@ -108,7 +109,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         print(request.method)
         self.request_parameters = getattr(request, request.method)
 
-        if request.method in self.http_method_names:
+        if request.method.lower() in self.http_method_names:
             return self.handle_request(self, request, *args, **kwargs)
         else:
             return self.http_method_not_allowed(request, *args, **kwargs)
@@ -119,9 +120,6 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         """
         # Creating empty result set. Just in case
         elastic_data = {'ids': [], 'filters': {}}
-        # Setting request parameters if not set
-        if not self.request_parameters:
-            request_parameters = self.request.GET
         # looking for a query
         query_string = request_parameters.get('query', None)
 

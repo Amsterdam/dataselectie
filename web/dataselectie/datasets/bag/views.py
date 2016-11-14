@@ -24,7 +24,7 @@ class BagBase(object):
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
     raw_fields = ['naam', '_openbare_ruimte_naam']
     geo_fields = {
-        'centroid': 'geo_polygon',
+        'shape': ['centroid', 'geo_polygon'],
     }
 
 
