@@ -46,13 +46,13 @@ class NummeraanduidingMeta(es.DocType):
     hoofdadres = es.Boolean()
 
     buurt_code = es.String(index='not_analyzed')
-    buurt_naam = es.String(index='not_analyzed')
+    buurt_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     buurtcombinatie_code = es.String(index='not_analyzed')
-    buurtcombinatie_naam = es.String(index='not_analyzed')
+    buurtcombinatie_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     ggw_code = es.String(index='not_analyzed')
-    ggw_naam = es.String(index='not_analyzed')
+    ggw_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     stadsdeel_code = es.String(index='not_analyzed')
-    stadsdeel_naam = es.String(index='not_analyzed')
+    stadsdeel_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
 
     # Extended information
     centroid = es.GeoPoint()
@@ -72,13 +72,14 @@ class NummeraanduidingMeta(es.DocType):
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
 
-    vestigingsnummer = es.String(multi=True)
+    bedrijfsnaam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     sbi_codes = es.Nested({
         'properties': {
             'sbi_code': es.String(),
             'hoofdcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
             'subcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
-            'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+            'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })
     is_hr_address = es.Boolean()
@@ -163,13 +164,11 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
         except:
             pass
 
-    doc.vestigingsnummer = []
     doc.sbi_codes = []
     doc.is_hr_address = False
     for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
-        api_dict = rapidjson.loads(hrinfo.api_json)
-        doc.vestigingsnummer.append(api_dict['vestigingsnummer'])
-        doc.sbi_codes = api_dict['sbi_codes']
+        doc.sbi_codes = hrinfo.api_json['sbi_codes']
+        doc.bedrijfsnaam = hrinfo.api_json['naam']
         doc.is_hr_address = True
 
     return doc

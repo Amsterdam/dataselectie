@@ -30,9 +30,9 @@ def bld_agg() -> dict:
                     'value': True,
                 },
             },
-            'sbi_code': {
+            'sbi_codes': {
                 'terms': {
-                    'field': 'sbi_code',
+                    'field': 'sbi_codes.sbi_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },

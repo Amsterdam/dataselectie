@@ -9,7 +9,6 @@ from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
 from datasets.bag import models, views
-from datasets.hr import models as hr_models
 from ...bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 
 
@@ -54,7 +53,6 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_count'], 3)
         self.assertEqual(res['page_count'], 1)
 
-
     def test_get_dataselectie_hr_sbi_code(self):
         """
         Test elastic querying on field `sbi_code` top-down
@@ -63,9 +61,72 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        assert(models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
-        self.assertEqual(res['object_count'], 10)
-        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(len(res['object_list'][0]['sbi_codes']), 1)
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'sbi_code': '9003'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(len(res['object_list'][0]['sbi_codes']), 1)
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'bedrijfsnaam': 'Mundus College'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'sub_sub_categorie': 'Brede scholengemeenschappen'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'sub_sub_categorie': 'scholengemeenschappen'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'sub_sub_categorie': 'scholengemeenschappen', 'bedrijfsnaam': 'van puffelen'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 0)
+
+        q = {'page': 1, 'sub_sub_categorie': 'scholengemeenschappen', 'bedrijfsnaam': 'Mundus College'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
+
+        q = {'page': 1, 'stadsdeel_naam': 'centrum', 'bedrijfsnaam': 'Mundus College'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_hr_stadsdeel_code(self):
         """

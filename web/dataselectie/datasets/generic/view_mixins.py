@@ -8,6 +8,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import ManyToManyField
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
@@ -39,6 +40,8 @@ class TableSearchView(ListView):
     sorts = []          # type: list[str]
     # mapping keywords
     keyword_mapping = {}
+
+    saved_search_args = {}
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
@@ -118,6 +121,13 @@ class TableSearchView(ListView):
 
         return self.Send_Response(resp, response_kwargs)
 
+    def Send_Response(self, resp, response_kwargs):
+
+        return  HttpResponse(
+                rapidjson.dumps(resp),
+                content_type='application/json',
+                **response_kwargs
+            )
     # Tableview methods
     def build_elastic_query(self, query):
         """
@@ -128,41 +138,14 @@ class TableSearchView(ListView):
         The query dict to send to elastic
         """
         # Adding filters
-        filters = {None:[]}
-        for filter_keyword in self.keywords:
-            val = self.request.GET.get(filter_keyword, None)
-            nested_path = None
-            if val is not None:     # Mapping is necessary to indicate that an index is nested
-                if filter_keyword in self.keyword_mapping:
-                    filter_keyword = self.keyword_mapping[filter_keyword]
-                    nested_path = filter_keyword.split('.')[0]
-                    filters[nested_path] = []
-
-                filters[nested_path].append({'term': self.get_term_and_value(filter_keyword, val)})
-
-        for fixed_filter in self.fixed_filters:
-            filters[None].append( {'term': fixed_filter} )
         # If any filters were given, add them, creating a bool query
 
-        query['query'] = {}
-        for filterpath, filter in filters.items():
-            if filterpath:
-                nested = {'nested': {
-                    'path': nested_path,
-                    'score_mode': 'avg',
-                    'query': {'bool':
-                            {
-                            'must' : filter
-                            }
-                        }
-                    }
-                }
-                query.update(nested)
-            else:
-                query['bool'] = {
-                                'must' : filter
-                                }
-        # Adding sizing if not given
+        filters = self._filter_clause()
+
+        if len(filters):
+            query = self._create_query(filters)
+
+#        Adding sizing if not given
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
         # Adding offset in case of paging
@@ -176,6 +159,57 @@ class TableSearchView(ListView):
                 # offset is not an int
                 pass
         return self.paginate(offset, query)
+
+    def _create_query(self, filters:dict) -> dict:
+        """
+        Generically create a query or nested query based on the mapping
+        :param filters:
+        :return:
+        """
+        query = {"query":
+                    {"bool":
+                        {"filter": []
+                         }
+                     }
+                 }
+        for filterpath, pathfilters in filters.items():
+            if filterpath:
+                for filter in pathfilters:
+                    query["query"]["bool"]["filter"].append(
+                        {"nested":
+                            {"path": filterpath,
+                                "query": filter
+                             }
+                         })
+            else:
+                for filter in pathfilters:
+                    query["query"]["bool"]["filter"].append(filter)
+
+        return query
+
+    def _filter_clause(self)-> dict:
+        """
+        Define filters whether they are nested or not and add fixed filters
+        :return:
+        """
+
+        filters = {None:[]}
+        for filter_keyword in self.keywords:
+            val = self.request.GET.get(filter_keyword, None)
+            nested_path = None
+            if val is not None:     # Mapping is necessary to indicate that an index is nested
+                self.saved_search_args[filter_keyword] = val
+                if filter_keyword in self.keyword_mapping:
+                    filter_keyword = self.keyword_mapping[filter_keyword]
+                    nested_path = filter_keyword.split('.')[0]
+                    filters[nested_path] = []
+
+                filters[nested_path].append({"match": self.get_term_and_value(filter_keyword, val)})
+
+        for fixed_filter in self.fixed_filters:
+            filters[None].append( {"match": fixed_filter} )
+
+        return filters
 
     def paginate(self, offset, q):
         # Sanity check to make sure we do not pass 10000

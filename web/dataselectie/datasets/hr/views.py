@@ -4,7 +4,6 @@ import rapidjson
 from datetime import datetime
 
 from django.http import StreamingHttpResponse
-from django.http import HttpResponse
 from pytz import timezone
 
 from datasets.hr import models
@@ -24,10 +23,12 @@ class HrBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
-    keywords = ['sbi_code'] + extra_context_keywords
+    keywords = ['sbi_code', 'bedrijfsnaam', ] + extra_context_keywords
     raw_fields = []
 
     keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code'}
+
+    fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
 
     fixed_filters = [{'is_hr_address': True}]
@@ -49,7 +50,8 @@ class HrSearch(HrBase, TableSearchView):
         self.extra_context_data = {'items': {}}
         for item in response['hits']['hits']:
             first = True
-            for vestigingsnr in item['_source']['vestigingsnummer']:
+            for sbi_info in item['_source']['sbi_codes']:
+                vestigingsnr = sbi_info['vestigingsnummer']
                 if first:
                     self.extra_context_data['items'][vestigingsnr] = {}
                     for field in self.extra_context_keywords:
@@ -76,13 +78,15 @@ class HrSearch(HrBase, TableSearchView):
         self.update_keys = self.extra_context_data['items'].values()
 
     def update_context_data(self, context):
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result
+        # Adding the buurtcombinatie, ggw, stadsdeel info to the result, moving the jsonapi info one level down
         for i in range(len(context['object_list'])):
-            # Making sure all the data is in string form
-            context['object_list'][i].update(
-                {k: self._stringify_item_value(v) for k, v in
-                 context['object_list'][i]['api_json'].items() if not isinstance(v, str)}
-            )
+            for json_key, values in context['object_list'][i]['api_json'].items():
+                try:
+                    nwfield = self.fieldname_mapping[json_key]
+                except KeyError:
+                    nwfield = json_key
+                context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+            del context['object_list'][i]['api_json']
 
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][
@@ -94,17 +98,16 @@ class HrSearch(HrBase, TableSearchView):
 
     def fill_ids(self, response, elastic_data):
         for hit in response['hits']['hits']:
-            elastic_data['ids'] += hit['_source']['vestigingsnummer']
+            for sbi_info in hit['_source']['sbi_codes']:
+                if self._vest_nr_can_be_added(sbi_info):
+                    elastic_data['ids'].append(sbi_info['vestigingsnummer'])
         return elastic_data
 
-    def Send_Response(self, resp, response_kwargs):
-
-        return  HttpResponse(
-                rapidjson.dumps(resp),
-                content_type='application/json',
-                **response_kwargs
-            )
-
+    def _vest_nr_can_be_added(self, sbi_info):
+        for field, value in self.saved_search_args.items():
+            if field in sbi_info and sbi_info[field] != value:
+                return False
+        return True
 
 class HrCSV(HrBase, CSVExportView):
     """

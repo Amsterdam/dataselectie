@@ -8,6 +8,7 @@ JSON = [
                 "hcat": "22280_12",
                 "scat": "22280_12_22257_11",
                 "subcategorie": "onderwijs",
+                "vestigingsnummer": "000000004383",
                 "sub_sub_categorie": "Brede scholengemeenschappen voor voortgezet onderwijs"
             }
         ],
@@ -48,7 +49,8 @@ JSON = [
                 "hcat": "22279_12",
                 "scat": "22279_12_22254_11",
                 "subcategorie": "design",
-                "sub_sub_categorie": "Interieur- en ruimtelijk ontwerp"
+                "sub_sub_categorie": "Interieur- en ruimtelijk ontwerp",
+                "vestigingsnummer": "000000002216"
             },
             {
                 "hoofdcategorie": "cultuur, sport, recreatie",
@@ -56,7 +58,8 @@ JSON = [
                 "hcat": "22281_12",
                 "scat": "22281_12_22259_11",
                 "subcategorie": "kunst",
-                "sub_sub_categorie": "Schrijven en overige scheppende kunsten"
+                "sub_sub_categorie": "Schrijven en overige scheppende kunsten",
+                "vestigingsnummer": "000000002216"
             }
         ],
         "locatie_type": "B",
@@ -132,6 +135,7 @@ JSON = [
                 "hcat": "22272_12",
                 "scat": "22272_12_22209_11",
                 "subcategorie": "groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)",
+                "vestigingsnummer": "000000001198",
                 "sub_sub_categorie": "Groothandel in voedings- en genotmiddelen algemeen assortiment"
             },
         ],
@@ -185,7 +189,17 @@ JSON = [
                 "hcat": "22278_12",
                 "scat": "22278_12_22241_11",
                 "subcategorie": "financiele dienstverlening en verzekeringen",
+                "vestigingsnummer": "000000000086",
                 "sub_sub_categorie": "Financiele holdings"
+            },
+            {
+                "hoofdcategorie": "cultuur, sport, recreatie",
+                "sbi_code": "9003",
+                "hcat": "22281_12",
+                "scat": "22281_12_22259_11",
+                "subcategorie": "kunst",
+                "sub_sub_categorie": "Schrijven en overige scheppende kunsten",
+                "vestigingsnummer": "000000000086"
             }
         ],
         "geometrie": [
