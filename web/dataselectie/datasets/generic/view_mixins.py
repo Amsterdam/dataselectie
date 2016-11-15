@@ -56,8 +56,14 @@ class ElasticSearchMixin(object):
             if val is not None:
                 # Checking if val needs to be converted from string
                 if isinstance(val, str):
-                    val = json.loads(val)
-                filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
+                    try:
+                        val = json.loads(val)
+                    except ValueError:
+                        # Bad formatted json.
+                        val = []
+                # Only adding filter if at least 3 points are given
+                if (len(val)) > 2:
+                    filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
         # If any filters were given, add them, creating a bool query
         if filters:
             query['query'] = {

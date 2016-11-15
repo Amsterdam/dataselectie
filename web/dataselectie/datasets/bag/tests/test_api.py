@@ -148,7 +148,7 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `buurt_naam`
         """
-        q = dict(page=1, buurt_naam='Hemelrijk')
+        q = {'page': 1, 'buurt_naam': 'Hemelrijk'}
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
@@ -158,7 +158,7 @@ class DataselectieApiTest(ESTestCase):
 
     def test_get_dataselectie_bag_postcode(self):
         """
-        Test the elastic while querying on field `buurt_naam`
+        Test querying on field `buurt_naam`
         """
 
         q = {'page': 1, 'postcode': '1012AA'}
@@ -169,6 +169,29 @@ class DataselectieApiTest(ESTestCase):
         postcode_count = models.Nummeraanduiding.objects.filter(postcode=q['postcode']).count()
         self.assertEqual(res['object_count'], postcode_count)
         self.assertEqual(res['page_count'], int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
+
+    def test_get_dataselectie_bag_shape_all(self):
+        """
+        Test querying on geolocation
+        """
+        q = {'shape': '[[1,1],[1,60],[60,1]]'}
+        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        total_count = models.Nummeraanduiding.objects.count()
+        self.assertEqual(res['object_count'], total_count)
+
+    def test_get_dataselectie_bag_shape_limit(self):
+        """
+        Test querying on geolocation
+        """
+        q = {'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(res['object_count'], 1)
 
     def test_setting_raw_fields(self):
         """

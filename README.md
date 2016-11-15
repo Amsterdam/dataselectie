@@ -26,7 +26,7 @@ Lokale setup voor dataselectie
 `Let op dat dat er voldoende geheugen gealloceerd is voor elasticsearch docker (min. 4GB)`
 
 ```
-$ docker-compose up
+$ docker-compose up -d
 $ docker-compose exec database_BAG update-db.sh atlas
 $ docker-compose exec dataselectie python manage.py migrate
 $ docker-compose exec elasticsearch update-el.sh atlas bag brk nummeraanduiding
