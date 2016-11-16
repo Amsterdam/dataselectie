@@ -1,5 +1,5 @@
 # Python
-from json import loads
+from rapidjson import loads
 from unittest import skip
 from urllib.parse import urlencode
 # Packages
@@ -30,7 +30,6 @@ class ESTestCase(TestCase):
 
 
 class DataselectieApiTest(ESTestCase):
-    multi_db = True
 
     @classmethod
     def setUpTestData(cls):

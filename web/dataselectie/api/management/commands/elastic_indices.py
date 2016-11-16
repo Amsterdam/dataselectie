@@ -3,7 +3,6 @@ from django.core.management import BaseCommand
 from django.conf import settings
 
 import datasets.bag.batch
-
 from batch import batch
 import time
 

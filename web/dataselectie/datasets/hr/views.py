@@ -1,47 +1,51 @@
 # Python
 import csv
-from datetime import datetime
 import rapidjson
+from datetime import datetime
 
 from django.http import StreamingHttpResponse
-from django.http import HttpResponse
 from pytz import timezone
 
-from datasets.bag import models
-from datasets.bag.queries import meta_q
-from datasets.generic.view_mixins import CSVExportView, Echo, GeoLocationSearchView, TableSearchView
+from datasets.hr import models
+from datasets.hr.queries import meta_q
+from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
 
 
-class BagBase(object):
+class HrBase(object):
     """
     Base class mixing for data settings
     """
-    model = models.Nummeraanduiding
+    model = models.DataSelectie
     index = 'DS_BAG'
-    db = 'bag'
+    db = 'hr'
     q_func = meta_q
-    keywords = (
+    extra_context_keywords = [
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
-    raw_fields = ['naam', '_openbare_ruimte_naam']
-    geo_fields = {
-        'shape': ['centroid', 'geo_polygon'],
-    }
+        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
+    keywords = ['sbi_code', 'bedrijfsnaam', 'sub_sub_categorie',
+                'subcategorie', 'hoofdcategorie' ] + extra_context_keywords
+    raw_fields = []
+
+    keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code',
+                       'bedrijfsnaam': 'sbi_codes.bedrijfsnaam',
+                       'sub_sub_categorie': 'sbi_codes.sub_sub_categorie',
+                       'subcategorie': 'sbi_codes.subcategorie',
+                       'hoofdcategorie': 'sbi_codes.hoofdcategorie'}
+
+    fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
 
-class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
+    fixed_filters = [{'is_hr_address': True}]
 
+#    sorts = ['vestigingsnummer']                    # For now this is enough.
+                                                    # Probably complex sorting on content of json!
+
+
+class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query):
-        return meta_q(query, False, False)
-    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-                'huisnummer_toevoeging']
-
-
-class BagSearch(BagBase, TableSearchView):
-
-    def elastic_query(self, query):
-        return meta_q(query)
+        res = meta_q(query)
+        return res
 
     def save_context_data(self, response):
         """
@@ -49,17 +53,24 @@ class BagSearch(BagBase, TableSearchView):
         later to enrich the results
         """
         self.extra_context_data = {'items': {}}
-        fields = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-                  'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-                  'stadsdeel_naam', 'stadsdeel_code')
         for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            for field in fields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    pass
+            first = True
+            for sbi_info in item['_source']['sbi_codes']:
+                vestigingsnr = sbi_info['vestigingsnummer']
+                if first:
+                    self.extra_context_data['items'][vestigingsnr] = {}
+                    for field in self.extra_context_keywords:
+                        try:
+                            self.extra_context_data['items'][vestigingsnr][field] = \
+                                item['_source'][field]
+                        except:
+                            pass
+                    first = False
+                    orig_vestigingsnr = vestigingsnr
+                else:
+                    self.extra_context_data['items'][vestigingsnr] = \
+                        self.extra_context_data['items'][orig_vestigingsnr]
+
         self.extra_context_data['total'] = response['hits']['total']
         # Merging count with regular aggregation
         aggs = response.get('aggregations', {})
@@ -69,44 +80,60 @@ class BagSearch(BagBase, TableSearchView):
             # Removing the individual count aggregation
             del aggs[key]
         self.extra_context_data['aggs_list'] = aggs
+        self.update_keys = self.extra_context_data['items'].values()
 
     def update_context_data(self, context):
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result
+        # Adding the buurtcombinatie, ggw, stadsdeel info to the result, moving the jsonapi info one level down
         for i in range(len(context['object_list'])):
-            # Making sure all the data is in string form
-            context['object_list'][i].update(
-                {k: self._stringify_item_value(v) for k, v in
-                 context['object_list'][i].items() if not isinstance(v, str)}
-            )
+            for json_key, values in context['object_list'][i]['api_json'].items():
+                try:
+                    nwfield = self.fieldname_mapping[json_key]
+                except KeyError:
+                    nwfield = json_key
+                context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+            del context['object_list'][i]['api_json']
+
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][
-                                                 context['object_list'][i][
-                                                     'id']])
+                                         context['object_list'][i][
+                                             'id']])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
 
-    def Send_Response(self, resp, response_kwargs):
-        return  HttpResponse(
-                rapidjson.dumps(resp),
-                content_type='application/json',
-                **response_kwargs
-            )
+    def fill_ids(self, response, elastic_data):
+        for hit in response['hits']['hits']:
+            for sbi_info in hit['_source']['sbi_codes']:
+                if self._vest_nr_can_be_added(sbi_info):
+                    elastic_data['ids'].append(sbi_info['vestigingsnummer'])
+                    break
+        return elastic_data
 
+    def _vest_nr_can_be_added(self, sbi_info):
+        add_value = len(self.saved_search_args) == 0
+        for field, value in self.saved_search_args.items():
+            if isinstance(value, str):
+                value = value.lower()
+            if field in sbi_info and (
+                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
+                        or sbi_info[field] == value):
+                add_value = True
+                break
+        return add_value
 
-class BagCSV(BagBase, CSVExportView):
+class HrCSV(HrBase, CSVExportView):
     """
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-               'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
-               'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
-               'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
-               'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
-               'landelijk_id')
+    # headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+    #            'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+    #            'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+    #            'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
+    #            'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
+    #            'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+    #            'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
+    #            'landelijk_id')
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
                       'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
                       'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',

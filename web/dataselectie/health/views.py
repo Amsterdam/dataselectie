@@ -8,6 +8,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
 from datasets.bag.models import Nummeraanduiding
+# from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
 
@@ -50,6 +51,14 @@ def check_data(request):
         log.exception("No BAG data found")
         message += "\nNo BAG data found."
         status = 500
+
+    # try:
+    #     assert DataSelectie.objects.count() > 10
+    # except:
+    #     log.exception("No HR data found")
+    #     message += "\nNo HR data found."
+    #     status = 500
+
 
     # check elastic
     try:

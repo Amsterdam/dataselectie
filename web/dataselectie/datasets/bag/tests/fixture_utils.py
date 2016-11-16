@@ -2,6 +2,7 @@
 from django.contrib.gis.geos import Polygon, Point
 # Project
 from datasets.bag import models
+from datasets.hr.tests import factories as hr_factories
 
 
 def create_stadsdeel_fixtures():
@@ -298,11 +299,14 @@ def create_nummeraanduiding_fixtures():
     create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
     create_openbare_ruimte_fixtures()
-    create_verblijfsobject_fixtures()
+    vb_objects = create_verblijfsobject_fixtures()
     create_ligplaats_fixtures()
     create_standplaats_fixtures()
     create_buurt_combinaties()
     create_buurt_fixtures()
+    hr_factories.DataSelectieHrFactory(vb_objects[1][0], 0, 2)
+    hr_factories.DataSelectieHrFactory(vb_objects[3][0], 2, 3)
+    hr_factories.DataSelectieHrFactory(vb_objects[4][0], 3, 4)
 
     return [
         models.Nummeraanduiding.objects.get_or_create(huisnummer=1, huisletter='A', huisnummer_toevoeging='BIS',

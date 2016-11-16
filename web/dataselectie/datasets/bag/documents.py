@@ -3,8 +3,10 @@ from typing import List, cast
 # Packages
 from django.conf import settings
 import elasticsearch_dsl as es
+import rapidjson
 # Project
 from datasets.bag import models
+from datasets.hr import models as hrmodels
 from datasets.generic import analyzers
 
 
@@ -12,6 +14,9 @@ class NummeraanduidingMeta(es.DocType):
     """
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal
+
+    The link with any data that is being used here is
+    the bag_id.
     """
 
     def __init__(self, *args, **kwargs):
@@ -41,13 +46,13 @@ class NummeraanduidingMeta(es.DocType):
     hoofdadres = es.Boolean()
 
     buurt_code = es.String(index='not_analyzed')
-    buurt_naam = es.String(index='not_analyzed')
+    buurt_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     buurtcombinatie_code = es.String(index='not_analyzed')
-    buurtcombinatie_naam = es.String(index='not_analyzed')
+    buurtcombinatie_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     ggw_code = es.String(index='not_analyzed')
-    ggw_naam = es.String(index='not_analyzed')
+    ggw_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     stadsdeel_code = es.String(index='not_analyzed')
-    stadsdeel_naam = es.String(index='not_analyzed')
+    stadsdeel_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
 
     # Extended information
     centroid = es.GeoPoint()
@@ -66,6 +71,20 @@ class NummeraanduidingMeta(es.DocType):
     bouwblok = es.String(index='not_analyzed')
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
+
+    sbi_codes = es.Nested({
+        'properties': {
+            'sbi_code': es.String(index='not_analyzed'),
+            'hcat': es.String(index='not_analyzed'),
+            'scat': es.String(index='not_analyzed'),
+            'hoofdcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'subcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'bedrijfsnaam' : es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'vestigingsnummer': es.String(index='not_analyzed')
+                }
+    })
+    is_hr_address = es.Boolean()
 
     class Meta(object):
         index = settings.ELASTIC_INDICES['DS_BAG']
@@ -147,6 +166,16 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
             doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
         except:
             pass
+
+    sbi_codes = []
+    doc.is_hr_address = False
+    for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+        sbi_codes += hrinfo.api_json['sbi_codes']
+        doc.is_hr_address = True
+    if doc.is_hr_address:
+        doc.sbi_codes = sbi_codes
+    else:
+        doc.sbi_codes = []
 
     return doc
 

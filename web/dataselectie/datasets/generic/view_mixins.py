@@ -1,13 +1,13 @@
 # Python
 from datetime import date, datetime
-import json
+import rapidjson
 from typing import Any
 # Packages
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import ManyToManyField
-from django.http import HttpResponse
 from django.shortcuts import render
+from django.http import HttpResponse
 from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
@@ -155,11 +155,24 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # attributes:
     # ---------------------
     # The model class to use
-    model = None  # type: models.Model
+    model = None        # type: models.Model
+    # The name of the index to search in
+    index = ''          # type: str
+    # A set of optional keywords to filter the results further
+    keywords = None     # type: tuple[str]
     # The name of the index to search in
     index = ''  # type: str
     # Fields in elastic that should be used in raw version
-    raw_fields = None  # type: list[str]
+    raw_fields = None   # type: list[str]
+    # Fixed filters that are always applied
+    fixed_filters = []  # type: list[dict]
+    # Sorting of the queryset
+    sorts = []          # type: list[str]
+    # mapping keywords
+    keyword_mapping = {}
+
+    saved_search_args = {}
+
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
 
@@ -238,13 +251,106 @@ class TableSearchView(ElasticSearchMixin, ListView):
         except KeyError:
             pass
 
-        return HttpResponse(
-            json.dumps(resp),
-            content_type='application/json',
-            **response_kwargs
-        )
+        return self.Send_Response(resp, response_kwargs)
 
+    def Send_Response(self, resp, response_kwargs):
+
+        return  HttpResponse(
+                rapidjson.dumps(resp),
+                content_type='application/json',
+                **response_kwargs
+            )
     # Tableview methods
+    def build_elastic_query(self, query):
+        """
+        Builds the dictionary query to send to elastic
+        Parameters:
+        query - The q dict returned from the queries file
+        Returns:
+        The query dict to send to elastic
+        """
+        # Adding filters
+        # If any filters were given, add them, creating a bool query
+
+        filters = self._filter_clause()
+
+        if len(filters):
+            query = self._create_query(filters)
+
+#        Adding sizing if not given
+        if 'size' not in query and self.preview_size:
+            query['size'] = self.preview_size
+        # Adding offset in case of paging
+        offset = self.request.GET.get('page', None)
+        if offset:
+            try:
+                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
+                if offset > 1:
+                    query['from'] = offset
+            except ValueError:
+                # offset is not an int
+                pass
+        return self.paginate(offset, query)
+
+    def _create_query(self, filters:dict) -> dict:
+        """
+        Generically create a query or nested query based on the mapping
+        :param filters:
+        :return:
+        """
+        query = {"query":
+                    {"bool":
+                        {"filter": []
+                         }
+                     }
+                 }
+        for filterpath, pathfilters in filters.items():
+            if filterpath:
+                for filter in pathfilters:
+                    query["query"]["bool"]["filter"].append(
+                        {"nested":
+                            {"path": filterpath,
+                                "query": filter
+                             }
+                         })
+            else:
+                for filter in pathfilters:
+                    query["query"]["bool"]["filter"].append(filter)
+
+        return query
+
+    def _filter_clause(self)-> dict:
+        """
+        Define filters whether they are nested or not and add fixed filters
+        :return:
+        """
+        self.saved_search_args = {}
+        filters = {None:[]}
+        for filter_keyword in self.keywords:
+            val = self.request.GET.get(filter_keyword, None)
+            nested_path = None
+            if val is not None:     # Mapping is necessary to indicate that an index is nested
+                if filter_keyword in self.keyword_mapping:
+                    self.saved_search_args[filter_keyword] = val
+                    filter_keyword = self.keyword_mapping[filter_keyword]
+                    nested_path = filter_keyword.split('.')[0]
+                    if not nested_path in filters:
+                        filters[nested_path] = []
+
+                filters[nested_path].append({"match": self.get_term_and_value(filter_keyword, val)})
+
+        for fixed_filter in self.fixed_filters:
+            filters[None].append( {"match": fixed_filter} )
+
+        return filters
+
+    def paginate(self, offset, q):
+        # Sanity check to make sure we do not pass 10000
+        if offset and settings.MAX_SEARCH_ITEMS:
+            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
+                q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
+        return q
+
     def load_from_elastic(self):
         """
         Loads the data from elastic.
@@ -269,10 +375,15 @@ class TableSearchView(ElasticSearchMixin, ListView):
         query = self.build_elastic_query(q)
         # Performing the search
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
+        elastic_data = self.fill_ids(response, elastic_data)
         # Enrich result data with neede info
         self.save_context_data(response)
+        return elastic_data
+
+    def fill_ids(self, response, elastic_data):
+        # Can be overridden in the view to allow for other primary keys
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -281,9 +392,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            return self.model.objects.filter(id__in=ids).order_by(
-                '_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-                'huisnummer_toevoeging').values()[:self.preview_size]
+            if self.sorts:
+                qs = self.model.objects.filter(id__in=ids).order_by(*self.sorts)
+            else:
+                qs = self.model.objects.filter(id__in=ids)
+            return qs.values()[:self.preview_size]
         else:
             # No ids where found
             return self.model.objects.none().values()
@@ -341,6 +454,19 @@ class TableSearchView(ElasticSearchMixin, ListView):
         Enables the subclasses to update/change the object list
         """
         return context
+
+    def get_term_and_value(self, filter_keyword, val):
+        """
+        Some fields need to be searched raw while others are analysed with the default string analyser which will
+        automatically convert the fields to lowercase in de the index.
+        :param filter_keyword: the keyword in the index to search on
+        :param val: the value we are searching for
+        :return: a small dict that contains the key/value pair to use in the ES search.
+        """
+        if filter_keyword in self.raw_fields:
+            filter_keyword = "{}.raw".format(filter_keyword)
+
+        return {filter_keyword: val}
 
 
 class CSVExportView(TableSearchView):

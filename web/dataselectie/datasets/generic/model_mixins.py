@@ -1,8 +1,8 @@
 # Python
 import datetime
-import typing
 # Package
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 
 class ImportStatusMixin(models.Model):
@@ -45,3 +45,12 @@ class CodeOmschrijvingMixin(models.Model):
 
     def __str__(self) -> str:
         return "{}: {}".format(self.code, self.omschrijving)
+
+class JSONinputMixin(models.Model):
+    id = models.CharField(
+        max_length = 20,
+        primary_key=True)
+    api_json = JSONField()
+
+    class Meta(object):
+        abstract = True
