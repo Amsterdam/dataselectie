@@ -72,13 +72,15 @@ class NummeraanduidingMeta(es.DocType):
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
 
-    bedrijfsnaam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
     sbi_codes = es.Nested({
         'properties': {
-            'sbi_code': es.String(),
+            'sbi_code': es.String(index='not_analyzed'),
+            'hcat': es.String(index='not_analyzed'),
+            'scat': es.String(index='not_analyzed'),
             'hoofdcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
             'subcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
             'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'bedrijfsnaam' : es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
             'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })
@@ -164,12 +166,15 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
         except:
             pass
 
-    doc.sbi_codes = []
+    sbi_codes = []
     doc.is_hr_address = False
     for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
-        doc.sbi_codes = hrinfo.api_json['sbi_codes']
-        doc.bedrijfsnaam = hrinfo.api_json['naam']
+        sbi_codes += hrinfo.api_json['sbi_codes']
         doc.is_hr_address = True
+    if doc.is_hr_address:
+        doc.sbi_codes = sbi_codes
+    else:
+        doc.sbi_codes = []
 
     return doc
 

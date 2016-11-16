@@ -22,6 +22,7 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
+        call_command('elastic_indices', '--delete', verbosity=0, interactive=False)
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
@@ -39,6 +40,10 @@ class DataselectieApiTest(ESTestCase):
     def setUp(self):
         self.client = Client()
 
+    def check_in(self, objects, field, values):
+        for o in objects:
+            self.assertIn(o[field], values)
+
     def test_get_dataselectie_hr(self):
         """
         Fetch all records (gets the first 100 records)
@@ -51,9 +56,10 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(res['object_count'], 3)
+        self.assertEqual(len(res['object_list']), 3)
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_hr_sbi_code(self):
+    def test_get_dataselectie_hr_sbi_code1(self):
         """
         Test elastic querying on field `sbi_code` top-down
         """
@@ -67,16 +73,24 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
         self.assertEqual(res['page_count'], 1)
 
+    def test_get_dataselectie_hr_sbi_code2(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'sbi_code': '9003'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
-        self.assertEqual(len(res['object_list'][0]['sbi_codes']), 1)
-        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
+        self.assertEqual(len(res['object_list']), 2)
+        self.check_in(res['object_list'], 'id', ('000000000086', '000000002216'))
+        self.assertEqual(len(res['object_list'][0]['sbi_codes']), 2)
+        self.assertEqual(res['object_list'][0]['sbi_codes'][1]['sbi_code'], '9003')
         self.assertEqual(res['page_count'], 1)
 
+    def test_get_dataselectie_bedrijfsnaam(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'bedrijfsnaam': 'Mundus College'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
@@ -86,6 +100,10 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
         self.assertEqual(res['page_count'], 1)
 
+    def test_get_dataselectie_sub_sub_categorie(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'sub_sub_categorie': 'Brede scholengemeenschappen'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
@@ -104,12 +122,39 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
         self.assertEqual(res['page_count'], 1)
 
+    def test_get_dataselectie_subcategorie(self):
+        q = {'page': 1, 'subcategorie': 'groothandel'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000001198')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '4639')
+        self.assertEqual(res['page_count'], 1)
+
+    def test_get_dataselectie_hoofd_categorie(self):
+        q = {'page': 1, 'hoofdcategorie': 'cultuur'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 2)
+        self.check_in(res['object_list'], 'id', ('000000002216', '000000000086'))
+        self.assertEqual(res['page_count'], 1)
+
+    def test_get_dataselectie_not_found(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'sub_sub_categorie': 'scholengemeenschappen', 'bedrijfsnaam': 'van puffelen'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(len(res['object_list']), 0)
 
+    def test_get_dataselectie_combinaties(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'sub_sub_categorie': 'scholengemeenschappen', 'bedrijfsnaam': 'Mundus College'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
@@ -128,102 +173,14 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '85314')
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_hr_stadsdeel_code(self):
-        """
-        Test the elastic while querying on field `stadsdeel_code`
-        """
-        q = dict(page=1, stadsdeel_code='A')  # Centrum
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        _ = models.Nummeraanduiding.objects.count()
-        self.assertEqual(res['object_count'], 10)
-        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
-
-    @skip('Needs to add geo matching for this test to work')
-    def test_get_dataselectie_hr_ggw_naam(self):
-        """
-        Test the elastic while querying on field `ggw_naam`
-        """
-        self.assertEqual(models.Gebiedsgerichtwerken.objects.count(), 2)
-        q = {'page': 1, 'ggw_naam': 'Centrum-West'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        q = {'page': 1, 'subcategorie': 'groothandel', 'stadsdeel_naam': 'Centrum'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
-        print(res)
-        self.assertEqual(res['object_count'], 1)
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000001198')
+        self.assertEqual(res['object_list'][0]['sbi_codes'][0]['sbi_code'], '4639')
         self.assertEqual(res['page_count'], 1)
-
-    def test_get_dataselectie_hr_buurtcombinatie_naam(self):
-        """
-        Test the elastic while querying on field `buurtcombinatie_naam`
-        """
-        self.assertEqual(models.Buurtcombinatie.objects.count(), 8)
-
-        q = dict(page=1, buurtcombinatie_naam='Burgwallen-Nieuwe Zijde')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 8)
-        self.assertEqual(res['page_count'], 1)
-
-    def test_get_dataselectie_hr_buurtcombinatie_code(self):
-        """
-        Test the elastic while querying on field `buurtcombinatie_code`
-        """
-        q = dict(page=1, buurtcombinatie_code='A01')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 8)
-        self.assertEqual(res['page_count'], 1)
-
-    def test_get_dataselectie_hr_buurt_naam(self):
-        """
-        Test the elastic while querying on field `buurt_naam`
-        """
-        q = dict(page=1, buurt_naam='Hemelrijk')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 3)
-        self.assertEqual(res['page_count'], 1)
-
-    def test_get_dataselectie_hr_postcode(self):
-        """
-        Test the elastic while querying on field `buurt_naam`
-        """
-
-        q = dict(page=1, postcode='1012AA')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-
-        res = loads(response.content.decode('utf-8'))
-        postcode_count = models.Nummeraanduiding.objects.filter(postcode=q['postcode']).count()
-        self.assertEqual(res['object_count'], postcode_count)
-        self.assertEqual(res['page_count'], int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
-
-    def test_setting_raw_fields(self):
-        """
-        Tests that the query generated adds raw where it is needed
-        """
-        table_view = views.BagSearch()
-        filter_dict = {}
-        extra_field = 'this_is_clearly_not_a_field_in_elastic_so_we_can_use_it'
-        fields = table_view.raw_fields + [extra_field]
-        for item in fields:
-            filter_dict.update(table_view.get_term_and_value(item, 'Value'))
-        # Now to check that every field in the raw has the .raw finish but not the last item
-        for field in table_view.raw_fields:
-            self.assertIn('{}.raw'.format(field), filter_dict.keys())
-            self.assertNotIn(field, filter_dict.keys())
-        # Making sure the not raw field is in without the raw
-        self.assertIn(extra_field, filter_dict.keys())
-        self.assertNotIn('{}.raw'.format(extra_field), filter_dict.keys())
 
     def tearDown(self):
         pass

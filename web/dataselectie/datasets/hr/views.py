@@ -23,10 +23,15 @@ class HrBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
-    keywords = ['sbi_code', 'bedrijfsnaam', ] + extra_context_keywords
+    keywords = ['sbi_code', 'bedrijfsnaam', 'sub_sub_categorie',
+                'subcategorie', 'hoofdcategorie' ] + extra_context_keywords
     raw_fields = []
 
-    keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code'}
+    keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code',
+                       'bedrijfsnaam': 'sbi_codes.bedrijfsnaam',
+                       'sub_sub_categorie': 'sbi_codes.sub_sub_categorie',
+                       'subcategorie': 'sbi_codes.subcategorie',
+                       'hoofdcategorie': 'sbi_codes.hoofdcategorie'}
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
@@ -101,13 +106,20 @@ class HrSearch(HrBase, TableSearchView):
             for sbi_info in hit['_source']['sbi_codes']:
                 if self._vest_nr_can_be_added(sbi_info):
                     elastic_data['ids'].append(sbi_info['vestigingsnummer'])
+                    break
         return elastic_data
 
     def _vest_nr_can_be_added(self, sbi_info):
+        add_value = len(self.saved_search_args) == 0
         for field, value in self.saved_search_args.items():
-            if field in sbi_info and sbi_info[field] != value:
-                return False
-        return True
+            if isinstance(value, str):
+                value = value.lower()
+            if field in sbi_info and (
+                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
+                        or sbi_info[field] == value):
+                add_value = True
+                break
+        return add_value
 
 class HrCSV(HrBase, CSVExportView):
     """

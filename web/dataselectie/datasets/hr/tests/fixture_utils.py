@@ -9,6 +9,7 @@ JSON = [
                 "scat": "22280_12_22257_11",
                 "subcategorie": "onderwijs",
                 "vestigingsnummer": "000000004383",
+                "bedrijfsnaam": "Mundus College",
                 "sub_sub_categorie": "Brede scholengemeenschappen voor voortgezet onderwijs"
             }
         ],
@@ -39,7 +40,7 @@ JSON = [
             487417.0
         ],
         "betrokkenen": [],
-        "bag_vbid": "0363010011873148"
+        "bag_vbid": "0363000000000008"
     },
     {
         "sbi_codes": [
@@ -50,6 +51,7 @@ JSON = [
                 "scat": "22279_12_22254_11",
                 "subcategorie": "design",
                 "sub_sub_categorie": "Interieur- en ruimtelijk ontwerp",
+                "bedrijfsnaam": "Monique Brouns",
                 "vestigingsnummer": "000000002216"
             },
             {
@@ -59,6 +61,7 @@ JSON = [
                 "scat": "22281_12_22259_11",
                 "subcategorie": "kunst",
                 "sub_sub_categorie": "Schrijven en overige scheppende kunsten",
+                "bedrijfsnaam": "Monique Brouns",
                 "vestigingsnummer": "000000002216"
             }
         ],
@@ -136,6 +139,7 @@ JSON = [
                 "scat": "22272_12_22209_11",
                 "subcategorie": "groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)",
                 "vestigingsnummer": "000000001198",
+                "bedrijfsnaam": "Golf 7 V.O.F.",
                 "sub_sub_categorie": "Groothandel in voedings- en genotmiddelen algemeen assortiment"
             },
         ],
@@ -190,6 +194,7 @@ JSON = [
                 "scat": "22278_12_22241_11",
                 "subcategorie": "financiele dienstverlening en verzekeringen",
                 "vestigingsnummer": "000000000086",
+                "bedrijfsnaam": "AJ Holding B.V.",
                 "sub_sub_categorie": "Financiele holdings"
             },
             {
@@ -198,6 +203,7 @@ JSON = [
                 "hcat": "22281_12",
                 "scat": "22281_12_22259_11",
                 "subcategorie": "kunst",
+                "bedrijfsnaam": "AJ Holding B.V.",
                 "sub_sub_categorie": "Schrijven en overige scheppende kunsten",
                 "vestigingsnummer": "000000000086"
             }

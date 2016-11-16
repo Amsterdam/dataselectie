@@ -192,17 +192,18 @@ class TableSearchView(ListView):
         Define filters whether they are nested or not and add fixed filters
         :return:
         """
-
+        self.saved_search_args = {}
         filters = {None:[]}
         for filter_keyword in self.keywords:
             val = self.request.GET.get(filter_keyword, None)
             nested_path = None
             if val is not None:     # Mapping is necessary to indicate that an index is nested
-                self.saved_search_args[filter_keyword] = val
                 if filter_keyword in self.keyword_mapping:
+                    self.saved_search_args[filter_keyword] = val
                     filter_keyword = self.keyword_mapping[filter_keyword]
                     nested_path = filter_keyword.split('.')[0]
-                    filters[nested_path] = []
+                    if not nested_path in filters:
+                        filters[nested_path] = []
 
                 filters[nested_path].append({"match": self.get_term_and_value(filter_keyword, val)})
 

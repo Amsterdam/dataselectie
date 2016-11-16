@@ -19,16 +19,3 @@ class DataSelectie(models.Model):
         verbose_name = "Handelsregister dataselectie"
         verbose_name_plural = "Handelsregister dataselecties"
         ordering = ('id',)
-
-
-class DummyTabel(models.Model):
-
-    id = models.IntegerField(serialize=True, primary_key=True)
-    bla = models.CharField(
-        max_length = 20)
-
-    class Meta(object):
-        managed = True
-        verbose_name = "Dummy tabel"
-        verbose_name_plural = "Dummy tabel"
-        ordering = ('id',)
