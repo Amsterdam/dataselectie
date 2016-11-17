@@ -43,7 +43,7 @@ class BagSearch(BagBase, TableSearchView):
     def elastic_query(self, query):
         return meta_q(query)
 
-    def save_context_data(self, response):
+    def save_context_data(self, response, elastic_data=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results

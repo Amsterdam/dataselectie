@@ -1,6 +1,7 @@
 # Python
 from datetime import date, datetime
 import rapidjson
+import copy
 from typing import Any
 # Packages
 from django.conf import settings
@@ -29,9 +30,14 @@ class ElasticSearchMixin(object):
     """
 
     # A set of optional keywords to filter the results further
-    keywords = ()  # type: tuple[str]
-    raw_fields = []  # type: list[str]
-    geo_fields = {}  # type: dict[str:list]
+    keywords = ()           # type: tuple[str]
+    raw_fields = []         # type: list[str]
+    geo_fields = {}         # type: dict[str:list]
+    keyword_mapping = {}    # type: dict
+    nested_path = ''        # type: str
+    fixed_filters = []      # type: list
+    saved_search_args = {}  # type: dict
+    default_search = 'match'
 
     def build_elastic_query(self, query):
         """
@@ -42,14 +48,23 @@ class ElasticSearchMixin(object):
         The query dict to send to elastic
         """
         # Adding filters
-        filters = []
+        if self.fixed_filters:
+            filters = copy.copy(self.fixed_filters)
+        else:
+            filters = []
+        self.saved_search_args = {}
         # Retriving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
             if val is not None:
-                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+                if filter_keyword in self.keyword_mapping:
+                    generated_filter = self.keyword_mapping[filter_keyword](
+                        {self.default_search: self.get_term_and_value(filter_keyword, val, self.nested_path)}, self.nested_path)
+                else:
+                    generated_filter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
+                filters.append(generated_filter)
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
             val = request_parameters.get(term, None)
@@ -57,7 +72,7 @@ class ElasticSearchMixin(object):
                 # Checking if val needs to be converted from string
                 if isinstance(val, str):
                     try:
-                        val = json.loads(val)
+                        val = rapidjson.loads(val)
                     except ValueError:
                         # Bad formatted json.
                         val = []
@@ -81,7 +96,7 @@ class ElasticSearchMixin(object):
         """
         return query
 
-    def get_term_and_value(self, filter_keyword, val):
+    def get_term_and_value(self, filter_keyword, val, nested_path=None):
         """
         Some fields need to be searched raw while others are analysed with the default string analyser which will
         automatically convert the fields to lowercase in de the index.
@@ -91,6 +106,9 @@ class ElasticSearchMixin(object):
         """
         if filter_keyword in self.raw_fields:
             filter_keyword = "{}.raw".format(filter_keyword)
+        if nested_path:
+            self.saved_search_args[filter_keyword] = val
+            filter_keyword = nested_path + '.' + filter_keyword
         return {filter_keyword: val}
 
 
@@ -143,7 +161,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             'object_list': response['hits']['hits']
         }
         return HttpResponse(
-            json.dumps(resp),
+            rapidjson.dumps(resp),
             content_type='application/json'
         )
 
@@ -261,88 +279,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 **response_kwargs
             )
     # Tableview methods
-    def build_elastic_query(self, query):
-        """
-        Builds the dictionary query to send to elastic
-        Parameters:
-        query - The q dict returned from the queries file
-        Returns:
-        The query dict to send to elastic
-        """
-        # Adding filters
-        # If any filters were given, add them, creating a bool query
-
-        filters = self._filter_clause()
-
-        if len(filters):
-            query = self._create_query(filters)
-
-#        Adding sizing if not given
-        if 'size' not in query and self.preview_size:
-            query['size'] = self.preview_size
-        # Adding offset in case of paging
-        offset = self.request.GET.get('page', None)
-        if offset:
-            try:
-                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
-                if offset > 1:
-                    query['from'] = offset
-            except ValueError:
-                # offset is not an int
-                pass
-        return self.paginate(offset, query)
-
-    def _create_query(self, filters:dict) -> dict:
-        """
-        Generically create a query or nested query based on the mapping
-        :param filters:
-        :return:
-        """
-        query = {"query":
-                    {"bool":
-                        {"filter": []
-                         }
-                     }
-                 }
-        for filterpath, pathfilters in filters.items():
-            if filterpath:
-                for filter in pathfilters:
-                    query["query"]["bool"]["filter"].append(
-                        {"nested":
-                            {"path": filterpath,
-                                "query": filter
-                             }
-                         })
-            else:
-                for filter in pathfilters:
-                    query["query"]["bool"]["filter"].append(filter)
-
-        return query
-
-    def _filter_clause(self)-> dict:
-        """
-        Define filters whether they are nested or not and add fixed filters
-        :return:
-        """
-        self.saved_search_args = {}
-        filters = {None:[]}
-        for filter_keyword in self.keywords:
-            val = self.request.GET.get(filter_keyword, None)
-            nested_path = None
-            if val is not None:     # Mapping is necessary to indicate that an index is nested
-                if filter_keyword in self.keyword_mapping:
-                    self.saved_search_args[filter_keyword] = val
-                    filter_keyword = self.keyword_mapping[filter_keyword]
-                    nested_path = filter_keyword.split('.')[0]
-                    if not nested_path in filters:
-                        filters[nested_path] = []
-
-                filters[nested_path].append({"match": self.get_term_and_value(filter_keyword, val)})
-
-        for fixed_filter in self.fixed_filters:
-            filters[None].append( {"match": fixed_filter} )
-
-        return filters
 
     def paginate(self, offset, q):
         # Sanity check to make sure we do not pass 10000
@@ -377,7 +313,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = self.fill_ids(response, elastic_data)
         # Enrich result data with neede info
-        self.save_context_data(response)
+        self.save_context_data(response, elastic_data)
         return elastic_data
 
     def fill_ids(self, response, elastic_data):
@@ -439,7 +375,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
-    def save_context_data(self, response):
+    def save_context_data(self, response, elastic_data=None):
         """
         Can be used by the subclass to save extra data to be used
         later to correct context data
@@ -454,20 +390,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
         Enables the subclasses to update/change the object list
         """
         return context
-
-    def get_term_and_value(self, filter_keyword, val):
-        """
-        Some fields need to be searched raw while others are analysed with the default string analyser which will
-        automatically convert the fields to lowercase in de the index.
-        :param filter_keyword: the keyword in the index to search on
-        :param val: the value we are searching for
-        :return: a small dict that contains the key/value pair to use in the ES search.
-        """
-        if filter_keyword in self.raw_fields:
-            filter_keyword = "{}.raw".format(filter_keyword)
-
-        return {filter_keyword: val}
-
 
 class CSVExportView(TableSearchView):
     """

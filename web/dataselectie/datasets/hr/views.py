@@ -27,19 +27,20 @@ class HrBase(object):
                 'subcategorie', 'hoofdcategorie' ] + extra_context_keywords
     raw_fields = []
 
-    keyword_mapping = {'sbi_code': 'sbi_codes.sbi_code',
-                       'bedrijfsnaam': 'sbi_codes.bedrijfsnaam',
-                       'sub_sub_categorie': 'sbi_codes.sub_sub_categorie',
-                       'subcategorie': 'sbi_codes.subcategorie',
-                       'hoofdcategorie': 'sbi_codes.hoofdcategorie'}
+    nested_path = "sbi_codes"
+    lambda_filter = lambda filter, np: {"nested":{"path":np,"query":filter}}
+    keyword_mapping = {'sbi_code': lambda_filter,
+                       'bedrijfsnaam': lambda_filter,
+                       'sub_sub_categorie': lambda_filter,
+                       'subcategorie': lambda_filter,
+                       'hoofdcategorie': lambda_filter}
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
 
-    fixed_filters = [{'is_hr_address': True}]
+    fixed_filters = [{"term":{'is_hr_address': True}}]
 
 #    sorts = ['vestigingsnummer']                    # For now this is enough.
-                                                    # Probably complex sorting on content of json!
 
 
 class HrSearch(HrBase, TableSearchView):
@@ -47,7 +48,7 @@ class HrSearch(HrBase, TableSearchView):
         res = meta_q(query)
         return res
 
-    def save_context_data(self, response):
+    def save_context_data(self, response, elastic_data=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
@@ -71,7 +72,7 @@ class HrSearch(HrBase, TableSearchView):
                     self.extra_context_data['items'][vestigingsnr] = \
                         self.extra_context_data['items'][orig_vestigingsnr]
 
-        self.extra_context_data['total'] = response['hits']['total']
+        self.extra_context_data['total'] = len(set(elastic_data['ids']))
         # Merging count with regular aggregation
         aggs = response.get('aggregations', {})
         count_keys = [key for key in aggs.keys() if key.endswith('_count')]
@@ -79,7 +80,7 @@ class HrSearch(HrBase, TableSearchView):
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
             del aggs[key]
-        self.extra_context_data['aggs_list'] = aggs
+        # self.extra_context_data['aggs_list'] = aggs
         self.update_keys = self.extra_context_data['items'].values()
 
     def update_context_data(self, context):
@@ -97,7 +98,6 @@ class HrSearch(HrBase, TableSearchView):
             context['object_list'][i].update(self.extra_context_data['items'][
                                          context['object_list'][i][
                                              'id']])
-        context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
 

@@ -46,13 +46,13 @@ class NummeraanduidingMeta(es.DocType):
     hoofdadres = es.Boolean()
 
     buurt_code = es.String(index='not_analyzed')
-    buurt_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+    buurt_naam = es.String(index='not_analyzed')
     buurtcombinatie_code = es.String(index='not_analyzed')
-    buurtcombinatie_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+    buurtcombinatie_naam = es.String(index='not_analyzed')
     ggw_code = es.String(index='not_analyzed')
-    ggw_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+    ggw_naam = es.String(index='not_analyzed')
     stadsdeel_code = es.String(index='not_analyzed')
-    stadsdeel_naam = es.String(analyzer=analyzers.autocomplete, search_analyzer='standard')
+    stadsdeel_naam = es.String(index='not_analyzed')
 
     # Extended information
     centroid = es.GeoPoint()
@@ -77,10 +77,10 @@ class NummeraanduidingMeta(es.DocType):
             'sbi_code': es.String(index='not_analyzed'),
             'hcat': es.String(index='not_analyzed'),
             'scat': es.String(index='not_analyzed'),
-            'hoofdcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
-            'subcategorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
-            'sub_sub_categorie': es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
-            'bedrijfsnaam' : es.String(analyzer=analyzers.autocomplete, search_analyzer='standard'),
+            'hoofdcategorie': es.String(index='not_analyzed'),
+            'subcategorie': es.String(index='not_analyzed'),
+            'sub_sub_categorie': es.String(index='not_analyzed'),
+            'bedrijfsnaam' : es.String(index='not_analyzed'),
             'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })
