@@ -116,7 +116,7 @@ DATABASES = {
         'USER': os.getenv('DATABASE_HR_ENV_POSTGRES_USER', 'handelsregister'),
         'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORDD', 'insecure'),
         'HOST': os.getenv('DATABASE_HR_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORTT', '5406'),
+        'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORT', '5406'),
     }
 }
 
