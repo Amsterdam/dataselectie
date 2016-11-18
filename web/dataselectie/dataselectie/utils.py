@@ -12,9 +12,14 @@ class ManagedModelTestRunner(DiscoverRunner):
     def __init__(self, *args, **kwargs):
         super(ManagedModelTestRunner, self).__init__(*args, **kwargs)
         self.verbosity = 2
+        self.unmanaged_models = []
 
     def setup_test_environment(self, *args, **kwargs):
-        self.unmanaged_models = [model for _, model in apps.all_models['bag', 'hr'].items() if not model._meta.managed]
+        datasets = ['bag', 'hr']  # update when new datasets are introdiced
+        for dataset in datasets:
+            self.unmanaged_models.extend(
+                [model for _, model in apps.all_models[dataset].items() if not model._meta.managed]
+            )
         for m in self.unmanaged_models:
             m._meta.managed = True
         super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
