@@ -38,7 +38,7 @@ database_BAG:
 database_HR:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
     ports:
-        - "5406:5432"
+        - "5432"
     environment:
         POSTGRES_USER: handelsregister
         POSTGRES_DB: handelsregister
