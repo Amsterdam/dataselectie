@@ -348,7 +348,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Sanity check to make sure we do not pass 10000
         if offset and settings.MAX_SEARCH_ITEMS:
             if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
-                q['size'] = settings.MAX_SEARCH_ITEMS - offset  # really ??
+                size = settings.MAX_SEARCH_ITEMS - offset
+                q['size'] = size if size > 0 else 0
         return q
 
     def load_from_elastic(self):
@@ -419,14 +420,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 # offset is not an int
                 pass
         return self.paginate(offset, query)
-
-    def paginate(self, offset, q):
-        # Sanity check to make sure we do not pass 10000
-        if offset and settings.MAX_SEARCH_ITEMS:
-            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
-                size = settings.MAX_SEARCH_ITEMS - offset
-                q['size'] = size if size > 0 else 0
-        return q
 
     def get_context_data(self, **kwargs):
         """
@@ -576,6 +569,20 @@ class CSVExportView(TableSearchView):
             for key, value in es[item['id']]['_source'].items():
                 item[key] = value
         return data
+
+
+    def fill_items(self, items, item):
+        """
+        Function can be overwritten in the using class to allow for
+        specific output (hr has multi outputs
+
+        :param items:   Resulting dictionary containing the
+        :param item:    Item from elastic
+        :return: items
+        """
+        items[item['_id']] = item
+
+        return items
 
 
 class Echo(object):

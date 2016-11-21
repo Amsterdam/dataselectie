@@ -193,6 +193,11 @@ class HrCSV(HrBase, CSVExportView):
             data.append(dict_item)
         return data
 
+    def fill_items(self, items, item):
+        items[item['_id']] = item
+
+        return items
+
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         pseudo_buffer = Echo()
