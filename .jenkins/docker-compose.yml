@@ -35,12 +35,22 @@ database_BAG:
         POSTGRES_DB: atlas
         POSTGRES_PASSWORD: insecure
 
+database_HR:
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+        - "5432"
+    environment:
+        POSTGRES_USER: handelsregister
+        POSTGRES_DB: handelsregister
+        POSTGRES_PASSWORD: insecure
+
 tests:
   build: ../web
   links:
     - database_dataselectie:database_dataselectie
     - elasticsearch:elasticsearch
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DATABASE_NAME: dataselectie
     DATABASE_USER: dataselectie

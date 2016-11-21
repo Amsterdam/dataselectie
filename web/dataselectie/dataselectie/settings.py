@@ -17,6 +17,7 @@ import sys
 
 TESTING = 'test' in sys.argv
 
+
 def _get_docker_host() -> str:
     d_host = os.getenv('DOCKER_HOST', None)
     if d_host:
@@ -111,19 +112,16 @@ DATABASES = {
     },
     'hr': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_NAME', 'handelsregister'),
-        'USER': os.getenv('DATABASE_USER', 'handelsregister'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
-        'HOST': os.getenv('DATABASE_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_PORT_5432_TCP_PORT', '5406'),
+        'NAME': os.getenv('DATABASE_HR_ENV_POSTGRES_DB', 'handelsregister'),
+        'USER': os.getenv('DATABASE_HR_ENV_POSTGRES_USER', 'handelsregister'),
+        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORDD', 'insecure'),
+        'HOST': os.getenv('DATABASE_HR_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORT', '5406'),
     }
 }
-if TESTING:
-    del DATABASES['bag']
-    del DATABASES['hr']
-else:
-    # DB routing
-    DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
+
+# DB routing
+DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
@@ -177,7 +175,7 @@ STATIC_URL = '/static/'
 
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
-# TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
+TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
 IN_TEST_MODE = TESTING
 # Setting test prefix on index names in test
 if TESTING:

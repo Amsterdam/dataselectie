@@ -38,5 +38,6 @@ dataselectie:
         - elasticsearch:elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
+        - database_HR:database_HR
     ports:
         - "8100:8000"

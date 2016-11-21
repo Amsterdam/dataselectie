@@ -10,7 +10,7 @@ class DatasetsRouter(object):
     example: bag dataset with BAG database settings
     """
 
-    datasets = ('bag','hr')  # A list of available datasets
+    datasets = ('bag', 'hr')  # A list of available datasets
 
     def _model_in_datasets(self, app):
         """
@@ -45,7 +45,7 @@ class DatasetsRouter(object):
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
         Do Not allowe migration of datasets. This should already be handled by
-        managed=False, but jsu tto be sure
+        managed=False, but jsut to be sure
         """
         if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
             return False
