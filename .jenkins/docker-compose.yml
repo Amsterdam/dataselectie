@@ -64,6 +64,7 @@ importer:
         - elasticsearch:elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
+        - database_HR:database_HR
     environment:
         DJANGO_SETTINGS_MODULE: dataselectie.settings
     command: >
@@ -77,6 +78,7 @@ importer_el1:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >
@@ -89,6 +91,7 @@ importer_el2:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >
@@ -101,6 +104,7 @@ importer_el3:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >
