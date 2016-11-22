@@ -240,6 +240,11 @@ class HrCSV(HrBase, CSVExportView):
 
         return result
 
+    def fill_items(self, items, item):
+        items[item['_id']] = item
+
+        return items
+
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         pseudo_buffer = Echo()
