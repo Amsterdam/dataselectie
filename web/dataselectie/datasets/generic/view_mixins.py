@@ -27,6 +27,7 @@ class ElasticSearchMixin(object):
     geo_fields tuple format per dict is as follow:
         - key: the field to use,
         - value: type of geospatial search
+
     """
 
     # A set of optional keywords to filter the results further
