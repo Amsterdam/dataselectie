@@ -102,6 +102,7 @@ class ElasticSearchMixin(object):
         automatically convert the fields to lowercase in de the index.
         :param filter_keyword: the keyword in the index to search on
         :param val: the value we are searching for
+        :param nested_path: The path to the nested value to search
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
         if filter_keyword in self.raw_fields:
@@ -179,8 +180,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # A set of optional keywords to filter the results further
     keywords = None     # type: tuple[str]
     # The name of the index to search in
-    index = ''  # type: str
-    # Fields in elastic that should be used in raw version
     raw_fields = None   # type: list[str]
     # Fixed filters that are always applied
     fixed_filters = []  # type: list[dict]
@@ -225,7 +224,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         @Returns:
         The string representation of the value
         """
-        if (isinstance(value, date) or isinstance(value, datetime)):
+        if isinstance(value, date) or isinstance(value, datetime):
             return value.strftime('%d-%m-%Y')
         elif value is None:
             return ''
@@ -316,7 +315,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         self.save_context_data(response, elastic_data)
         return elastic_data
 
-    def fill_ids(self, response, elastic_data):
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
         # Can be overridden in the view to allow for other primary keys
         for hit in response['hits']['hits']:
             elastic_data['ids'].append(hit['_id'])
@@ -391,6 +390,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         return context
 
+
 class CSVExportView(TableSearchView):
     """
     A base class to generate csv exports
@@ -441,14 +441,14 @@ class CSVExportView(TableSearchView):
             ids = []
             for item in es_generator:
                 # Collecting items for batch
-                items[item['_id']] = item
+                items = self._fill_items(items, item)
                 # Breaking on batch size
                 if len(items) == batch_size:
                     break
             # Stop the run
             if len(items) < batch_size:
                 more = False
-            # Retriving the database data
+            # Retrieving the database data
             qs = self.model.objects.filter(id__in=list(items.keys()))
             qs = self._convert_to_dicts(qs)
             # Pairing the data
@@ -459,6 +459,20 @@ class CSVExportView(TableSearchView):
                 for key in self.headers:
                     resp[key] = item.get(key, '')
                 yield resp
+
+    def _fill_items(self, items: dict, item: dict) -> dict:
+        """
+        Default fill items with item info from elastic query. Can be
+        overridden in using class to create more complex
+        datastructures
+
+        :param items:
+        :param item:
+        :return: items
+        """
+        items[item['_id']] = item
+
+        return items
 
     def _model_to_dict(self, item: Nummeraanduiding):
         """

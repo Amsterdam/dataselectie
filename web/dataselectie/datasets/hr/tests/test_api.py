@@ -55,8 +55,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        # self.assertEqual(res['object_count'], 3)
-        self.assertEqual(len(res['object_list']), 3)
+        self.assertEqual(len(res['object_list']), 4)
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_hr_sbi_code1(self):

@@ -24,7 +24,7 @@ class HrBase(object):
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
     keywords = ['sbi_code', 'bedrijfsnaam', 'sub_sub_categorie',
-                'subcategorie', 'hoofdcategorie' ] + extra_context_keywords
+                'subcategorie', 'hoofdcategorie'] + extra_context_keywords
     raw_fields = []
 
     nested_path = "sbi_codes"
@@ -36,11 +36,47 @@ class HrBase(object):
                        'hoofdcategorie': lambda_filter}
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
-
+    saved_search_args = {}
 
     fixed_filters = [{"term":{'is_hr_address': True}}]
 
 #    sorts = ['vestigingsnummer']                    # For now this is enough.
+
+    def fill_ids(self, response, elastic_data):
+        items = {}
+        for hit in response['hits']['hits']:
+            items = self._fill_items(items, hit)
+        elastic_data['ids'] = items.keys()
+        return elastic_data
+
+    def _vest_nr_can_be_added(self, sbi_info):
+        add_value = len(self.saved_search_args) == 0
+        for field, value in self.saved_search_args.items():
+            if isinstance(value, str):
+                value = value.lower()
+            if field in sbi_info and (
+                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
+                    or sbi_info[field] == value):
+                add_value = True
+                break
+        return add_value
+
+    def _fill_items(self, items: dict, item: dict) -> dict:
+        """
+        Default fill items with item info from elastic query. Can be
+        overridden in using class to create more complex
+        datastructures
+
+        :param items:
+        :param item:
+        :return: items
+        """
+
+        for sbi_info in item['_source']['sbi_codes']:
+            if self._vest_nr_can_be_added(sbi_info):
+                items[sbi_info['vestigingsnummer']] = item
+
+        return items
 
 
 class HrSearch(HrBase, TableSearchView):
@@ -54,6 +90,7 @@ class HrSearch(HrBase, TableSearchView):
         later to enrich the results
         """
         self.extra_context_data = {'items': {}}
+        orig_vestigingsnr = None
         for item in response['hits']['hits']:
             first = True
             for sbi_info in item['_source']['sbi_codes']:
@@ -101,48 +138,29 @@ class HrSearch(HrBase, TableSearchView):
         context['total'] = self.extra_context_data['total']
         return context
 
-    def fill_ids(self, response, elastic_data):
-        for hit in response['hits']['hits']:
-            for sbi_info in hit['_source']['sbi_codes']:
-                if self._vest_nr_can_be_added(sbi_info):
-                    elastic_data['ids'].append(sbi_info['vestigingsnummer'])
-                    break
-        return elastic_data
-
-    def _vest_nr_can_be_added(self, sbi_info):
-        add_value = len(self.saved_search_args) == 0
-        for field, value in self.saved_search_args.items():
-            if isinstance(value, str):
-                value = value.lower()
-            if field in sbi_info and (
-                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
-                        or sbi_info[field] == value):
-                add_value = True
-                break
-        return add_value
 
 class HrCSV(HrBase, CSVExportView):
     """
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    # headers = ('_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-    #            'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-    #            'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-    #            'buurt_code', 'bouwblok', 'geometrie_rd_x', 'geometrie_rd_y',
-    #            'geometrie_wgs_lat', 'geometrie_wgs_lon', 'hoofdadres',
-    #            'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
-    #            'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
-    #            'landelijk_id')
+    headers = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+               'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+               'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
+               'landelijk_id']
+    headers_hr = ['kvk_nummer', 'naam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
+                  'subcategorieen', 'betrokkenen', 'rechtsvorm', ]
+    headers += headers_hr
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
                       'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
                       'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-                      'Code buurt', 'Code bouwblok', 'X-coordinaat (RD)', 'Y-coordinaat (RD)',
-                      'Latitude (WGS84)', 'Longitude (WGS84)', 'Indicatie hoofdadres', 'Gebruiksdoel',
-                      'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
+                      'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
                       'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
                       'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
-                      'Nummeraanduidingidentificatie')
+                      'Nummeraanduidingidentificatie', 'Kvk nummer', 'Bedrijfsnaam', 'Vestigingsnummer', 'Sbi codes',
+                      'Hoofd categorieen', 'Sub sub categorieen', 'Sub categorieen', 'Betrokkenen', 'Rechtsvorm')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
@@ -174,24 +192,53 @@ class HrCSV(HrBase, CSVExportView):
 
     def _convert_to_dicts(self, qs):
         """
-        Overwriting the default conversion so that location data
-        can be retrieved through the adresseerbaar_object
-        and convert to wgs84
+        Overwriting the default conversion so that 1 to n data is
+        flattened according to specs
         """
-        data = []
-        for item in qs:
-            dict_item = self._model_to_dict(item)
-            # BAG Specific updates.
-            # ------------------------
-            # Adding geometry
-            dict_item.update(self.create_geometry_dict(item))
+        result = []
+        for row in qs:
+            r_dict = self._process_flatfields(row.api_json)
+            r_dict.update(self._process_flatfields(row.api_json['postadres']))
+            if len(row.api_json['betrokkenen']):
+                r_dict['rechtsvorm'] = row.api_json['betrokkenen'][0]['rechtsvorm']
+            r_dict['id'] = row.id
+            r_dict.update(self._process_sbi_codes(row.api_json['sbi_codes']))
+            r_dict['betrokkenen'] = self._process_betrokkenen(row.api_json['betrokkenen'])
+
+            result.append(r_dict)
+
+        return result
+
+    def _process_flatfields(self, json:dict) -> dict:
+        result = {}
+        for hdr in self.headers_hr:
             try:
-                dict_item['hoofdadres'] = 'Ja' if dict_item['hoofdadres'] else 'Nee'
-            except:
+                result[hdr] = json[hdr]
+            except KeyError:
                 pass
-            # Saving the dict
-            data.append(dict_item)
-        return data
+        return result
+
+    def _process_sbi_codes(self, sbi_json:list) -> dict:
+        result = {}
+        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
+        result['subsubcategorieen'] = ' \\ '.join([sc['sub_sub_categorie'] for sc in sbi_json])
+        result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
+        result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
+        return result
+
+    def _process_betrokkenen(self, betrokken_json:list) -> str:
+        result = "Onbekend"
+        text_result = []
+        for betrokken in betrokken_json:
+            text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
+            if text:
+                text += ' ' + betrokken['functietitel']
+                text_result.append(text)
+
+        if len(text_result):
+            result = ' \\ '.join(text_result)
+
+        return result
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
