@@ -61,8 +61,9 @@ class ElasticSearchMixin(object):
             val = request_parameters.get(filter_keyword, None)
             if val is not None:
                 if filter_keyword in self.keyword_mapping:
+                    def_search = {self.default_search: self.get_term_and_value(filter_keyword, val, self.nested_path)}
                     generated_filter = self.keyword_mapping[filter_keyword](
-                        {self.default_search: self.get_term_and_value(filter_keyword, val, self.nested_path)}, self.nested_path)
+                        self, def_search, self.nested_path)
                 else:
                     generated_filter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
                 filters.append(generated_filter)
@@ -364,6 +365,17 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = super(TableSearchView, self).get_context_data(**kwargs)
         context = self.update_context_data(context)
         return context
+
+    def process_aggs(self, response):
+        self.extra_context_data['total'] = response['hits']['total']
+        # Merging count with regular aggregation
+        aggs = response.get('aggregations', {})
+        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+        for key in count_keys:
+            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+            # Removing the individual count aggregation
+            del aggs[key]
+        return aggs
 
     # ===============================================
     # Context altering functions to be overwritten

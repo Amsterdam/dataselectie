@@ -1,6 +1,5 @@
 # Python
 import csv
-import rapidjson
 from datetime import datetime
 
 from django.http import StreamingHttpResponse
@@ -9,6 +8,8 @@ from pytz import timezone
 from datasets.hr import models
 from datasets.hr.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
+
+AGGKEYS = ('hoofdcategorie', 'subcategorie')
 
 
 class HrBase(object):
@@ -27,18 +28,20 @@ class HrBase(object):
                 'subcategorie', 'hoofdcategorie'] + extra_context_keywords
     raw_fields = []
 
+    def bld_nested_path(self, lfilter, np):
+        return {"nested":{"path":np,"query":lfilter}}
+
     nested_path = "sbi_codes"
-    lambda_filter = lambda filter, np: {"nested":{"path":np,"query":filter}}
-    keyword_mapping = {'sbi_code': lambda_filter,
-                       'bedrijfsnaam': lambda_filter,
-                       'sub_sub_categorie': lambda_filter,
-                       'subcategorie': lambda_filter,
-                       'hoofdcategorie': lambda_filter}
+    keyword_mapping = {'sbi_code': bld_nested_path,
+                       'bedrijfsnaam': bld_nested_path,
+                       'sub_sub_categorie': bld_nested_path,
+                       'subcategorie': bld_nested_path,
+                       'hoofdcategorie': bld_nested_path}
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
     saved_search_args = {}
 
-    fixed_filters = [{"term":{'is_hr_address': True}}]
+    fixed_filters = [{"term": {'is_hr_address': True}}]
 
 #    sorts = ['vestigingsnummer']                    # For now this is enough.
 
@@ -81,7 +84,7 @@ class HrBase(object):
 
 class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query):
-        res = meta_q(query)
+        res = meta_q(query, True, False)
         return res
 
     def save_context_data(self, response, elastic_data=None):
@@ -111,13 +114,17 @@ class HrSearch(HrBase, TableSearchView):
 
         self.extra_context_data['total'] = len(set(elastic_data['ids']))
         # Merging count with regular aggregation
-        aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
-        for key in count_keys:
-            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-            # Removing the individual count aggregation
-            del aggs[key]
-        # self.extra_context_data['aggs_list'] = aggs
+        aggs = self.process_aggs(response)          # aggregates
+        count_keys = [key for key in aggs['sbi_codes'].keys() if key.endswith('_count')]
+        for key in AGGKEYS:
+            if not key in aggs:
+                aggs[key] = {}
+            aggs[key].update(aggs['sbi_codes'][key + '_count'])
+        # Removing the individual count aggregation
+        del aggs['sbi_codes']
+
+        self.extra_context_data['total'] = len(set(elastic_data['ids']))
+        self.extra_context_data['aggs_list'] = aggs
         self.update_keys = self.extra_context_data['items'].values()
 
     def update_context_data(self, context):
@@ -135,7 +142,9 @@ class HrSearch(HrBase, TableSearchView):
             context['object_list'][i].update(self.extra_context_data['items'][
                                          context['object_list'][i][
                                              'id']])
+
         context['total'] = self.extra_context_data['total']
+        context['aggs_list'] = self.extra_context_data['aggs_list']
         return context
 
 

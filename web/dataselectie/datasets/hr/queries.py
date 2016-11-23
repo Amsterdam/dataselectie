@@ -22,44 +22,44 @@ def meta_q(query, add_aggs=True, add_count_aggs=True):
 
 def bld_agg() -> dict:
     agg_size = settings.AGGS_VALUE_SIZE
-    aggs = {
-        'aggs': {
-            'is_hr_code': {
-                'terms': {
-                    'field': 'is_hr_code',
-                    'value': True,
-                },
-            },
-            'sbi_codes': {
-                'terms': {
-                    'field': 'sbi_codes.sbi_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'subcategorie': {
-                'terms': {
-                    'field': 'subcategorie',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
+    aggs = {"aggs": {
+                "sbi_codes": {
+                    "nested": {
+                        "path": "sbi_codes"
+                    },
+                    "aggs": {
+                        "sbi_code_count": {
+                            "terms": {
+                                "field": "sbi_codes.sbi_code",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        },
+                        "subcategorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.subcategorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        },
+                        "sub_sub_categorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.sub_sub_categorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        },
+                        "hoofdcategorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.hoofdcategorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        }
+                    }
                 }
-            },
-            'sub_sub_categorie': {
-                'terms': {
-                    'field': 'sub_sub_categorie',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'hoofdcategorie': {
-                'terms': {
-                    'field': 'hoofdcategorie',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
+            }
         }
-    }
 
     aggs['aggs'].update(bag_bld_agg()['aggs'])
     return aggs

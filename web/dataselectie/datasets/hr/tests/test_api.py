@@ -57,6 +57,15 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(len(res['object_list']), 4)
         self.assertEqual(res['page_count'], 1)
+        self.assertIn('aggs_list', res)
+        self.assertIn('hoofdcategorie', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
+        self.assertIn('subcategorie', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['subcategorie'])
+        self.assertIn('buurt_naam', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['buurt_naam'])
+        self.assertIn('buurtcombinatie_code', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['buurtcombinatie_code'])
 
     def test_get_dataselectie_hr_sbi_code1(self):
         """
