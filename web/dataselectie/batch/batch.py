@@ -60,6 +60,7 @@ def _execute_task(job_execution, task):
         task_execution.date_finished = timezone.now()
         task_execution.status = TaskExecution.STATUS_FAILED
         task_execution.save()
+        sys.exit(1)
         raise e
 
     log.debug("Finished task: %s", task_name)
