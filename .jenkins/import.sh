@@ -12,8 +12,11 @@ rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
 
 dc build --pull
+
 dc up -d database_BAG
-sleep 10 # waiting for postgres to start
+dc up -d database_HR
+
+sleep 14 # waiting for postgres to start
 
 dc exec -T database_BAG update-db.sh atlas
 dc exec -T database_HR update-db.sh handelsregister
@@ -23,7 +26,7 @@ dc run --rm importer
 # create the new elastic indexes
 dc up importer_el1 importer_el2 importer_el3
 # wait until all building is done
-import_status=`docker wait jenkins_importer_el1_1 jenkins_importer_el2_1 jenkins_importer_el3_1`
+import_status=`docker wait dataselectie_importer_el1_1 dataselectie_importer_el2_1 dataselectie_importer_el3_1`
 
 # count the errors.
 import_error=`echo $import_status | grep -o "1" | wc -l`
