@@ -15,16 +15,22 @@ dc build --pull
 dc up -d database_BAG
 sleep 10 # waiting for postgres to start
 dc exec -T database_BAG update-db.sh atlas
-#dc exec -T database_BAG pg_restore -j 4 -c --if-exists -d atlas -U postgres /tmp/import/bag.dump
-#dc exec -T database_BAG pg_restore -j 4 -t bag_buurt -t bag_buurtcombinatie  -t bag_gebiedsgerichtwerken -t bag_gebruik -t bag_gemeente -t bag_grootstedelijkgebied -t bag_ligplaats -t bag_nummeraanduiding -t bag_openbareruimte -t bag_pand -t bag_stadsdeel -t bag_standplaats  -t bag_verblijfsobject -t bag_verblijfsobjectpandrelatie -t bag_woonplaats -c --if-exists -d atlas -U postgres /tmp/import/bag.dump
 
-# clear elastic indices and recreate
 dc run --rm importer
+
 # create the new elastic indexes
 dc up importer_el1 importer_el2 importer_el3
 # wait until all building is done
-docker wait jenkins_importer_el1_1 jenkins_importer_el2_1 jenkins_importer_el3_1
+import_status=`docker wait jenkins_importer_el1_1 jenkins_importer_el2_1 jenkins_importer_el3_1`
 
-# run the backup shizzle
+# count the errors.
+import_error=`echo $import_status | grep -o "1" | wc -l`
+
+if [ $import_error > 0 ]
+then
+    echo 'Elastic Import Error. 1 or more workers failed'
+    exit -1
+fi
+
 dc run --rm el-backup
-dc down 
+dc down
