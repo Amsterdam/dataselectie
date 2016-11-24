@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 DIR="$(dirname $0)"
 
@@ -31,7 +31,7 @@ import_status=`docker wait dataselectie_importer_el1_1 dataselectie_importer_el2
 # count the errors.
 import_error=`echo $import_status | grep -o "1" | wc -l`
 
-if [ $import_error > 0 ]
+if (( $import_error > 0 ))
 then
     echo 'Elastic Import Error. 1 or more workers failed'
     exit 1
