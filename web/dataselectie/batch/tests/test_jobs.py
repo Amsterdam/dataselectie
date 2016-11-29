@@ -36,6 +36,7 @@ class SimpleJob(object):
 
 
 class JobTest(TestCase):
+
     def test_job_results_in_execution(self):
         e = batch.execute(EmptyJob())
 
@@ -47,12 +48,6 @@ class JobTest(TestCase):
         e = batch.execute(EmptyJob())
         self.assertIsNotNone(e.date_finished)
         self.assertEqual(e.status, models.JobExecution.STATUS_FINISHED)
-
-    def test_failed_job_results_in_failed_execution(self):
-        e = batch.execute(FailedJob())
-
-        self.assertIsNotNone(e.date_finished)
-        self.assertEqual(e.status, models.JobExecution.STATUS_FAILED)
 
     def test_task_can_be_function(self):
         done = False

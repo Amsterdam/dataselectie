@@ -20,10 +20,7 @@ def execute(job):
             _execute_task(job_execution, t)
     except:
         log.exception("Job failed: %s", job.name)
-        job_execution.date_finished = timezone.now()
-        job_execution.status = JobExecution.STATUS_FAILED
-        job_execution.save()
-        return job_execution
+        sys.exit(1)
 
     log.info("Finished job: %s", job.name)
     job_execution.date_finished = timezone.now()
@@ -55,13 +52,8 @@ def _execute_task(job_execution, task):
             if tear_down:
                 tear_down()
     except:
-        e = sys.exc_info()[0]
         log.exception("Task failed: %s", task_name)
-        task_execution.date_finished = timezone.now()
-        task_execution.status = TaskExecution.STATUS_FAILED
-        task_execution.save()
         sys.exit(1)
-        raise e
 
     log.debug("Finished task: %s", task_name)
     task_execution.date_finished = timezone.now()
