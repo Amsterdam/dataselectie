@@ -121,15 +121,17 @@ def update_doc_with_adresseerbaar_object(doc, item):
     if gsg:
         doc.gsg_naam = gsg.naam
 
-    doc.buurt_code = '%s%s' % (
-        str(adresseerbaar_object.buurt.stadsdeel.code),
-        str(adresseerbaar_object.buurt.code)
-    )
+    buurt = adresseerbaar_object.buurt
+    if buurt:
+        doc.buurt_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.code)
+        )
 
-    doc.buurtcombinatie_code = '%s%s' % (
-        str(adresseerbaar_object.buurt.stadsdeel.code),
-        str(adresseerbaar_object.buurt.buurtcombinatie.code)
-    )
+        doc.buurtcombinatie_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.buurtcombinatie.code)
+        )
 
     idx = int(item.type) - 1  # type: int
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
