@@ -91,7 +91,9 @@ class NummeraanduidingMeta(es.DocType):
         all = es.MetaField(enabled=False)
 
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+def meta_from_nummeraanduiding(
+        item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+
     doc = NummeraanduidingMeta(_id=item.id)
     parameters = [
         ('nummeraanduiding_id', 'id'),
@@ -103,26 +105,37 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
-        ('buurtcombinatie_naam', 'adresseerbaar_object.buurt.buurtcombinatie.naam'),
+        ('buurtcombinatie_naam',
+            'adresseerbaar_object.buurt.buurtcombinatie.naam'),
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
+
         # Landelijke IDs
         ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
+
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
 
-    # Saving centroind of it exists
-    try:
-        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84', clone=True).coords
-    except Exception as e:
-        print(repr(e))
-        doc.centroid = None
+    # defaults
+    doc.is_hr_address = False
+    doc.centroid = None
+
+    # hr vestigingen
+    if item.adresseerbaar_object:
+        update_hr_meuk(item, doc)
+
+        doc.centroid = (
+            item.adresseerbaar_object
+            .geometrie.centroid.transform('wgs84', clone=True).coords)
 
     # Adding the ggw data
+
+    # Grootstedelijk ontbreekt nog
+
     try:
         ggw = models.Gebiedsgerichtwerken.objects.filter(
             geometrie__contains=item.adresseerbaar_object.geometrie).first()
@@ -167,17 +180,26 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
         except:
             pass
 
+    return doc
+
+
+def update_hr_meuk(item, doc):
+    """
+    Geef een nummeraanduiding eventuele hr data attributen mee
+
+    denk aan sbi.
+    """
+
     sbi_codes = []
-    doc.is_hr_address = False
-    for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+    for hrinfo in hrmodels.DataSelectie.objects.filter(
+            bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+
         sbi_codes += hrinfo.api_json['sbi_codes']
         doc.is_hr_address = True
     if doc.is_hr_address:
         doc.sbi_codes = sbi_codes
     else:
         doc.sbi_codes = []
-
-    return doc
 
 
 def update_doc_from_param_list(doc: dict, item: object, params: list) -> None:

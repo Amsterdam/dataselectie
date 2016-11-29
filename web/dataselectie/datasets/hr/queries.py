@@ -13,6 +13,7 @@ from django.conf import settings
 from ..bag.queries import bld_agg as bag_bld_agg
 from ..generic.queries import create_query
 
+
 def meta_q(query, add_aggs=True, add_count_aggs=True):
     # @TODO change to setting
 
@@ -58,8 +59,8 @@ def bld_agg() -> dict:
                         }
                     }
                 }
-            }
         }
+    }
 
     aggs['aggs'].update(bag_bld_agg()['aggs'])
     return aggs

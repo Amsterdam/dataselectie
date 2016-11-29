@@ -611,4 +611,38 @@ class Migration(migrations.Migration):
             name='ligplaats',
             index_together={('_openbare_ruimte_naam', '_huisnummer', '_huisletter', '_huisnummer_toevoeging')},
         ),
+
+        migrations.AddField(
+            model_name='ligplaats',
+            name='_gebiedsgerichtwerken',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ligplaatsen', to='bag.Gebiedsgerichtwerken'),
+        ),
+        migrations.AddField(
+            model_name='standplaats',
+            name='_gebiedsgerichtwerken',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='standplaatsen', to='bag.Gebiedsgerichtwerken'),
+        ),
+        migrations.AddField(
+            model_name='verblijfsobject',
+            name='_gebiedsgerichtwerken',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='adressen', to='bag.Gebiedsgerichtwerken'),
+        ),
+
+        migrations.AddField(
+            model_name='ligplaats',
+            name='_grootstedelijkgebied',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='ligplaatsen', to='bag.Grootstedelijkgebied'),
+        ),
+        migrations.AddField(
+            model_name='standplaats',
+            name='_grootstedelijkgebied',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='standplaatsen', to='bag.Grootstedelijkgebied'),
+        ),
+        migrations.AddField(
+            model_name='verblijfsobject',
+            name='_grootstedelijkgebied',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='adressen', to='bag.Grootstedelijkgebied'),
+        ),
+
+
     ]
