@@ -111,6 +111,8 @@ def update_doc_with_adresseerbaar_object(doc, item):
             adresseerbaar_object
             .geometrie.centroid.transform('wgs84', clone=True).coords)
     except AttributeError:
+        log.error('Missing geometrie %s' % adresseerbaar_object)
+        log.error(adresseerbaar_object)
         pass
 
     # Adding the ggw data

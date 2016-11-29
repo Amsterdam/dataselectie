@@ -1,8 +1,5 @@
 elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-    #ports:
-    #    - "9200"
-    #    - "9300"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
     user: root
@@ -11,8 +8,6 @@ elasticsearch:
 
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: dataselectie
         POSTGRES_DB: dataselectie
@@ -20,8 +15,6 @@ database_dataselectie:
 
 database_BAG:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     volumes:
       - /mnt/dumps:/tmp/import
     environment:
@@ -31,8 +24,6 @@ database_BAG:
 
 database_HR:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: handelsregister
         POSTGRES_DB: handelsregister
