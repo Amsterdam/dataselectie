@@ -34,11 +34,11 @@ def _execute_task(job_execution, task):
     if callable(task):
         task_name = task.__name__
         execute_func = task
-        tear_down = None
+        # tear_down = None
     else:
         task_name = getattr(task, "name", "no name specified")
         execute_func = task.execute
-        tear_down = getattr(task, "tear_down", None)
+        # tear_down = getattr(task, "tear_down", None)
 
     log.debug("Starting task: %s", task_name)
     task_execution = TaskExecution.objects.create(
@@ -46,11 +46,7 @@ def _execute_task(job_execution, task):
     )
 
     try:
-        try:
-            execute_func()
-        finally:
-            if tear_down:
-                tear_down()
+        execute_func()
     except:
         log.exception("Task failed: %s", task_name)
         sys.exit(1)

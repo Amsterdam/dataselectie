@@ -342,38 +342,52 @@ def create_nummeraanduiding_fixtures():
             openbare_ruimte_id='03630000000003', id='03630000000003',
             verblijfsobject_id='03630000543295',
             _openbare_ruimte_naam='Hobbemakade'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=15, huisletter='C', huisnummer_toevoeging='2',
-                                                      postcode='1012AB', type='01', landelijk_id='0363000000000004',
-                                                      openbare_ruimte_id='03630000000004', id='03630000000004',
-                                                      ligplaats_id='03630000000111',
-                                                      _openbare_ruimte_naam='Delflandplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=21, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000005',
-                                                      openbare_ruimte_id='03630000000005', id='03630000000005',
-                                                      verblijfsobject_id='03630000543296',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=345, huisletter='', huisnummer_toevoeging='1',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000006',
-                                                      openbare_ruimte_id='03630000000006', id='03630000000006',
-                                                      ligplaats_id='03630000000112',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=76, huisletter='F', huisnummer_toevoeging='',
-                                                      postcode='1013AG', type='01', landelijk_id='0363000000000007',
-                                                      openbare_ruimte_id='03630000000007', id='03630000000007',
-                                                      verblijfsobject_id='03630000543297',
-                                                      _openbare_ruimte_naam='Prinsengracht'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=515, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1013BA', type='01', landelijk_id='0363000000000008',
-                                                      openbare_ruimte_id='03630000000008', id='03630000000008',
-                                                      standplaats_id='03630000000221',
-                                                      _openbare_ruimte_naam='Weteringschans'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=45, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1014AZ', type='01', landelijk_id='0363000000000009',
-                                                      openbare_ruimte_id='03630000000009', id='03630000000009',
-                                                      standplaats_id='03630000000222',
-                                                      _openbare_ruimte_naam='Delflandplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=4, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1014AW', type='01', landelijk_id='0363000000000010',
-                                                      openbare_ruimte_id='03630000000009', id='03630000000010',
-                                                      verblijfsobject_id='03630000543298',
-                                                      _openbare_ruimte_naam='Delflandplein')]
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=15, huisletter='C', huisnummer_toevoeging='2',
+            postcode='1012AB', type='01', landelijk_id='0363000000000004',
+            openbare_ruimte_id='03630000000004', id='03630000000004',
+            ligplaats_id='03630000000111',
+            _openbare_ruimte_naam='Delflandplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=21, huisletter='', huisnummer_toevoeging='',
+            postcode='1012AA', type='01', landelijk_id='0363000000000005',
+            openbare_ruimte_id='03630000000005', id='03630000000005',
+            verblijfsobject_id='03630000543296',
+            _openbare_ruimte_naam='Hoofddorplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=345, huisletter='', huisnummer_toevoeging='1',
+            postcode='1012AA', type='01', landelijk_id='0363000000000006',
+            openbare_ruimte_id='03630000000006', id='03630000000006',
+            ligplaats_id='03630000000112',
+            _openbare_ruimte_naam='Hoofddorplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=76, huisletter='F', huisnummer_toevoeging='',
+            postcode='1013AG', type='01', landelijk_id='0363000000000007',
+            openbare_ruimte_id='03630000000007', id='03630000000007',
+            verblijfsobject_id='03630000543297',
+            _openbare_ruimte_naam='Prinsengracht'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=515, huisletter='', huisnummer_toevoeging='',
+            postcode='1013BA', type='01', landelijk_id='0363000000000008',
+            openbare_ruimte_id='03630000000008', id='03630000000008',
+            standplaats_id='03630000000221',
+            _openbare_ruimte_naam='Weteringschans'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=45, huisletter='', huisnummer_toevoeging='',
+            postcode='1014AZ', type='01', landelijk_id='0363000000000009',
+            openbare_ruimte_id='03630000000009', id='03630000000009',
+            standplaats_id='03630000000222',
+            _openbare_ruimte_naam='Delflandplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=4, huisletter='', huisnummer_toevoeging='',
+            postcode='1014AW', type='01', landelijk_id='0363000000000010',
+            openbare_ruimte_id='03630000000009', id='03630000000010',
+            verblijfsobject_id='03630000543298',
+            _openbare_ruimte_naam='Delflandplein')]

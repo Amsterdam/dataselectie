@@ -3,7 +3,6 @@ import logging
 import time
 # Packages
 from django.conf import settings
-from django.db.models.query import QuerySet
 import elasticsearch
 from elasticsearch import helpers
 from elasticsearch.exceptions import NotFoundError
@@ -53,11 +52,6 @@ class DeleteIndexTask(object):
 class ImportIndexTask(object):
     queryset = None  # type: QuerySet
     batch_size = 10000
-
-    # def __init__(self):
-    #     idx = es.Index(self.index)
-    #     for dt in self.doc_types:
-    #         idx.doc_type(dt)
 
     def get_queryset(self):
         return self.queryset.order_by('id')
@@ -133,7 +127,8 @@ class ImportIndexTask(object):
                     total_left
                 )
 
-            log.debug(progres_msg)
+            log.info(progres_msg)
+
             helpers.bulk(
                 client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),
@@ -144,40 +139,3 @@ class ImportIndexTask(object):
             now = time.time()
             elapsed = now - start_time
             loop_time = now - loop_start
-
-
-class CopyIndexTask(object):
-    """
-    Backup index from already loaded documents in elastic
-
-    Building index from existing documents is a lot faster
-    then doing if directly from the database
-
-    Especialy userfull when editing/testing analyzers
-    and change production environment on the fly
-    """
-    index = ''
-    target = ''
-    name = 'copy index elastic'
-
-    def __init__(self):
-        """
-        """
-        if not self.index:
-            raise ValueError("No index specified")
-
-        if not self.target:
-            raise ValueError("No target index specified")
-
-    def execute(self):
-        """
-        Reindex elastic index using existing documents
-        """
-        client = elasticsearch.Elasticsearch(
-            hosts=settings.ELASTIC_SEARCH_HOSTS,
-            # sniff_on_start=True,
-            retry_on_timeout=True
-        )
-
-        log.debug('Backup index %s to %s ', self.index, self.target)
-        helpers.reindex(client, self.index, self.target)

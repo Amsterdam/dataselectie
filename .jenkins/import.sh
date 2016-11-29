@@ -2,6 +2,9 @@
 
 DIR="$(dirname $0)"
 
+set -u   # crash on missing env variables
+set -e   # stop on any error
+
 dc() {
 	docker-compose -p dataselectie -f ${DIR}/docker-compose.yml $*
 }

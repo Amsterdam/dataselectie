@@ -120,6 +120,68 @@ DATABASES = {
     }
 }
 
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'slack': {
+            'format': '%(message)s',
+        },
+        'console': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console'],
+    },
+
+    'loggers': {
+        # Debug all batch jobs
+        'batch': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        'search': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'elasticsearch': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'urllib3.connectionpool': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Log all unhandled exceptions
+        'django.request': {
+                'handlers': ['console'],
+                'level': 'ERROR',
+                'propagate': False,
+        },
+    },
+}
+
+
 # DB routing
 DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 
@@ -139,7 +201,7 @@ AGGS_VALUE_SIZE = 100
 
 # Batch processing
 BATCH_SETTINGS = {
-    'batch_size': 4000,
+    'batch_size': 400,
 }
 
 PARTIAL_IMPORT = {

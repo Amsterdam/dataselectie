@@ -4,7 +4,7 @@ from django.db import models
 from datasets.generic import model_mixins as mixins
 
 
-#class Bron(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
+# class Bron(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
 #           models.Model):
 #    class Meta:
 #        verbose_name = "Bron"
