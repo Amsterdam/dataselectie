@@ -51,6 +51,10 @@ class NummeraanduidingMeta(es.DocType):
     buurtcombinatie_naam = es.String(index='not_analyzed')
     ggw_code = es.String(index='not_analyzed')
     ggw_naam = es.String(index='not_analyzed')
+
+    gsg_code = es.String(index='not_analyzed')
+    gsg_naam = es.String(index='not_analyzed')
+
     stadsdeel_code = es.String(index='not_analyzed')
     stadsdeel_naam = es.String(index='not_analyzed')
 
@@ -126,43 +130,36 @@ def meta_from_nummeraanduiding(
 
     # hr vestigingen
     if item.adresseerbaar_object:
-        update_hr_meuk(item, doc)
+        update_doc_with_sbicodes(item, doc)
 
         doc.centroid = (
             item.adresseerbaar_object
             .geometrie.centroid.transform('wgs84', clone=True).coords)
 
-    # Adding the ggw data
-
-    # Grootstedelijk ontbreekt nog
-
-    try:
-        ggw = models.Gebiedsgerichtwerken.objects.filter(
-            geometrie__contains=item.adresseerbaar_object.geometrie).first()
+        # Adding the ggw data
+        ggw = item.adresseerbaar_object._gebiedsgerichtwerken
         if ggw:
             doc.ggw_code = ggw.code
             doc.ggw_naam = ggw.naam
-    except Exception as e:
-        pass
-    try:
+
+        # Grootstedelijk ontbreekt nog
+        gsg = item.adresseerbaar_object._grootstedelijkgebied
+        if gsg:
+            doc.gsg_code = ggw.code
+            doc.gsg_naam = ggw.naam
+
         doc.buurt_code = '%s%s' % (
             str(item.adresseerbaar_object.buurt.stadsdeel.code),
             str(item.adresseerbaar_object.buurt.code)
         )
-    except Exception as e:
-        pass
-    try:
+
         doc.buurtcombinatie_code = '%s%s' % (
             str(item.adresseerbaar_object.buurt.stadsdeel.code),
             str(item.adresseerbaar_object.buurt.buurtcombinatie.code)
         )
-    except Exception as e:
-        pass
-    try:
+
         idx = int(item.type) - 1  # type: int
         doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
-    except Exception as e:
-        pass
 
     # Verblijfsobject specific
     if item.verblijfsobject:
@@ -174,7 +171,9 @@ def meta_from_nummeraanduiding(
             ('bouwblok', 'bouwblok.code'),
             ('gebruik', 'gebruik.omschrijving')
         ]
+
         update_doc_from_param_list(doc, obj, verblijfsobject_extra)
+
         try:
             doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
         except:
@@ -183,7 +182,7 @@ def meta_from_nummeraanduiding(
     return doc
 
 
-def update_hr_meuk(item, doc):
+def update_doc_with_sbicodes(item, doc):
     """
     Geef een nummeraanduiding eventuele hr data attributen mee
 
