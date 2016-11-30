@@ -35,9 +35,9 @@ insecure_key = 'insecure'
 SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
 
 DEBUG = SECRET_KEY == insecure_key
-DEBUG = True
 
-ALLOWED_HOSTS = []  # type: List[str]
+ALLOWED_HOSTS = [*]   # type: List[str]
+
 SITE_ID = 1
 
 # Application definition
