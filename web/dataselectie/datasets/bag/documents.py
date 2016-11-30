@@ -106,9 +106,14 @@ def update_doc_with_adresseerbaar_object(doc, item):
     """
     adresseerbaar_object = item.adresseerbaar_object
 
-    doc.centroid = (
-        adresseerbaar_object
-        .geometrie.centroid.transform('wgs84', clone=True).coords)
+    try:
+        doc.centroid = (
+            adresseerbaar_object
+            .geometrie.centroid.transform('wgs84', clone=True).coords)
+    except AttributeError:
+        log.error('Missing geometrie %s' % adresseerbaar_object)
+        log.error(adresseerbaar_object)
+        pass
 
     # Adding the ggw data
     ggw = adresseerbaar_object._gebiedsgerichtwerken
@@ -121,15 +126,17 @@ def update_doc_with_adresseerbaar_object(doc, item):
     if gsg:
         doc.gsg_naam = gsg.naam
 
-    doc.buurt_code = '%s%s' % (
-        str(adresseerbaar_object.buurt.stadsdeel.code),
-        str(adresseerbaar_object.buurt.code)
-    )
+    buurt = adresseerbaar_object.buurt
+    if buurt:
+        doc.buurt_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.code)
+        )
 
-    doc.buurtcombinatie_code = '%s%s' % (
-        str(adresseerbaar_object.buurt.stadsdeel.code),
-        str(adresseerbaar_object.buurt.buurtcombinatie.code)
-    )
+        doc.buurtcombinatie_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.buurtcombinatie.code)
+        )
 
     idx = int(item.type) - 1  # type: int
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
