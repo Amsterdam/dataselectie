@@ -32,10 +32,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 insecure_key = 'insecure'
-SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', insecure_key)
+SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
+
 DEBUG = SECRET_KEY == insecure_key
 
-ALLOWED_HOSTS = []  # type: List[str]
+ALLOWED_HOSTS = ['*']     # type: List[str]
+
 SITE_ID = 1
 
 # Application definition
@@ -101,24 +103,89 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', '5435'),
         'CONN_MAX_AGE': 60,
     },
+
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
+        'NAME': os.getenv('DATABASE_BAG_NAME', 'atlas'),
         'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
         'CONN_MAX_AGE': 60,
     },
+
     'hr': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_HR_ENV_POSTGRES_DB', 'handelsregister'),
+        'NAME': os.getenv('DATABASE_HR_NAME', 'handelsregister'),
         'USER': os.getenv('DATABASE_HR_ENV_POSTGRES_USER', 'handelsregister'),
-        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORDD', 'insecure'),
+        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_HR_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORT', '5406'),
+        'CONN_MAX_AGE': 60,
     }
 }
+
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+
+    'formatters': {
+        'slack': {
+            'format': '%(message)s',
+        },
+        'console': {
+            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'console',
+        },
+    },
+
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console'],
+    },
+
+    'loggers': {
+        # Debug all batch jobs
+        'batch': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+
+        'search': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'elasticsearch': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        'urllib3.connectionpool': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
+        # Log all unhandled exceptions
+        'django.request': {
+                'handlers': ['console'],
+                'level': 'ERROR',
+                'propagate': False,
+        },
+    },
+}
+
 
 # DB routing
 DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
@@ -139,7 +206,7 @@ AGGS_VALUE_SIZE = 100
 
 # Batch processing
 BATCH_SETTINGS = {
-    'batch_size': 4000,
+    'batch_size': 400,
 }
 
 PARTIAL_IMPORT = {

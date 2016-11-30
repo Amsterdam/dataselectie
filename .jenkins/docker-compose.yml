@@ -1,24 +1,13 @@
 elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-    ports:
-        - "9200"
-        - "9300"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
     user: root
     command: /usr/share/elasticsearch/bin/elasticsearch -Des.insecure.allow.root=true -Des.network.host=0.0.0.0 -Des.path.repo=/tmp
 
-test_elasticsearch:
-   image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-   command: elasticsearch -Des.network.host=0.0.0.0
-   ports:
-       - "9210:9200"
-       - "9310:9300"
 
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: dataselectie
         POSTGRES_DB: dataselectie
@@ -26,8 +15,6 @@ database_dataselectie:
 
 database_BAG:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     volumes:
       - /mnt/dumps:/tmp/import
     environment:
@@ -37,8 +24,6 @@ database_BAG:
 
 database_HR:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: handelsregister
         POSTGRES_DB: handelsregister
@@ -56,7 +41,7 @@ tests:
     DATABASE_USER: dataselectie
     DATABASE_PASSWORD: insecure
     DJANGO_SETTINGS_MODULE: dataselectie.settings
-  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
+  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test --noinput"
 
 importer:
     build: ../web

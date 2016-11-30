@@ -29,6 +29,12 @@ def create_gebiedsgericht_werken_fixtures():
     ]
 
 
+def create_grootstedelijk_werken_fixtures():
+    """
+    """
+    pass
+
+
 def create_buurt_combinaties():
     """"
     """
@@ -236,28 +242,31 @@ def create_ligplaats_fixtures():
     """
     create_buurt_fixtures()
     return [
-        models.Ligplaats.objects.get_or_create(id='03630000000111', landelijk_id='0363000000000111', status_id='33',
-                                               _huisnummer=15, _huisletter='', _huisnummer_toevoeging='', buurt_id='2',
-                                               geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                )),
-        models.Ligplaats.objects.get_or_create(id='03630000000112', landelijk_id='0363000000000112', status_id='33',
-                                               _huisnummer=345, _huisletter='', _huisnummer_toevoeging='', buurt_id='3',
-                                               geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                ))]
+        models.Ligplaats.objects.get_or_create(
+            id='03630000000111', landelijk_id='0363000000000111', status_id='33',
+            _huisnummer=15, _huisletter='', _huisnummer_toevoeging='', buurt_id='2',
+            geometrie=Polygon(
+                    (
+                        (0.0, 0.0),
+                        (0.0, 50.0),
+                        (50.0, 50.0),
+                        (50.0, 0.0),
+                        (0.0, 0.0)
+                    )
+            )),
+
+        models.Ligplaats.objects.get_or_create(
+            id='03630000000112', landelijk_id='0363000000000112', status_id='33',
+            _huisnummer=345, _huisletter='', _huisnummer_toevoeging='', buurt_id='3',
+            geometrie=Polygon(
+                    (
+                        (0.0, 0.0),
+                        (0.0, 50.0),
+                        (50.0, 50.0),
+                        (50.0, 0.0),
+                        (0.0, 0.0)
+                    )
+            ))]
 
 
 def create_standplaats_fixtures():
@@ -267,28 +276,31 @@ def create_standplaats_fixtures():
     create_buurt_fixtures()
 
     return [
-        models.Standplaats.objects.get_or_create(id='03630000000221', landelijk_id='0363000000000221', status_id='37',
-                                                 _huisnummer=515, _huisletter='', _huisnummer_toevoeging='',
-                                                 buurt_id='10', geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                 )),
-        models.Standplaats.objects.get_or_create(id='03630000000222', landelijk_id='0363000000000222', status_id='37',
-                                                 _huisnummer=45, _huisletter='', _huisnummer_toevoeging='',
-                                                 buurt_id='9', geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                 ))]
+        models.Standplaats.objects.get_or_create(
+            id='03630000000221', landelijk_id='0363000000000221', status_id='37',
+            _huisnummer=515, _huisletter='', _huisnummer_toevoeging='',
+            buurt_id='10', geometrie=Polygon(
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
+            )),
+
+        models.Standplaats.objects.get_or_create(
+            id='03630000000222', landelijk_id='0363000000000222', status_id='37',
+            _huisnummer=45, _huisletter='', _huisnummer_toevoeging='',
+            buurt_id='9', geometrie=Polygon(
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
+            ))]
 
 
 def create_nummeraanduiding_fixtures():
@@ -298,6 +310,7 @@ def create_nummeraanduiding_fixtures():
     """
     create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
+    create_grootstedelijk_werken_fixtures()
     create_openbare_ruimte_fixtures()
     create_buurt_combinaties()
     create_buurt_fixtures()
@@ -310,53 +323,71 @@ def create_nummeraanduiding_fixtures():
     hr_factories.DataSelectieHrFactory(vb_objects[4][0], 3, 4)
 
     return [
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=1, huisletter='A', huisnummer_toevoeging='BIS',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000001',
-                                                      openbare_ruimte_id='03630000000001', id='03630000000001',
-                                                      verblijfsobject_id='03630000543293',
-                                                      _openbare_ruimte_naam='Kanaalstraat'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=15, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000002',
-                                                      openbare_ruimte_id='03630000000002', id='03630000000002',
-                                                      verblijfsobject_id='03630000543294',
-                                                      _openbare_ruimte_naam='Leidsestraat'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=12, huisletter='', huisnummer_toevoeging=' ',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000003',
-                                                      openbare_ruimte_id='03630000000003', id='03630000000003',
-                                                      verblijfsobject_id='03630000543295',
-                                                      _openbare_ruimte_naam='Hobbemakade'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=15, huisletter='C', huisnummer_toevoeging='2',
-                                                      postcode='1012AB', type='01', landelijk_id='0363000000000004',
-                                                      openbare_ruimte_id='03630000000004', id='03630000000004',
-                                                      ligplaats_id='03630000000111',
-                                                      _openbare_ruimte_naam='Delflandplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=21, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000005',
-                                                      openbare_ruimte_id='03630000000005', id='03630000000005',
-                                                      verblijfsobject_id='03630000543296',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=345, huisletter='', huisnummer_toevoeging='1',
-                                                      postcode='1012AA', type='01', landelijk_id='0363000000000006',
-                                                      openbare_ruimte_id='03630000000006', id='03630000000006',
-                                                      ligplaats_id='03630000000112',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=76, huisletter='F', huisnummer_toevoeging='',
-                                                      postcode='1013AG', type='01', landelijk_id='0363000000000007',
-                                                      openbare_ruimte_id='03630000000007', id='03630000000007',
-                                                      verblijfsobject_id='03630000543297',
-                                                      _openbare_ruimte_naam='Prinsengracht'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=515, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1013BA', type='01', landelijk_id='0363000000000008',
-                                                      openbare_ruimte_id='03630000000008', id='03630000000008',
-                                                      standplaats_id='03630000000221',
-                                                      _openbare_ruimte_naam='Weteringschans'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=45, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1014AZ', type='01', landelijk_id='0363000000000009',
-                                                      openbare_ruimte_id='03630000000009', id='03630000000009',
-                                                      standplaats_id='03630000000222',
-                                                      _openbare_ruimte_naam='Delflandplein'),
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=4, huisletter='', huisnummer_toevoeging='',
-                                                      postcode='1014AW', type='01', landelijk_id='0363000000000010',
-                                                      openbare_ruimte_id='03630000000009', id='03630000000010',
-                                                      verblijfsobject_id='03630000543298',
-                                                      _openbare_ruimte_naam='Delflandplein')]
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=1, huisletter='A', huisnummer_toevoeging='BIS',
+            postcode='1012AA', type='01', landelijk_id='0363000000000001',
+            openbare_ruimte_id='03630000000001', id='03630000000001',
+            verblijfsobject_id='03630000543293',
+            _openbare_ruimte_naam='Kanaalstraat'),
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=15, huisletter='', huisnummer_toevoeging='',
+            postcode='1012AA', type='01', landelijk_id='0363000000000002',
+            openbare_ruimte_id='03630000000002', id='03630000000002',
+            verblijfsobject_id='03630000543294',
+            _openbare_ruimte_naam='Leidsestraat'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=12, huisletter='', huisnummer_toevoeging=' ',
+            postcode='1012AA', type='01', landelijk_id='0363000000000003',
+            openbare_ruimte_id='03630000000003', id='03630000000003',
+            verblijfsobject_id='03630000543295',
+            _openbare_ruimte_naam='Hobbemakade'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=15, huisletter='C', huisnummer_toevoeging='2',
+            postcode='1012AB', type='01', landelijk_id='0363000000000004',
+            openbare_ruimte_id='03630000000004', id='03630000000004',
+            ligplaats_id='03630000000111',
+            _openbare_ruimte_naam='Delflandplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=21, huisletter='', huisnummer_toevoeging='',
+            postcode='1012AA', type='01', landelijk_id='0363000000000005',
+            openbare_ruimte_id='03630000000005', id='03630000000005',
+            verblijfsobject_id='03630000543296',
+            _openbare_ruimte_naam='Hoofddorplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=345, huisletter='', huisnummer_toevoeging='1',
+            postcode='1012AA', type='01', landelijk_id='0363000000000006',
+            openbare_ruimte_id='03630000000006', id='03630000000006',
+            ligplaats_id='03630000000112',
+            _openbare_ruimte_naam='Hoofddorplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=76, huisletter='F', huisnummer_toevoeging='',
+            postcode='1013AG', type='01', landelijk_id='0363000000000007',
+            openbare_ruimte_id='03630000000007', id='03630000000007',
+            verblijfsobject_id='03630000543297',
+            _openbare_ruimte_naam='Prinsengracht'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=515, huisletter='', huisnummer_toevoeging='',
+            postcode='1013BA', type='01', landelijk_id='0363000000000008',
+            openbare_ruimte_id='03630000000008', id='03630000000008',
+            standplaats_id='03630000000221',
+            _openbare_ruimte_naam='Weteringschans'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=45, huisletter='', huisnummer_toevoeging='',
+            postcode='1014AZ', type='01', landelijk_id='0363000000000009',
+            openbare_ruimte_id='03630000000009', id='03630000000009',
+            standplaats_id='03630000000222',
+            _openbare_ruimte_naam='Delflandplein'),
+
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=4, huisletter='', huisnummer_toevoeging='',
+            postcode='1014AW', type='01', landelijk_id='0363000000000010',
+            openbare_ruimte_id='03630000000009', id='03630000000010',
+            verblijfsobject_id='03630000543298',
+            _openbare_ruimte_naam='Delflandplein')]

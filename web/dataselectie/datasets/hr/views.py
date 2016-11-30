@@ -20,18 +20,22 @@ class HrBase(object):
     index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
+
     extra_context_keywords = [
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
+
     keywords = ['sbi_code', 'bedrijfsnaam', 'sub_sub_categorie',
                 'subcategorie', 'hoofdcategorie'] + extra_context_keywords
+
     raw_fields = []
 
     def bld_nested_path(self, lfilter, np):
-        return {"nested":{"path":np,"query":lfilter}}
+        return {"nested": {"path": np, "query": lfilter}}
 
     nested_path = "sbi_codes"
+
     keyword_mapping = {'sbi_code': bld_nested_path,
                        'bedrijfsnaam': bld_nested_path,
                        'sub_sub_categorie': bld_nested_path,
@@ -39,11 +43,10 @@ class HrBase(object):
                        'hoofdcategorie': bld_nested_path}
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
+
     saved_search_args = {}
 
     fixed_filters = [{"term": {'is_hr_address': True}}]
-
-#    sorts = ['vestigingsnummer']                    # For now this is enough.
 
     def fill_ids(self, response, elastic_data):
         items = {}
@@ -54,14 +57,20 @@ class HrBase(object):
 
     def _vest_nr_can_be_added(self, sbi_info):
         add_value = len(self.saved_search_args) == 0
+
         for field, value in self.saved_search_args.items():
+
             if isinstance(value, str):
                 value = value.lower()
             if field in sbi_info and (
-                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
+                    (isinstance(sbi_info[field], str)
+                        and value in sbi_info[field].lower())
                     or sbi_info[field] == value):
+
                 add_value = True
+
                 break
+
         return add_value
 
     def _fill_items(self, items: dict, item: dict) -> dict:
@@ -136,6 +145,7 @@ class HrSearch(HrBase, TableSearchView):
                 except KeyError:
                     nwfield = json_key
                 context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+
             del context['object_list'][i]['api_json']
 
             # Adding the extra context
@@ -159,9 +169,12 @@ class HrCSV(HrBase, CSVExportView):
                'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
                'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
                'landelijk_id']
+
     headers_hr = ['kvk_nummer', 'naam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
                   'subcategorieen', 'betrokkenen', 'rechtsvorm', ]
+
     headers += headers_hr
+
     pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
                       'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
                       'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
@@ -218,7 +231,7 @@ class HrCSV(HrBase, CSVExportView):
 
         return result
 
-    def _process_flatfields(self, json:dict) -> dict:
+    def _process_flatfields(self, json: dict) -> dict:
         result = {}
         for hdr in self.headers_hr:
             try:
@@ -227,15 +240,26 @@ class HrCSV(HrBase, CSVExportView):
                 pass
         return result
 
-    def _process_sbi_codes(self, sbi_json:list) -> dict:
+    def _process_sbi_codes(self, sbi_json: list) -> dict:
+        """
+        Wat doen we hier
+        """
         result = {}
-        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
-        result['subsubcategorieen'] = ' \\ '.join([sc['sub_sub_categorie'] for sc in sbi_json])
-        result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
-        result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
+
+        result['sbicodes'] = ' \\ '.join(
+                [str(sbi['sbi_code']) for sbi in sbi_json])
+
+        result['subsubcategorieen'] = ' \\ '.join(
+                [sc['sub_sub_categorie'] for sc in sbi_json])
+
+        result['hoofdcategorieen'] = ' \\ '.join(set([
+            hc['hoofdcategorie'] for hc in sbi_json]))
+
+        result['subcategorieen'] = ' \\ '.join(set(
+            [sc['subcategorie'] for sc in sbi_json]))
         return result
 
-    def _process_betrokkenen(self, betrokken_json:list) -> str:
+    def _process_betrokkenen(self, betrokken_json: list) -> str:
         result = "Onbekend"
         text_result = []
         for betrokken in betrokken_json:

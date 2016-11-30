@@ -1,13 +1,15 @@
 # Python
-from typing import List, cast
-# Packages
 from django.conf import settings
 import elasticsearch_dsl as es
-import rapidjson
 # Project
 from datasets.bag import models
 from datasets.hr import models as hrmodels
 from datasets.generic import analyzers
+
+import time
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class NummeraanduidingMeta(es.DocType):
@@ -51,6 +53,9 @@ class NummeraanduidingMeta(es.DocType):
     buurtcombinatie_naam = es.String(index='not_analyzed')
     ggw_code = es.String(index='not_analyzed')
     ggw_naam = es.String(index='not_analyzed')
+
+    gsg_naam = es.String(index='not_analyzed')
+
     stadsdeel_code = es.String(index='not_analyzed')
     stadsdeel_naam = es.String(index='not_analyzed')
 
@@ -80,7 +85,7 @@ class NummeraanduidingMeta(es.DocType):
             'hoofdcategorie': es.String(index='not_analyzed'),
             'subcategorie': es.String(index='not_analyzed'),
             'sub_sub_categorie': es.String(index='not_analyzed'),
-            'bedrijfsnaam' : es.String(index='not_analyzed'),
+            'bedrijfsnaam': es.String(index='not_analyzed'),
             'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })
@@ -91,7 +96,84 @@ class NummeraanduidingMeta(es.DocType):
         all = es.MetaField(enabled=False)
 
 
-def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+def update_doc_with_adresseerbaar_object(doc, item):
+    """
+    Voeg alle adreseerbaarobject shizzel toe.
+
+    ligplaats, standplaats, verblijfsobject
+
+    denk aan gerelateerde gebieden.
+    """
+    adresseerbaar_object = item.adresseerbaar_object
+
+    try:
+        doc.centroid = (
+            adresseerbaar_object
+            .geometrie.centroid.transform('wgs84', clone=True).coords)
+    except AttributeError:
+        log.error('Missing geometrie %s' % adresseerbaar_object)
+        log.error(adresseerbaar_object)
+        pass
+
+    # Adding the ggw data
+    ggw = adresseerbaar_object._gebiedsgerichtwerken
+    if ggw:
+        doc.ggw_code = ggw.code
+        doc.ggw_naam = ggw.naam
+
+    # Grootstedelijk ontbreekt nog
+    gsg = adresseerbaar_object._grootstedelijkgebied
+    if gsg:
+        doc.gsg_naam = gsg.naam
+
+    buurt = adresseerbaar_object.buurt
+    if buurt:
+        doc.buurt_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.code)
+        )
+
+        doc.buurtcombinatie_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.buurtcombinatie.code)
+        )
+
+    idx = int(item.type) - 1  # type: int
+    doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
+
+
+def add_verblijfsobject_data(item, doc):
+    """
+    vbo gerelateerde data
+    """
+
+    obj = item.verblijfsobject
+
+    verblijfsobject_extra = [
+        ('verblijfsobject', 'landelijk_id'),
+        ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
+        ('oppervlakte', 'oppervlakte'),
+        ('bouwblok', 'bouwblok.code'),
+        ('gebruik', 'gebruik.omschrijving')
+    ]
+
+    update_doc_from_param_list(doc, obj, verblijfsobject_extra)
+
+    try:
+        doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
+    except:
+        pass
+
+
+def meta_from_nummeraanduiding(
+        item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+    """
+    Van een Nummeraanduiding bak een dataselectie document
+    met bag informatie en hr informatie
+    """
+
+    start = time.time()
+
     doc = NummeraanduidingMeta(_id=item.id)
     parameters = [
         ('nummeraanduiding_id', 'id'),
@@ -103,73 +185,53 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
-        ('buurtcombinatie_naam', 'adresseerbaar_object.buurt.buurtcombinatie.naam'),
+        ('buurtcombinatie_naam',
+            'adresseerbaar_object.buurt.buurtcombinatie.naam'),
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
+
         # Landelijke IDs
         ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
+
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
 
-    # Saving centroind of it exists
-    try:
-        doc.centroid = item.adresseerbaar_object.geometrie.centroid.transform('wgs84', clone=True).coords
-    except Exception as e:
-        print(repr(e))
-        doc.centroid = None
+    # defaults
+    doc.is_hr_address = False
+    doc.centroid = None
 
-    # Adding the ggw data
-    try:
-        ggw = models.Gebiedsgerichtwerken.objects.filter(
-            geometrie__contains=item.adresseerbaar_object.geometrie).first()
-        if ggw:
-            doc.ggw_code = ggw.code
-            doc.ggw_naam = ggw.naam
-    except Exception as e:
-        pass
-    try:
-        doc.buurt_code = '%s%s' % (
-            str(item.adresseerbaar_object.buurt.stadsdeel.code),
-            str(item.adresseerbaar_object.buurt.code)
-        )
-    except Exception as e:
-        pass
-    try:
-        doc.buurtcombinatie_code = '%s%s' % (
-            str(item.adresseerbaar_object.buurt.stadsdeel.code),
-            str(item.adresseerbaar_object.buurt.buurtcombinatie.code)
-        )
-    except Exception as e:
-        pass
-    try:
-        idx = int(item.type) - 1  # type: int
-        doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
-    except Exception as e:
-        pass
+    # hr vestigingen
+    if item.adresseerbaar_object:
+        # BAG
+        update_doc_with_adresseerbaar_object(doc, item)
+        # HR
+        update_doc_with_sbicodes(doc, item)
 
     # Verblijfsobject specific
     if item.verblijfsobject:
-        obj = item.verblijfsobject
-        verblijfsobject_extra = [
-            ('verblijfsobject', 'landelijk_id'),
-            ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
-            ('oppervlakte', 'oppervlakte'),
-            ('bouwblok', 'bouwblok.code'),
-            ('gebruik', 'gebruik.omschrijving')
-        ]
-        update_doc_from_param_list(doc, obj, verblijfsobject_extra)
-        try:
-            doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
-        except:
-            pass
+        add_verblijfsobject_data(doc, item)
+
+    log.debug('doctime %s', (time.time() - start))
+
+    # asserts?
+    return doc
+
+
+def update_doc_with_sbicodes(doc, item):
+    """
+    Geef een nummeraanduiding eventuele hr data attributen mee
+
+    denk aan sbi.
+    """
 
     sbi_codes = []
-    doc.is_hr_address = False
-    for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+    for hrinfo in hrmodels.DataSelectie.objects.filter(
+            bag_vbid=item.adresseerbaar_object.landelijk_id).all():
+
         sbi_codes += hrinfo.api_json['sbi_codes']
         doc.is_hr_address = True
     if doc.is_hr_address:
@@ -177,16 +239,20 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
     else:
         doc.sbi_codes = []
 
-    return doc
 
-
-def update_doc_from_param_list(doc: dict, item: object, params: list) -> None:
-    for (attr, obj_link) in params:
-        value = item
+def update_doc_from_param_list(
+        target: dict, source: object, mapping: list) -> None:
+    """
+    Given a list of parameters (target_field, source_field)
+    try to add it to the given document
+    from the source object
+    """
+    for (attr, obj_link) in mapping:
+        value = source
         obj_link = obj_link.split('.')
         try:
             for link in obj_link:
                 value = getattr(value, link, None)
-            setattr(doc, attr, value)
+            setattr(target, attr, value)
         except Exception as e:
             pass
