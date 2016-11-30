@@ -85,7 +85,7 @@ class NummeraanduidingMeta(es.DocType):
             'hoofdcategorie': es.String(index='not_analyzed'),
             'subcategorie': es.String(index='not_analyzed'),
             'sub_sub_categorie': es.String(index='not_analyzed'),
-            'bedrijfsnaam' : es.String(index='not_analyzed'),
+            'bedrijfsnaam': es.String(index='not_analyzed'),
             'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })

@@ -32,7 +32,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 insecure_key = 'insecure'
-SECRET_KEY = os.getenv('dataselectie_SECRET_KEY', insecure_key)
+SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
+
 DEBUG = SECRET_KEY == insecure_key
 
 ALLOWED_HOSTS = []  # type: List[str]
@@ -101,22 +102,25 @@ DATABASES = {
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', '5435'),
         'CONN_MAX_AGE': 60,
     },
+
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
+        'NAME': os.getenv('DATABASE_BAG_NAME', 'atlas'),
         'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
         'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
         'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
         'CONN_MAX_AGE': 60,
     },
+
     'hr': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_HR_ENV_POSTGRES_DB', 'handelsregister'),
+        'NAME': os.getenv('DATABASE_HR_NAME', 'handelsregister'),
         'USER': os.getenv('DATABASE_HR_ENV_POSTGRES_USER', 'handelsregister'),
-        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORDD', 'insecure'),
+        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORD', 'insecure'),
         'HOST': os.getenv('DATABASE_HR_PORT_5432_TCP_ADDR', _get_docker_host()),
         'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORT', '5406'),
+        'CONN_MAX_AGE': 60,
     }
 }
 
