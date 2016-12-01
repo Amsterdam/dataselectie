@@ -15,8 +15,6 @@ database_dataselectie:
 
 database_BAG:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    volumes:
-      - /mnt/dumps:/tmp/import
     environment:
         POSTGRES_USER: atlas
         POSTGRES_DB: atlas
@@ -41,7 +39,7 @@ tests:
     DATABASE_USER: dataselectie
     DATABASE_PASSWORD: insecure
     DJANGO_SETTINGS_MODULE: dataselectie.settings
-  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test --noinput"
+  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
 
 importer:
     build: ../web
