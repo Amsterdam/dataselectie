@@ -56,6 +56,9 @@ class HrBase(object):
         return elastic_data
 
     def _vest_nr_can_be_added(self, sbi_info):
+        """
+        Watte?
+        """
         add_value = len(self.saved_search_args) == 0
 
         for field, value in self.saved_search_args.items():
@@ -103,6 +106,7 @@ class HrSearch(HrBase, TableSearchView):
         """
         self.extra_context_data = {'items': {}}
         orig_vestigingsnr = None
+        # Deze loop gaat veel te diep
         for item in response['hits']['hits']:
             first = True
             for sbi_info in item['_source']['sbi_codes']:
@@ -122,9 +126,13 @@ class HrSearch(HrBase, TableSearchView):
                         self.extra_context_data['items'][orig_vestigingsnr]
 
         self.extra_context_data['total'] = len(set(elastic_data['ids']))
+
         # Merging count with regular aggregation
         aggs = self.process_aggs(response)          # aggregates
+
+        # count keys word neit gebruikt debug?
         count_keys = [key for key in aggs['sbi_codes'].keys() if key.endswith('_count')]
+
         for key in AGGKEYS:
             if not key in aggs:
                 aggs[key] = {}
@@ -163,26 +171,28 @@ class HrCSV(HrBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-               'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
-               'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
-               'landelijk_id']
+    headers = [
+        '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+        'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+        'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+        'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+        'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
+        'landelijk_id']
 
     headers_hr = ['kvk_nummer', 'naam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
                   'subcategorieen', 'betrokkenen', 'rechtsvorm', ]
 
     headers += headers_hr
 
-    pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
-                      'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
-                      'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-                      'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
-                      'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
-                      'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
-                      'Nummeraanduidingidentificatie', 'Kvk nummer', 'Bedrijfsnaam', 'Vestigingsnummer', 'Sbi codes',
-                      'Hoofd categorieen', 'Sub sub categorieen', 'Sub categorieen', 'Betrokkenen', 'Rechtsvorm')
+    pretty_headers = (
+        'Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
+        'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
+        'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
+        'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
+        'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
+        'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
+        'Nummeraanduidingidentificatie', 'Kvk nummer', 'Bedrijfsnaam', 'Vestigingsnummer', 'Sbi codes',
+        'Hoofd categorieen', 'Sub sub categorieen', 'Sub categorieen', 'Betrokkenen', 'Rechtsvorm')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
@@ -260,6 +270,9 @@ class HrCSV(HrBase, CSVExportView):
         return result
 
     def _process_betrokkenen(self, betrokken_json: list) -> str:
+        """
+        wat zijn betrokkenen?
+        """
         result = "Onbekend"
         text_result = []
         for betrokken in betrokken_json:
