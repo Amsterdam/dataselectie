@@ -49,6 +49,14 @@ class HrBase(object):
     fixed_filters = [{"term": {'is_hr_address': True}}]
 
     def fill_ids(self, response, elastic_data):
+        """
+        Select the ids that are to be retrieved from the
+        database based on the elastic search result
+
+        :param response:
+        :param elastic_data:
+        :return:
+        """
         items = {}
         for hit in response['hits']['hits']:
             items = self._fill_items(items, hit)
@@ -57,7 +65,11 @@ class HrBase(object):
 
     def _vest_nr_can_be_added(self, sbi_info):
         """
-        Watte?
+        Vestigigingsnr should be added to result. This is
+        the check to verify that an sbicode is selected
+
+        :param sbi_info: json that contains the sbi_info
+        :return:
         """
         add_value = len(self.saved_search_args) == 0
 
@@ -82,7 +94,7 @@ class HrBase(object):
         overridden in using class to create more complex
         datastructures
 
-        :param items:
+        :param items: reponse
         :param item:
         :return: items
         """
@@ -108,22 +120,7 @@ class HrSearch(HrBase, TableSearchView):
         orig_vestigingsnr = None
         # Deze loop gaat veel te diep
         for item in response['hits']['hits']:
-            first = True
-            for sbi_info in item['_source']['sbi_codes']:
-                vestigingsnr = sbi_info['vestigingsnummer']
-                if first:
-                    self.extra_context_data['items'][vestigingsnr] = {}
-                    for field in self.extra_context_keywords:
-                        try:
-                            self.extra_context_data['items'][vestigingsnr][field] = \
-                                item['_source'][field]
-                        except:
-                            pass
-                    first = False
-                    orig_vestigingsnr = vestigingsnr
-                else:
-                    self.extra_context_data['items'][vestigingsnr] = \
-                        self.extra_context_data['items'][orig_vestigingsnr]
+            self.sbi_retrieve(item, orig_vestigingsnr)
 
         self.extra_context_data['total'] = len(set(elastic_data['ids']))
 
@@ -144,8 +141,42 @@ class HrSearch(HrBase, TableSearchView):
         self.extra_context_data['aggs_list'] = aggs
         self.update_keys = self.extra_context_data['items'].values()
 
+    def sbi_retrieve(self, item, orig_vestigingsnr):
+        """
+        Processing of SBI codes, update self.extra_context_data
+
+        :param item: response item
+        :param orig_vestigingsnr: Original vestigingsnr
+        :return:
+        """
+        first = True
+        for sbi_info in item['_source']['sbi_codes']:
+            vestigingsnr = sbi_info['vestigingsnummer']
+            if first:
+                first = False
+                self.first_sbi(item, vestigingsnr)
+                orig_vestigingsnr = vestigingsnr
+            else:
+                self.extra_context_data['items'][vestigingsnr] = \
+                    self.extra_context_data['items'][orig_vestigingsnr]
+
+    def first_sbi(self, item, vestigingsnr):
+        """
+        Process first sbi code, add to self.extra_context_data
+
+        :param item: response item
+        :param vestigingsnr: current vestigingsnr to be processed
+        :return:
+        """
+        self.extra_context_data['items'][vestigingsnr] = {}
+        for field in self.extra_context_keywords:
+            if field in item['_source']:
+                self.extra_context_data['items'][vestigingsnr][field] = \
+                    item['_source'][field]
+
     def update_context_data(self, context):
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result, moving the jsonapi info one level down
+        # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
+        # moving the jsonapi info one level down
         for i in range(len(context['object_list'])):
             for json_key, values in context['object_list'][i]['api_json'].items():
                 try:
@@ -252,7 +283,9 @@ class HrCSV(HrBase, CSVExportView):
 
     def _process_sbi_codes(self, sbi_json: list) -> dict:
         """
-        Wat doen we hier
+        Sbi codes worden platgeslagen, waardoor die in de rij
+        geexporteerd kunnne worden. Het scheidingsteken is
+        \
         """
         result = {}
 
@@ -271,7 +304,8 @@ class HrCSV(HrBase, CSVExportView):
 
     def _process_betrokkenen(self, betrokken_json: list) -> str:
         """
-        wat zijn betrokkenen?
+        Betrokkenen zijn binnen handelsregister zowel verantwoordelijk
+        voor als ondergeschikt aan.
         """
         result = "Onbekend"
         text_result = []

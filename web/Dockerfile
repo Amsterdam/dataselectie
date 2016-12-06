@@ -1,7 +1,7 @@
 FROM python:3.5
 MAINTAINER datapunt.ois@amsterdam.nl
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED 1FROM python:3.5
 
 EXPOSE 8000
 
