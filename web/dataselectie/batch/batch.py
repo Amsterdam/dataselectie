@@ -15,15 +15,15 @@ def execute(job):
 
     job_execution = JobExecution.objects.create(name=job.name)
 
-    try:
-        for t in job.tasks():
-            _execute_task(job_execution, t)
-    except:
-        log.exception("Job failed: %s", job.name)
-        job_execution.date_finished = timezone.now()
-        job_execution.status = JobExecution.STATUS_FAILED
-        job_execution.save()
-        return job_execution
+    # try:
+    for t in job.tasks():
+        _execute_task(job_execution, t)
+    # except:
+    #     log.exception("Job failed: %s", job.name)
+    #     job_execution.date_finished = timezone.now()
+    #     job_execution.status = JobExecution.STATUS_FAILED
+    #     job_execution.save()
+    #     return job_execution
 
     log.info("Finished job: %s", job.name)
     job_execution.date_finished = timezone.now()
@@ -48,19 +48,19 @@ def _execute_task(job_execution, task):
         job=job_execution, name=task_name, date_started=timezone.now()
     )
 
-    try:
-        try:
-            execute_func()
-        finally:
-            if tear_down:
-                tear_down()
-    except:
-        e = sys.exc_info()[0]
-        log.exception("Task failed: %s", task_name)
-        task_execution.date_finished = timezone.now()
-        task_execution.status = TaskExecution.STATUS_FAILED
-        task_execution.save()
-        raise e
+    # try:
+    #     try:
+    execute_func()
+    #     finally:
+    #         if tear_down:
+    #             tear_down()
+    # except:
+    #     e = sys.exc_info()[0]
+    #     log.exception("Task failed: %s", task_name)
+    #     task_execution.date_finished = timezone.now()
+    #     task_execution.status = TaskExecution.STATUS_FAILED
+    #     task_execution.save()
+    #     raise e
 
     log.debug("Finished task: %s", task_name)
     task_execution.date_finished = timezone.now()

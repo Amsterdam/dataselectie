@@ -296,6 +296,9 @@ def create_nummeraanduiding_fixtures():
     depends on openbare_ruimte_fixtures, verblijfsobject_fixtures, standplaats_fixtures and ligplaats_fixtures
     :return: a list of nummeraanduiding objects
     """
+
+    hr_factories.DataSelectieSBIcodeFactory()
+
     create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
     create_openbare_ruimte_fixtures()
@@ -305,11 +308,7 @@ def create_nummeraanduiding_fixtures():
     create_ligplaats_fixtures()
     create_standplaats_fixtures()
 
-    hr_factories.DataSelectieHrFactory(vb_objects[1][0], 0, 2)
-    hr_factories.DataSelectieHrFactory(vb_objects[3][0], 2, 3)
-    hr_factories.DataSelectieHrFactory(vb_objects[4][0], 3, 4)
-
-    return [
+    nummeraanduidingen = [
         models.Nummeraanduiding.objects.get_or_create(huisnummer=1, huisletter='A', huisnummer_toevoeging='BIS',
                                                       postcode='1012AA', type='01', landelijk_id='0363000000000001',
                                                       openbare_ruimte_id='03630000000001', id='03630000000001',
@@ -360,3 +359,10 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000009', id='03630000000010',
                                                       verblijfsobject_id='03630000543298',
                                                       _openbare_ruimte_naam='Delflandplein')]
+
+
+    hr_factories.DataSelectieHrFactory(nummeraanduidingen[1][0], 0, 2)
+    hr_factories.DataSelectieHrFactory(nummeraanduidingen[3][0], 2, 3)
+    hr_factories.DataSelectieHrFactory(nummeraanduidingen[4][0], 3, 4)
+
+    return nummeraanduidingen

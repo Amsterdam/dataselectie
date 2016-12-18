@@ -3,7 +3,6 @@ from typing import List, cast
 # Packages
 from django.conf import settings
 import elasticsearch_dsl as es
-import rapidjson
 # Project
 from datasets.bag import models
 from datasets.hr import models as hrmodels
@@ -72,23 +71,25 @@ class NummeraanduidingMeta(es.DocType):
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
 
-    sbi_codes = es.Nested({
-        'properties': {
-            'sbi_code': es.String(index='not_analyzed'),
-            'hcat': es.String(index='not_analyzed'),
-            'scat': es.String(index='not_analyzed'),
-            'hoofdcategorie': es.String(index='not_analyzed'),
-            'subcategorie': es.String(index='not_analyzed'),
-            'sub_sub_categorie': es.String(index='not_analyzed'),
-            'bedrijfsnaam' : es.String(index='not_analyzed'),
-            'vestigingsnummer': es.String(index='not_analyzed')
-                }
-    })
-    is_hr_address = es.Boolean()
-
-    class Meta(object):
+    class Meta:
+        doc_type = 'bag_locatie'
         index = settings.ELASTIC_INDICES['DS_BAG']
         all = es.MetaField(enabled=False)
+
+    #
+    # sbi_codes = es.Nested({
+    #     'properties': {
+    #         'sbi_code': es.String(index='not_analyzed'),
+    #         'hcat': es.String(index='not_analyzed'),
+    #         'scat': es.String(index='not_analyzed'),
+    #         'hoofdcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+    #         'subcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+    #         'sub_sub_categorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+    #         'bedrijfsnaam': es.String(fields={'raw': es.String(index='not_analyzed')}),
+    #         'vestigingsnummer': es.String(index='not_analyzed')
+    #             }
+    # })
+    # is_hr_address = es.Boolean()
 
 
 def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> NummeraanduidingMeta:
@@ -166,16 +167,6 @@ def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduidin
             doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
         except:
             pass
-
-    sbi_codes = []
-    doc.is_hr_address = False
-    for hrinfo in hrmodels.DataSelectie.objects.filter(bag_vbid=item.adresseerbaar_object.landelijk_id).all():
-        sbi_codes += hrinfo.api_json['sbi_codes']
-        doc.is_hr_address = True
-    if doc.is_hr_address:
-        doc.sbi_codes = sbi_codes
-    else:
-        doc.sbi_codes = []
 
     return doc
 

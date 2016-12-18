@@ -1,14 +1,20 @@
 # Python
 import csv
-import rapidjson
 from datetime import datetime
 
 from django.http import StreamingHttpResponse
 from pytz import timezone
+from django.conf import settings
 
 from datasets.hr import models
+from datasets.bag import views as bagviews
+from datasets.bag import queries
 from datasets.hr.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
+
+
+import logging
+log = logging.getLogger(__name__)
 
 
 class HrBase(object):
@@ -16,112 +22,193 @@ class HrBase(object):
     Base class mixing for data settings
     """
     model = models.DataSelectie
-    index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
+
     extra_context_keywords = [
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode']
-    keywords = ['sbi_code', 'bedrijfsnaam', 'sub_sub_categorie',
-                'subcategorie', 'hoofdcategorie'] + extra_context_keywords
+        'stadsdeel_naam', 'stadsdeel_code', 'naam']
+
+    bezoekadres_context_keywords = ['_openbare_ruimte_naam', 'huisnummer',
+                                    'huisletter', 'toevoeging', 'woonplaats',
+                                    'postcode']
+
+    keywords = ['subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code'] \
+               + extra_context_keywords
+
     raw_fields = []
 
-    nested_path = "sbi_codes"
-    lambda_filter = lambda filter, np: {"nested":{"path":np,"query":filter}}
-    keyword_mapping = {'sbi_code': lambda_filter,
-                       'bedrijfsnaam': lambda_filter,
-                       'sub_sub_categorie': lambda_filter,
-                       'subcategorie': lambda_filter,
-                       'hoofdcategorie': lambda_filter}
+    def bld_parent_path(lfilter):
+        return {"has_parent": {"type": "bag_locatie", "query": lfilter}}
+    
+    keyword_mapping = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+                       'buurtcombinatie_naam', 'ggw_code', 'stadsdeel_naam',
+                       'stadsdeel_code', 'naam', 'ggw_naam', 'woonplaats')
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
-    saved_search_args = {}
 
-    fixed_filters = [{"term":{'is_hr_address': True}}]
-
-#    sorts = ['vestigingsnummer']                    # For now this is enough.
-
-    def fill_ids(self, response, elastic_data):
-        items = {}
-        for hit in response['hits']['hits']:
-            items = self._fill_items(items, hit)
-        elastic_data['ids'] = items.keys()
-        return elastic_data
-
-    def _vest_nr_can_be_added(self, sbi_info):
-        add_value = len(self.saved_search_args) == 0
-        for field, value in self.saved_search_args.items():
-            if isinstance(value, str):
-                value = value.lower()
-            if field in sbi_info and (
-                        (isinstance(sbi_info[field], str) and value in sbi_info[field].lower())
-                    or sbi_info[field] == value):
-                add_value = True
-                break
-        return add_value
-
-    def _fill_items(self, items: dict, item: dict) -> dict:
+    def process_sbi_codes(self, sbi_json: list) -> dict:
         """
-        Default fill items with item info from elastic query. Can be
-        overridden in using class to create more complex
-        datastructures
-
-        :param items:
-        :param item:
-        :return: items
+        Sbi codes worden platgeslagen, waardoor die in de rij
+        geexporteerd kunnne worden. Het scheidingsteken is
+        \
         """
+        result = {}
 
-        for sbi_info in item['_source']['sbi_codes']:
-            if self._vest_nr_can_be_added(sbi_info):
-                items[sbi_info['vestigingsnummer']] = item
+        result['sbicodes'] = ' \\ '.join(
+                [str(sbi['sbi_code']) for sbi in sbi_json])
 
-        return items
+        result['hoofdcategorieen'] = ' \\ '.join(set([
+            hc['hoofdcategorie'] for hc in sbi_json]))
+
+        result['subcategorieen'] = ' \\ '.join(set(
+            [sc['subcategorie'] for sc in sbi_json]))
+        return result
+
+    def process_betrokkenen(self, betrokken_json: list) -> str:
+        """
+        Betrokkenen zijn binnen handelsregister zowel verantwoordelijk
+        voor als ondergeschikt aan.
+        """
+        result = "Onbekend"
+        text_result = []
+        for betrokken in betrokken_json:
+            text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
+            if text:
+                text += ' ' + betrokken['functietitel']
+                text_result.append(text)
+
+        if len(text_result):
+            result = ' \\ '.join(text_result)
+
+        return result
 
 
 class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query):
-        res = meta_q(query)
+        res = meta_q(query, True, False)
         return res
+
+    # def process_aggs(self, response):
+    #     """
+    #     Agregates of elastic not used to avoid "analysed" problem in aggregates
+    #     and to allow for removal of "hoofdcategorieen" and "subcategorieen:  if
+    #     selected
+    #     :param response:
+    #     :return:
+    #     """
+    #
+    #     aggs = self.fill_elastic_aggregates(response)
+    #
+    #     akeys = {'hoofdcategorie': self.process_hoofdcategorie,
+    #                'subcategorie': self.process_subcategorie}
+    #     selected = []
+    #     subcats = []
+    #
+    #     for k,v in self.input_filter.items():
+    #         if k in akeys:
+    #             selected, subcats = akeys[k](k, v)              # process hoofd or subcategorie
+    #
+    #     if not selected and not subcats:
+    #         selected, subcats = self.process_hoofdcategorie()
+    #
+    #     aggs.update(self.fill_aggregates(selected, subcats))
+            
+    def process_subcategorie(self, value):
+        return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
+        
+    def fill_aggregates(self, selected, subcats):
+        return {}
+
+    def fill_elastic_aggregates(self, response):
+        aggs = response.get('aggregations', {})
+        for key in aggs.keys():
+            if key.endswith('_count'):
+                aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+                # Removing the individual count aggregation
+                del aggs[key]
+        return aggs
+
+    def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
+        """
+        Adds innerhits to the query and other selection criteria
+
+        :param filters:
+        :return:
+        """
+
+        if not mapped_filters:
+            mapped_filters = {"match_all": {}}
+
+        filterquery = { "bool":
+                            {
+                            "should": [
+                                {"term": {"_type": "vestigingen"}},
+                                {"has_parent":
+                                    {"type": "bag_locatie",
+                                    "query": mapped_filters,
+                                    "inner_hits": {}
+                                    }
+                                }]
+                            }
+                        }
+        if len(filters):
+            filterquery["bool"]["must"] = filters
+
+        query['query'] = filterquery
+
+        return query
+
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
+        # Can be overridden in the view to allow for other primary keys
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'][2:])
+        return elastic_data
 
     def save_context_data(self, response, elastic_data=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        self.extra_context_data = {'items': {}}
-        orig_vestigingsnr = None
-        for item in response['hits']['hits']:
-            first = True
-            for sbi_info in item['_source']['sbi_codes']:
-                vestigingsnr = sbi_info['vestigingsnummer']
-                if first:
-                    self.extra_context_data['items'][vestigingsnr] = {}
-                    for field in self.extra_context_keywords:
-                        try:
-                            self.extra_context_data['items'][vestigingsnr][field] = \
-                                item['_source'][field]
-                        except:
-                            pass
-                    first = False
-                    orig_vestigingsnr = vestigingsnr
-                else:
-                    self.extra_context_data['items'][vestigingsnr] = \
-                        self.extra_context_data['items'][orig_vestigingsnr]
+        api_fields = (
+            'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+            'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+            'stadsdeel_naam', 'stadsdeel_code', 'woonplaats')
 
-        self.extra_context_data['total'] = len(set(elastic_data['ids']))
-        # Merging count with regular aggregation
-        aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
-        for key in count_keys:
-            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-            # Removing the individual count aggregation
-            del aggs[key]
-        # self.extra_context_data['aggs_list'] = aggs
-        self.update_keys = self.extra_context_data['items'].values()
+        if len(response['hits']['hits']) and 'inner_hits' in response['hits']['hits'][0]:
+            super().save_context_data(response['hits']['hits'][0]['inner_hits']['bag_locatie'],
+                                  apifields=api_fields)
+
+        self.aggregates_parent(response, api_fields)
+
+    def aggregates_parent(self, response, api_fields):
+        """
+        Routine is necessary because elastic does not support aggregates over a parent
+        from a child
+        :param response:
+        :param api_fields:
+        :return:
+        """
+        request_parameters = getattr(self.request, self.request.method)
+        mapped_filters = []
+        filters = []
+        for filter_keyword in self.keyword_mapping:
+            val = request_parameters.get(filter_keyword, None)
+            if val is not None:     # parameter is entered
+                filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
+
+        query = queries.bld_agg()
+        query = super().build_el_query(filters, mapped_filters, query)
+        response = self.elastic.search(
+            index=settings.ELASTIC_INDICES[self.index],
+            body=query,
+            _source_include=['centroid']
+        )
 
     def update_context_data(self, context):
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result, moving the jsonapi info one level down
+        # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
+        # moving the jsonapi info one level down
         for i in range(len(context['object_list'])):
             for json_key, values in context['object_list'][i]['api_json'].items():
                 try:
@@ -129,14 +216,24 @@ class HrSearch(HrBase, TableSearchView):
                 except KeyError:
                     nwfield = json_key
                 context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+
             del context['object_list'][i]['api_json']
 
+            self.flatten(context['object_list'][i])
+
             # Adding the extra context
-            context['object_list'][i].update(self.extra_context_data['items'][
-                                         context['object_list'][i][
-                                             'id']])
+            bag_numid = context['object_list'][i]['bag_numid']
+            if bag_numid in self.extra_context_data['items']:
+                context['object_list'][i].update(self.extra_context_data['items'][bag_numid])
+
         context['total'] = self.extra_context_data['total']
+        context['aggs_list'] = self.extra_context_data['aggs_list']
         return context
+
+    def flatten(self, context_data):
+        context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
+        context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
+        del context_data['sbi_codes']
 
 
 class HrCSV(HrBase, CSVExportView):
@@ -144,23 +241,28 @@ class HrCSV(HrBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    headers = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-               'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-               'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-               'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
-               'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
-               'landelijk_id']
+    headers = [
+        '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+        'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+        'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
+        'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+        'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
+        'landelijk_id']
+
     headers_hr = ['kvk_nummer', 'naam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
                   'subcategorieen', 'betrokkenen', 'rechtsvorm', ]
+
     headers += headers_hr
-    pretty_headers = ('Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
-                      'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
-                      'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-                      'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
-                      'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
-                      'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
-                      'Nummeraanduidingidentificatie', 'Kvk nummer', 'Bedrijfsnaam', 'Vestigingsnummer', 'Sbi codes',
-                      'Hoofd categorieen', 'Sub sub categorieen', 'Sub categorieen', 'Betrokkenen', 'Rechtsvorm')
+
+    pretty_headers = (
+        'Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
+        'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
+        'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
+        'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
+        'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
+        'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
+        'Nummeraanduidingidentificatie', 'KvK-nummer', 'Handelsnaam', 'Vestigingsnummer', 'SBI-code',
+        'Hoofdcategorie', 'SBI-omschrijving', 'Subcategorie', 'Naam eigenaar(en)', 'Rechtsvorm')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
@@ -202,14 +304,14 @@ class HrCSV(HrBase, CSVExportView):
             if len(row.api_json['betrokkenen']):
                 r_dict['rechtsvorm'] = row.api_json['betrokkenen'][0]['rechtsvorm']
             r_dict['id'] = row.id
-            r_dict.update(self._process_sbi_codes(row.api_json['sbi_codes']))
-            r_dict['betrokkenen'] = self._process_betrokkenen(row.api_json['betrokkenen'])
+            r_dict.update(self.process_sbi_codes(row.api_json['sbi_codes']))
+            r_dict['betrokkenen'] = self.process_betrokkenen(row.api_json['betrokkenen'])
 
             result.append(r_dict)
 
         return result
 
-    def _process_flatfields(self, json:dict) -> dict:
+    def _process_flatfields(self, json: dict) -> dict:
         result = {}
         for hdr in self.headers_hr:
             try:
@@ -218,29 +320,13 @@ class HrCSV(HrBase, CSVExportView):
                 pass
         return result
 
-    def _process_sbi_codes(self, sbi_json:list) -> dict:
-        result = {}
-        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
-        result['subsubcategorieen'] = ' \\ '.join([sc['sub_sub_categorie'] for sc in sbi_json])
-        result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
-        result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
-        return result
-
-    def _process_betrokkenen(self, betrokken_json:list) -> str:
-        result = "Onbekend"
-        text_result = []
-        for betrokken in betrokken_json:
-            text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
-            if text:
-                text += ' ' + betrokken['functietitel']
-                text_result.append(text)
-
-        if len(text_result):
-            result = ' \\ '.join(text_result)
-
-        return result
-
     def fill_items(self, items, item):
+        """
+        
+        :param items:
+        :param item:
+        :return:
+        """
         items[item['_id']] = item
 
         return items

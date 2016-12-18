@@ -9,8 +9,11 @@ class DataSelectie(models.Model):
         max_length = 20,
         primary_key=True)
 
-    bag_vbid = models.CharField(
+    bag_numid = models.CharField(
         max_length=16, blank=True, null=True, db_index=True)
+
+    bag_vbid = models.CharField(
+        max_length=16, blank=True, null=True)
 
     api_json = JSONField()
 
@@ -19,3 +22,33 @@ class DataSelectie(models.Model):
         verbose_name = "Handelsregister dataselectie"
         verbose_name_plural = "Handelsregister dataselecties"
         ordering = ('id',)
+
+
+class CBS_sbi_hoofdcat(models.Model):
+    hcat = models.CharField(max_length=20, primary_key=True)
+    hoofdcategorie = models.CharField(max_length=140, blank=False, null=False)
+
+    class Meta(object):
+        managed = True
+        verbose_name = "Handelsregister sbi hoofdcategorie"
+        verbose_name_plural = "Handelsregister sbi hoofdcategorieen"
+        ordering = ('hcat',)
+
+
+class CBS_sbi_subcat(models.Model):
+    scat = models.CharField(max_length=20, primary_key=True)
+    subcategorie = models.CharField(max_length=140, blank=False, null=False)
+    hcat = models.ForeignKey(CBS_sbi_hoofdcat, on_delete=models.CASCADE)
+
+    class Meta(object):
+        managed = True
+        verbose_name = "Handelsregister sbi subcategorie"
+        verbose_name_plural = "Handelsregister sbi subcategorieen"
+        ordering = ('scat',)
+
+
+class CBS_sbicodes(models.Model):
+    sbi_code = models.CharField(max_length=14, primary_key=True)
+    scat = models.ForeignKey(CBS_sbi_subcat, on_delete=models.CASCADE)
+    sub_sub_categorie = models.CharField(
+        max_length=140, blank=False, null=False)
