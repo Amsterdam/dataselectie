@@ -28,6 +28,7 @@ class ElasticSearchMixin(object):
     geo_fields tuple format per dict is as follow:
         - key: the field to use,
         - value: type of geospatial search
+
     """
 
     # A set of optional keywords to filter the results further
@@ -423,6 +424,17 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = self.update_context_data(context)
         return context
 
+    def process_aggs(self, response):
+        self.extra_context_data['total'] = response['hits']['total']
+        # Merging count with regular aggregation
+        aggs = response.get('aggregations', {})
+        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+        for key in count_keys:
+            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+            # Removing the individual count aggregation
+            del aggs[key]
+        return aggs
+
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
@@ -493,7 +505,8 @@ class CSVExportView(TableSearchView):
 
     def get_queryset(self):
         """
-        Instead of an actual queryset, it returns an elastic scroll api generator
+        Instead of an actual queryset,
+        it returns an elastic scroll api generator
         """
         query_string = self.request_parameters.get('query', None)
         # Building the query
@@ -502,8 +515,11 @@ class CSVExportView(TableSearchView):
         # Making sure there is no pagination
         if query is not None and 'from' in query:
             del (query['from'])
+
         # Returning the elastic generator
-        return scan(self.elastic, query=query, index=settings.ELASTIC_INDICES[self.index])
+        return scan(
+            self.elastic, query=query,
+            index=settings.ELASTIC_INDICES[self.index])
 
     def result_generator(self, es_generator, batch_size=100):
         """
@@ -513,14 +529,17 @@ class CSVExportView(TableSearchView):
         header_dict = {}
         for i in range(len(self.headers)):
             header_dict[self.headers[i]] = self.pretty_headers[i]
+
         yield header_dict
+
         more = True
         counter = 0
+
         # Yielding results in batches
         while more:
             counter += 1
             items = {}
-            ids = []
+            # ids = []
             for item in es_generator:
                 # Collecting items for batch
                 items = self._fill_items(items, item)
@@ -565,7 +584,8 @@ class CSVExportView(TableSearchView):
         properties = item._meta
         for field in properties.concrete_fields + properties.many_to_many:
             if isinstance(field, ManyToManyField):
-                data[field.name] = list(field.value_from_object(item).values_list('pk', flat=True))
+                data[field.name] = list(
+                    field.value_from_object(item).values_list('pk', flat=True))
             else:
                 data[field.name] = field.value_from_object(item)
         return data
@@ -594,7 +614,6 @@ class CSVExportView(TableSearchView):
             for key, value in es[item['id']]['_source'].items():
                 item[key] = value
         return data
-
 
     def fill_items(self, items, item):
         """

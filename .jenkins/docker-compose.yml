@@ -1,24 +1,13 @@
 elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-    ports:
-        - "9200"
-        - "9300"
     volumes:
       - ./backups/elasticsearch:/tmp/backups
     user: root
     command: /usr/share/elasticsearch/bin/elasticsearch -Des.insecure.allow.root=true -Des.network.host=0.0.0.0 -Des.path.repo=/tmp
 
-test_elasticsearch:
-   image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-   command: elasticsearch -Des.network.host=0.0.0.0
-   ports:
-       - "9210:9200"
-       - "9310:9300"
 
 database_dataselectie:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: dataselectie
         POSTGRES_DB: dataselectie
@@ -26,10 +15,6 @@ database_dataselectie:
 
 database_BAG:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
-    volumes:
-      - /mnt/dumps:/tmp/import
     environment:
         POSTGRES_USER: atlas
         POSTGRES_DB: atlas
@@ -37,8 +22,6 @@ database_BAG:
 
 database_HR:
     image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5432"
     environment:
         POSTGRES_USER: handelsregister
         POSTGRES_DB: handelsregister
@@ -64,6 +47,7 @@ importer:
         - elasticsearch:elasticsearch
         - database_dataselectie:database_dataselectie
         - database_BAG:database_BAG
+        - database_HR:database_HR
     environment:
         DJANGO_SETTINGS_MODULE: dataselectie.settings
     command: >
@@ -77,6 +61,7 @@ importer_el1:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >
@@ -89,6 +74,7 @@ importer_el2:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >
@@ -101,6 +87,7 @@ importer_el3:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
     - database_BAG:database_BAG
+    - database_HR:database_HR
   environment:
     DJANGO_SETTINGS_MODULE: dataselectie.settings
   command: >

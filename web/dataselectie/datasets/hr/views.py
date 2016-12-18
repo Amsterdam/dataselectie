@@ -12,6 +12,8 @@ from datasets.bag import queries
 from datasets.hr.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
 
+AGGKEYS = ('hoofdcategorie', 'subcategorie')
+
 
 import logging
 log = logging.getLogger(__name__)
@@ -205,6 +207,39 @@ class HrSearch(HrBase, TableSearchView):
             body=query,
             _source_include=['centroid']
         )
+
+    def sbi_retrieve(self, item, orig_vestigingsnr):
+        """
+        Processing of SBI codes, update self.extra_context_data
+
+        :param item: response item
+        :param orig_vestigingsnr: Original vestigingsnr
+        :return:
+        """
+        first = True
+        for sbi_info in item['_source']['sbi_codes']:
+            vestigingsnr = sbi_info['vestigingsnummer']
+            if first:
+                first = False
+                self.first_sbi(item, vestigingsnr)
+                orig_vestigingsnr = vestigingsnr
+            else:
+                self.extra_context_data['items'][vestigingsnr] = \
+                    self.extra_context_data['items'][orig_vestigingsnr]
+
+    def first_sbi(self, item, vestigingsnr):
+        """
+        Process first sbi code, add to self.extra_context_data
+
+        :param item: response item
+        :param vestigingsnr: current vestigingsnr to be processed
+        :return:
+        """
+        self.extra_context_data['items'][vestigingsnr] = {}
+        for field in self.extra_context_keywords:
+            if field in item['_source']:
+                self.extra_context_data['items'][vestigingsnr][field] = \
+                    item['_source'][field]
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,

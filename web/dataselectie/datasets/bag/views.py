@@ -9,7 +9,10 @@ from pytz import timezone
 
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.view_mixins import CSVExportView, Echo, GeoLocationSearchView, TableSearchView
+from datasets.generic.view_mixins import CSVExportView
+from datasets.generic.view_mixins import Echo
+from datasets.generic.view_mixins import GeoLocationSearchView
+from datasets.generic.view_mixins import TableSearchView
 
 
 class BagBase(object):

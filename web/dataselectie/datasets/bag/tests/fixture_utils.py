@@ -29,6 +29,12 @@ def create_gebiedsgericht_werken_fixtures():
     ]
 
 
+def create_grootstedelijk_werken_fixtures():
+    """
+    """
+    pass
+
+
 def create_buurt_combinaties():
     """"
     """
@@ -236,28 +242,31 @@ def create_ligplaats_fixtures():
     """
     create_buurt_fixtures()
     return [
-        models.Ligplaats.objects.get_or_create(id='03630000000111', landelijk_id='0363000000000111', status_id='33',
-                                               _huisnummer=15, _huisletter='', _huisnummer_toevoeging='', buurt_id='2',
-                                               geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                )),
-        models.Ligplaats.objects.get_or_create(id='03630000000112', landelijk_id='0363000000000112', status_id='33',
-                                               _huisnummer=345, _huisletter='', _huisnummer_toevoeging='', buurt_id='3',
-                                               geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                ))]
+        models.Ligplaats.objects.get_or_create(
+            id='03630000000111', landelijk_id='0363000000000111', status_id='33',
+            _huisnummer=15, _huisletter='', _huisnummer_toevoeging='', buurt_id='2',
+            geometrie=Polygon(
+                    (
+                        (0.0, 0.0),
+                        (0.0, 50.0),
+                        (50.0, 50.0),
+                        (50.0, 0.0),
+                        (0.0, 0.0)
+                    )
+            )),
+
+        models.Ligplaats.objects.get_or_create(
+            id='03630000000112', landelijk_id='0363000000000112', status_id='33',
+            _huisnummer=345, _huisletter='', _huisnummer_toevoeging='', buurt_id='3',
+            geometrie=Polygon(
+                    (
+                        (0.0, 0.0),
+                        (0.0, 50.0),
+                        (50.0, 50.0),
+                        (50.0, 0.0),
+                        (0.0, 0.0)
+                    )
+            ))]
 
 
 def create_standplaats_fixtures():
@@ -267,28 +276,31 @@ def create_standplaats_fixtures():
     create_buurt_fixtures()
 
     return [
-        models.Standplaats.objects.get_or_create(id='03630000000221', landelijk_id='0363000000000221', status_id='37',
-                                                 _huisnummer=515, _huisletter='', _huisnummer_toevoeging='',
-                                                 buurt_id='10', geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                 )),
-        models.Standplaats.objects.get_or_create(id='03630000000222', landelijk_id='0363000000000222', status_id='37',
-                                                 _huisnummer=45, _huisletter='', _huisnummer_toevoeging='',
-                                                 buurt_id='9', geometrie=Polygon(
-                                                        (
-                                                            (0.0, 0.0),
-                                                            (0.0, 50.0),
-                                                            (50.0, 50.0),
-                                                            (50.0, 0.0),
-                                                            (0.0, 0.0)
-                                                        )
-                                                 ))]
+        models.Standplaats.objects.get_or_create(
+            id='03630000000221', landelijk_id='0363000000000221', status_id='37',
+            _huisnummer=515, _huisletter='', _huisnummer_toevoeging='',
+            buurt_id='10', geometrie=Polygon(
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
+            )),
+
+        models.Standplaats.objects.get_or_create(
+            id='03630000000222', landelijk_id='0363000000000222', status_id='37',
+            _huisnummer=45, _huisletter='', _huisnummer_toevoeging='',
+            buurt_id='9', geometrie=Polygon(
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
+            ))]
 
 
 def create_nummeraanduiding_fixtures():
@@ -301,6 +313,7 @@ def create_nummeraanduiding_fixtures():
 
     create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
+    create_grootstedelijk_werken_fixtures()
     create_openbare_ruimte_fixtures()
     create_buurt_combinaties()
     create_buurt_fixtures()
