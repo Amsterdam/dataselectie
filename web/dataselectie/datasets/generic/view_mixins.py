@@ -43,7 +43,7 @@ class ElasticSearchMixin(object):
     geo_fields = {}         # type: dict[str:list]
     keyword_mapping = {}    # type: dict
     fixed_filters = []      # type: list
-    default_search = 'match'
+    default_search = 'term'
     allowed_parms = ('page', 'shape')
 
     def build_elastic_query(self, query):
@@ -58,21 +58,38 @@ class ElasticSearchMixin(object):
         The matchall will make sure that the
         linked info from bag is retrieved
 
-        The sec
 
-        {
-    "query":{
+        { "query":{
             "bool": {
                 "should": [
-                {"term": {"_type": "vestigingen"}},
-                {"has_parent":
-                    {"type": "bag_locatie",
-                    "query": { "match_all":{}},
+                {"term": {"_type": "bag_locatie"}},
+                {"has_child":
+                    {"type": "vestiging",
+                    "query":
+                    [{"term": {"sbi_code": "6420"}}],
                     "inner_hits":{}
                     }
                 }],
-            "must":[{"term": {"sbi_code": "6420"}}]
-        }}}
+                "must": [
+                {"term": {"is_hr_address": "true"}}
+                ]
+        }},
+        "aggs": {"postcode": {
+                    "terms": {
+                    "field": "postcode"},
+                "aggs": { "bag_locatie": {
+                    "children":{
+                        "type": "vestiging"},
+                        "aggs": {
+                            "sbi_code":{
+                                "terms": { "field":"sbi_code"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
@@ -485,20 +502,23 @@ class TableSearchView(ElasticSearchMixin, ListView):
         response - the elastic response dict
         """
         if not apifields:
-            apifields = self.api_fields
+            apifields = API_FIELDS
 
         if not 'items' in self.extra_context_data:
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
             self.extra_context_data['items'][item['_id']] = {}
-            for field in apifields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    self.extra_context_data['items'][item['_id']][field] = None
+            self.add_api_fields(apifields, item)
         self.extra_context_data['total'] = response['hits']['total']
+
+    def add_api_fields(self, apifields, item):
+        for field in apifields:
+            try:
+                self.extra_context_data['items'][item['_id']][field] = \
+                    item['_source'][field]
+            except:
+                self.extra_context_data['items'][item['_id']][field] = None
 
     def update_context_data(self, context):
         """

@@ -82,20 +82,7 @@ class NummeraanduidingMeta(es.DocType):
         index = settings.ELASTIC_INDICES['DS_BAG']
         all = es.MetaField(enabled=False)
 
-    #
-    # sbi_codes = es.Nested({
-    #     'properties': {
-    #         'sbi_code': es.String(index='not_analyzed'),
-    #         'hcat': es.String(index='not_analyzed'),
-    #         'scat': es.String(index='not_analyzed'),
-    #         'hoofdcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'subcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'sub_sub_categorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'bedrijfsnaam': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'vestigingsnummer': es.String(index='not_analyzed')
-    #             }
-    # })
-    # is_hr_address = es.Boolean()
+    is_hr_address = es.Boolean()
 
 
 def update_doc_with_adresseerbaar_object(doc, item):
@@ -142,6 +129,8 @@ def update_doc_with_adresseerbaar_object(doc, item):
 
     idx = int(item.type) - 1  # type: int
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
+
+    
 
 
 def add_verblijfsobject_data(item, doc):
@@ -229,7 +218,9 @@ def update_doc_with_sbicodes(doc, item):
 
     denk aan sbi.
     """
-
+    doc.is_hr_address = False
+    if hrmodels.DataSelectie.objects.filter(bag_numid=item.landelijk_id).exists():
+        doc.is_hr_address = True
     return doc
 
 

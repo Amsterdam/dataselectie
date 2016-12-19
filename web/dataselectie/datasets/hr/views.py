@@ -7,7 +7,7 @@ from pytz import timezone
 from django.conf import settings
 
 from datasets.hr import models
-from datasets.bag import views as bagviews
+from datasets.bag.views import API_FIELDS
 from datasets.bag import queries
 from datasets.hr.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView, TableSearchView
@@ -27,30 +27,16 @@ class HrBase(object):
     index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
-
-    extra_context_keywords = [
-        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam',
-        'postcode']
+    extra_context_keywords = API_FIELDS
 
     bezoekadres_context_keywords = ['_openbare_ruimte_naam', 'huisnummer',
                                     'huisletter', 'toevoeging', 'woonplaats',
                                     'postcode']
 
-    keywords = ['subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code'] \
-               + extra_context_keywords
-
     raw_fields = []
-
-    def bld_parent_path(lfilter):
-        return {"has_parent": {"type": "bag_locatie", "query": lfilter}}
-
-    keyword_mapping = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-                       'buurtcombinatie_naam', 'ggw_code', 'stadsdeel_naam',
-                       'stadsdeel_code', 'naam', 'ggw_naam', 'woonplaats',
-                       'postcode')
-
+    fixed_filters = [{"is_hr_address": True}]
+    keyword_mapping = ('subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code')
+    keywords = keyword_mapping + extra_context_keywords
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
@@ -115,9 +101,9 @@ class HrSearch(HrBase, TableSearchView):
         filterquery = { "bool":
                             {
                             "should": [
-                                {"term": {"_type": "vestigingen"}},
-                                {"has_parent":
-                                    {"type": "bag_locatie",
+                                {"term": {"_type": "bag_locatie"}},
+                                {"has_child":
+                                    {"type": "vestiging",
                                     "query": mapped_filters,
                                     "inner_hits": {}
                                     }
@@ -125,93 +111,44 @@ class HrSearch(HrBase, TableSearchView):
                             }
                         }
         if len(filters):
-            filterquery["bool"]["must"] = filters
+            filterquery["bool"]["should"] += filters
 
         query['query'] = filterquery
 
         return query
 
     def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Can be overridden in the view to allow for other primary keys
+        # Primary key from inner_Hits
         for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'][2:])
+            for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
+                elastic_data['ids'].append(ihit['_id'][2:])
         return elastic_data
 
-    def save_context_data(self, response, elastic_data=None):
+    def save_context_data(self, response, elastic_data=None, apifields=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        api_fields = (
-            'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-            'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-            'stadsdeel_naam', 'stadsdeel_code', 'woonplaats')
+        apifields = API_FIELDS
 
-        if len(response['hits']['hits']) and 'inner_hits' in response['hits']['hits'][0]:
-            super().save_context_data(response['hits']['hits'][0]['inner_hits']['bag_locatie'],
-                                  apifields=api_fields)
+        if not 'items' in self.extra_context_data:
+            self.extra_context_data = {'items': {}}
 
-        self.aggregates_parent(response, api_fields)
+        for item in response['hits']['hits']:
+            curitem = self.extra_context_data['items'][item['_id']] = {}
+            self.add_api_fields(apifields, item)
+                
+        self.extra_context_data['total'] = response['hits']['total']
+
+        self.aggregates_parent(response)
 
     def aggregates_parent(self, response, api_fields):
         """
-        Routine is necessary because elastic does not support aggregates over a parent
-        from a child
+        
         :param response:
         :param api_fields:
         :return:
         """
-        request_parameters = getattr(self.request, self.request.method)
-        mapped_filters = []
-        filters = []
-        for filter_keyword in self.keyword_mapping:
-            val = request_parameters.get(filter_keyword, None)
-            if val is not None:     # parameter is entered
-                filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
-
-        query = queries.bld_agg()
-        query['query'] = {}
-        request_parameters, filters, mapped_filters = super().create_filters(filters, self.keyword_mapping)
-        query = super().build_el_query(filters, mapped_filters, query)
-        response = self.elastic.search(
-            index=settings.ELASTIC_INDICES[self.index],
-            body=query,
-            _source_include=['centroid']
-        )
-        self.extra_context_data['aggs_list'].update(self.process_aggs(response))
-
-    # def sbi_retrieve(self, item, orig_vestigingsnr):
-    #     """
-    #     Processing of SBI codes, update self.extra_context_data
-    #
-    #     :param item: response item
-    #     :param orig_vestigingsnr: Original vestigingsnr
-    #     :return:
-    #     """
-    #     first = True
-    #     for sbi_info in item['_source']['sbi_codes']:
-    #         vestigingsnr = sbi_info['vestigingsnummer']
-    #         if first:
-    #             first = False
-    #             self.first_sbi(item, vestigingsnr)
-    #             orig_vestigingsnr = vestigingsnr
-    #         else:
-    #             self.extra_context_data['items'][vestigingsnr] = \
-    #                 self.extra_context_data['items'][orig_vestigingsnr]
-    #
-    # def first_sbi(self, item, vestigingsnr):
-    #     """
-    #     Process first sbi code, add to self.extra_context_data
-    #
-    #     :param item: response item
-    #     :param vestigingsnr: current vestigingsnr to be processed
-    #     :return:
-    #     """
-    #     self.extra_context_data['items'][vestigingsnr] = {}
-    #     for field in self.extra_context_keywords:
-    #         if field in item['_source']:
-    #             self.extra_context_data['items'][vestigingsnr][field] = \
-    #                 item['_source'][field]
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
