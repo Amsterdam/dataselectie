@@ -40,7 +40,7 @@ def meetbout_Q(query, tokens=None, num=None):
         'Index': ['meetbouten']
     }
 
-def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None):
+def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None, qtype=None):
 
     if default_query:
         if query:
@@ -52,9 +52,13 @@ def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None):
         q = {
             'query': {'match': {'_all': query}},
         }
+    elif qtype:
+        q = {
+            'query': {"bool": { "should": [{'term': {'_type': qtype}}]}}
+        }
     else:
         q = {
-            'query': {'match_all': {}}
+            'query': {'match_all':{}}
         }
 
     if add_aggs:

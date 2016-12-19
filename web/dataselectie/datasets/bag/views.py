@@ -19,6 +19,10 @@ class BagBase(object):
     index = 'DS_BAG'
     db = 'bag'
     q_func = meta_q
+    api_fields = (
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code')
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
@@ -41,26 +45,6 @@ class BagSearch(BagBase, TableSearchView):
 
     def elastic_query(self, query):
         return meta_q(query)
-
-    def save_context_data(self, response, elastic_data=None):
-        """
-        Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
-        later to enrich the results
-        """
-        self.extra_context_data = {'items': {}}
-        fields = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-                  'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-                  'stadsdeel_naam', 'stadsdeel_code')
-        for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            for field in fields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    pass
-
-        self.extra_context_data['aggs_list'] = self.process_aggs(response)
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result
