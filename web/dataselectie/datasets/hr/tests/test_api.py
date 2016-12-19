@@ -177,20 +177,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
         self.assertEqual(res['page_count'], 1)
 
-    def test_get_dataselectie_combinaties(self):
-        """
-        Test elastic querying on field `sbi_code` top-down
-        """
-        q = {'page': 1, 'stadsdeel_naam': 'Centrum', 'bedrijfsnaam': 'Mundus College'}
-        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
-        self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
-        self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
-        self.assertEqual(res['page_count'], 1)
-
-        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)', 'stadsdeel_naam': 'Centrum'}
+        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)', 'postcode': '1012AB'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))

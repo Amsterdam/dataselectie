@@ -24,13 +24,15 @@ class HrBase(object):
     Base class mixing for data settings
     """
     model = models.DataSelectie
+    index = 'DS_BAG'
     db = 'hr'
     q_func = meta_q
 
     extra_context_keywords = [
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam']
+        'stadsdeel_naam', 'stadsdeel_code', 'naam',
+        'postcode']
 
     bezoekadres_context_keywords = ['_openbare_ruimte_naam', 'huisnummer',
                                     'huisletter', 'toevoeging', 'woonplaats',
@@ -43,10 +45,11 @@ class HrBase(object):
 
     def bld_parent_path(lfilter):
         return {"has_parent": {"type": "bag_locatie", "query": lfilter}}
-    
+
     keyword_mapping = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
                        'buurtcombinatie_naam', 'ggw_code', 'stadsdeel_naam',
-                       'stadsdeel_code', 'naam', 'ggw_naam', 'woonplaats')
+                       'stadsdeel_code', 'naam', 'ggw_naam', 'woonplaats',
+                       'postcode')
 
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
@@ -92,45 +95,11 @@ class HrSearch(HrBase, TableSearchView):
         res = meta_q(query, True, False)
         return res
 
-    # def process_aggs(self, response):
-    #     """
-    #     Agregates of elastic not used to avoid "analysed" problem in aggregates
-    #     and to allow for removal of "hoofdcategorieen" and "subcategorieen:  if
-    #     selected
-    #     :param response:
-    #     :return:
-    #     """
-    #
-    #     aggs = self.fill_elastic_aggregates(response)
-    #
-    #     akeys = {'hoofdcategorie': self.process_hoofdcategorie,
-    #                'subcategorie': self.process_subcategorie}
-    #     selected = []
-    #     subcats = []
-    #
-    #     for k,v in self.input_filter.items():
-    #         if k in akeys:
-    #             selected, subcats = akeys[k](k, v)              # process hoofd or subcategorie
-    #
-    #     if not selected and not subcats:
-    #         selected, subcats = self.process_hoofdcategorie()
-    #
-    #     aggs.update(self.fill_aggregates(selected, subcats))
-            
     def process_subcategorie(self, value):
         return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
-        
+
     def fill_aggregates(self, selected, subcats):
         return {}
-
-    def fill_elastic_aggregates(self, response):
-        aggs = response.get('aggregations', {})
-        for key in aggs.keys():
-            if key.endswith('_count'):
-                aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-                # Removing the individual count aggregation
-                del aggs[key]
-        return aggs
 
     def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
         """
@@ -201,45 +170,48 @@ class HrSearch(HrBase, TableSearchView):
                 filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
 
         query = queries.bld_agg()
+        query['query'] = {}
+        request_parameters, filters, mapped_filters = super().create_filters(filters, self.keyword_mapping)
         query = super().build_el_query(filters, mapped_filters, query)
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index],
             body=query,
             _source_include=['centroid']
         )
+        self.extra_context_data['aggs_list'].update(self.process_aggs(response))
 
-    def sbi_retrieve(self, item, orig_vestigingsnr):
-        """
-        Processing of SBI codes, update self.extra_context_data
-
-        :param item: response item
-        :param orig_vestigingsnr: Original vestigingsnr
-        :return:
-        """
-        first = True
-        for sbi_info in item['_source']['sbi_codes']:
-            vestigingsnr = sbi_info['vestigingsnummer']
-            if first:
-                first = False
-                self.first_sbi(item, vestigingsnr)
-                orig_vestigingsnr = vestigingsnr
-            else:
-                self.extra_context_data['items'][vestigingsnr] = \
-                    self.extra_context_data['items'][orig_vestigingsnr]
-
-    def first_sbi(self, item, vestigingsnr):
-        """
-        Process first sbi code, add to self.extra_context_data
-
-        :param item: response item
-        :param vestigingsnr: current vestigingsnr to be processed
-        :return:
-        """
-        self.extra_context_data['items'][vestigingsnr] = {}
-        for field in self.extra_context_keywords:
-            if field in item['_source']:
-                self.extra_context_data['items'][vestigingsnr][field] = \
-                    item['_source'][field]
+    # def sbi_retrieve(self, item, orig_vestigingsnr):
+    #     """
+    #     Processing of SBI codes, update self.extra_context_data
+    #
+    #     :param item: response item
+    #     :param orig_vestigingsnr: Original vestigingsnr
+    #     :return:
+    #     """
+    #     first = True
+    #     for sbi_info in item['_source']['sbi_codes']:
+    #         vestigingsnr = sbi_info['vestigingsnummer']
+    #         if first:
+    #             first = False
+    #             self.first_sbi(item, vestigingsnr)
+    #             orig_vestigingsnr = vestigingsnr
+    #         else:
+    #             self.extra_context_data['items'][vestigingsnr] = \
+    #                 self.extra_context_data['items'][orig_vestigingsnr]
+    #
+    # def first_sbi(self, item, vestigingsnr):
+    #     """
+    #     Process first sbi code, add to self.extra_context_data
+    #
+    #     :param item: response item
+    #     :param vestigingsnr: current vestigingsnr to be processed
+    #     :return:
+    #     """
+    #     self.extra_context_data['items'][vestigingsnr] = {}
+    #     for field in self.extra_context_keywords:
+    #         if field in item['_source']:
+    #             self.extra_context_data['items'][vestigingsnr][field] = \
+    #                 item['_source'][field]
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
@@ -301,31 +273,31 @@ class HrCSV(HrBase, CSVExportView):
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
-
-    def create_geometry_dict(self, db_item):
-        """
-        Creates a geometry dict that can be used to add
-        geometry information to the result set
-
-        Returns a dict with geometry information if one
-        can be created. If not, an empty dict is returned
-        """
-        res = {}
-        try:
-            geom = db_item.adresseerbaar_object.geometrie.centroid
-        except AttributeError:
-            geom = None
-        if geom:
-            # Convert to wgs
-            geom_wgs = geom.transform('wgs84', clone=True).coords
-            geom = geom.coords
-            res = {
-                'geometrie_rd_x': int(geom[0]),
-                'geometrie_rd_y': int(geom[1]),
-                'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
-                'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
-            }
-        return res
+    #
+    # def create_geometry_dict(self, db_item):
+    #     """
+    #     Creates a geometry dict that can be used to add
+    #     geometry information to the result set
+    #
+    #     Returns a dict with geometry information if one
+    #     can be created. If not, an empty dict is returned
+    #     """
+    #     res = {}
+    #     try:
+    #         geom = db_item.adresseerbaar_object.geometrie.centroid
+    #     except AttributeError:
+    #         geom = None
+    #     if geom:
+    #         # Convert to wgs
+    #         geom_wgs = geom.transform('wgs84', clone=True).coords
+    #         geom = geom.coords
+    #         res = {
+    #             'geometrie_rd_x': int(geom[0]),
+    #             'geometrie_rd_y': int(geom[1]),
+    #             'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+    #             'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
+    #         }
+    #     return res
 
     def _convert_to_dicts(self, qs):
         """
@@ -357,7 +329,7 @@ class HrCSV(HrBase, CSVExportView):
 
     def fill_items(self, items, item):
         """
-        
+
         :param items:
         :param item:
         :return:

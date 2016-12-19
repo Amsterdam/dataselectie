@@ -57,9 +57,9 @@ class ElasticSearchMixin(object):
         vestigingsinfo and the bag info,
         The matchall will make sure that the
         linked info from bag is retrieved
-        
+
         The sec
-        
+
         {
     "query":{
             "bool": {
@@ -81,7 +81,7 @@ class ElasticSearchMixin(object):
                     { "match": {"stadsdeel_naam": "Centrum"}}
                         ]
                 }
-        
+
         """
         # Adding filters
         if self.fixed_filters:
@@ -124,6 +124,30 @@ class ElasticSearchMixin(object):
 
         return self.handle_query_size_offset(query)
 
+    def create_filters(self, filters: list, keywords:list=None) -> (list, list, list):
+        if not keywords:
+            keywords = self.keywords
+            check_parameters = True
+        else:
+            check_parameters = False
+
+        request_parameters = getattr(self.request, self.request.method)
+
+        entered_parms = [prm for prm in request_parameters.keys() if not prm in self.allowed_parms]
+
+        mapped_filters = []
+        for filter_keyword in keywords:
+            val = request_parameters.get(filter_keyword, None)
+            if val is not None:     # parameter is entered
+                del entered_parms[entered_parms.index(filter_keyword)]
+                filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
+
+        if check_parameters and len(entered_parms):
+            wrongparms = ','.join(entered_parms)
+            raise BadReq(entered_parms, "Parameter(s) {} not supported".format(wrongparms))
+
+        return request_parameters, filters, mapped_filters
+
     def proc_parameters(self, filter_keyword, val, mapped_filters, filters):
         lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
         if filter_keyword in self.keyword_mapping:
@@ -161,6 +185,7 @@ class ElasticSearchMixin(object):
         automatically convert the fields to lowercase in de the index.
         :param filter_keyword: the keyword in the index to search on
         :param val: the value we are searching for
+        :param nested_path: The path to the nested value to search
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
         if filter_keyword in self.raw_fields:
@@ -183,7 +208,6 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True,
             refresh=True
         )
-
 
     def dispatch(self, request, *args, **kwargs):
         self.request_parameters = getattr(request, request.method)
@@ -375,10 +399,10 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Performing the search
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = self.fill_ids(response, elastic_data)
+        # add aggregations
+        self.add_aggs(response)
         # Enrich result data with neede info
         self.save_context_data(response, elastic_data)
-        # Merge aggregations
-        self.process_aggs(response)
 
         return elastic_data
 
@@ -430,9 +454,17 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = self.update_context_data(context)
         return context
 
-    def process_aggs(self, response):
+    def add_aggs(self, response):
+        self.extra_context_data['aggs_list'] = self.process_aggs(response)
         self.extra_context_data['total'] = response['hits']['total']
-        # Merging count with regular aggregation
+
+    def process_aggs(self, response):
+        """
+        Merging count with regular aggregation for a single level result
+
+        :param response:
+        :return:
+        """
         aggs = response.get('aggregations', {})
         count_keys = [key for key in aggs.keys() if key.endswith('_count')]
         for key in count_keys:
@@ -467,22 +499,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 except:
                     self.extra_context_data['items'][item['_id']][field] = None
         self.extra_context_data['total'] = response['hits']['total']
-
-    def process_aggs(self, response):
-        """
-        Merging count with regular aggregation for a single level result
-
-        :param response:
-        :return:
-        """
-
-        aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
-        for key in count_keys:
-            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-            # Removing the individual count aggregation
-            del aggs[key]
-        self.extra_context_data['aggs_list'] = aggs
 
     def update_context_data(self, context):
         """
