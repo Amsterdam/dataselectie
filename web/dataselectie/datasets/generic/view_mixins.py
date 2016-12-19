@@ -1,17 +1,21 @@
 # Python
-from datetime import date, datetime
-import rapidjson
+import codecs
 import copy
+import csv
+from datetime import date, datetime
+import io
 from typing import Any
 # Packages
 from django.conf import settings
 from django.db import models
 from django.db.models.fields.related import ManyToManyField
 from django.shortcuts import render
-from django.http import HttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
+from pytz import timezone
+import rapidjson
 # Project
 from datasets.bag.models import Nummeraanduiding
 
@@ -437,33 +441,42 @@ class CSVExportView(TableSearchView):
         """
         Generate the result set for the CSV eport
         """
-        # Als eerst geef de headers terug
-        header_dict = {}
+        write_buffer = io.StringIO()  # The buffer to stream to
+        writer = csv.DictWriter(write_buffer, self.headers, delimiter=';')
+        more = True  # More results flag
+        header_dict = {}  # A dict for the CSV headers
         for i in range(len(self.headers)):
             header_dict[self.headers[i]] = self.pretty_headers[i]
 
-        yield header_dict
+        # A func to read and empty the buffer
+        def read_and_empty_buffer():
+            write_buffer.seek(0)
+            buffer_data = write_buffer.read()
+            write_buffer.seek(0)
+            write_buffer.truncate()
+            return buffer_data
 
-        more = True
-        counter = 0
+        # Yielding BOM for utf8 encoding
+        yield codecs.BOM_UTF8
+        # Yielding headers as first line
+        writer.writerow(header_dict)
+        yield read_and_empty_buffer()
 
         # Yielding results in batches
         while more:
-            counter += 1
             items = {}
-            # ids = []
+
+            # Collecting items for batch
             for item in es_generator:
-                # Collecting items for batch
                 items = self._fill_items(items, item)
                 # Breaking on batch size
                 if len(items) == batch_size:
                     break
-            # Stop the run
-            if len(items) < batch_size:
-                more = False
+
             # Retrieving the database data
             qs = self.model.objects.filter(id__in=list(items.keys()))
             qs = self._convert_to_dicts(qs)
+
             # Pairing the data
             data = self._combine_data(qs, items)
             for item in data:
@@ -471,7 +484,11 @@ class CSVExportView(TableSearchView):
                 resp = {}
                 for key in self.headers:
                     resp[key] = item.get(key, '')
-                yield resp
+                writer.writerow(resp)
+            yield read_and_empty_buffer()
+
+            # Stop the run, if end is reached
+            more = len(items) == batch_size:
 
     def _fill_items(self, items: dict, item: dict) -> dict:
         """
@@ -540,13 +557,14 @@ class CSVExportView(TableSearchView):
 
         return items
 
+    def render_to_response(self, context, **response_kwargs):
+        # Returning a CSV
 
-class Echo(object):
-    """
-    An object that implements just the write method of the file-like
-    interface, for csv file streaming
-    """
-
-    def write(self, value):
-        """Write the value by returning it, instead of storing in a buffer."""
-        return value
+        # Streaming!
+        gen = self.result_generator(context['object_list'])
+        response = StreamingHttpResponse(gen, content_type="text/csv")
+        response['Content-Disposition'] = \
+            'attachment; ' \
+            'filename="export_{0:%Y%m%d_%H%M%S}.csv"'.format(datetime.now(
+                tz=timezone('Europe/Amsterdam')))
+        return response

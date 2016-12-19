@@ -1,16 +1,12 @@
 # Python
-import csv
 from datetime import datetime
 import rapidjson
-
-from django.http import StreamingHttpResponse
+# Packages
 from django.http import HttpResponse
-from pytz import timezone
-
+# Project
 from datasets.bag import models
 from datasets.bag.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView
-from datasets.generic.view_mixins import Echo
 from datasets.generic.view_mixins import GeoLocationSearchView
 from datasets.generic.view_mixins import TableSearchView
 
@@ -161,23 +157,6 @@ class BagCSV(BagBase, CSVExportView):
             # Saving the dict
             data.append(dict_item)
         return data
-
-    def render_to_response(self, context, **response_kwargs):
-        # Returning a CSV
-        pseudo_buffer = Echo()
-
-        # Creating the writer
-        writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
-
-        # Streaming!
-        gen = self.result_generator(context['object_list'])
-        response = StreamingHttpResponse(
-            (writer.writerow(row) for row in gen), content_type="text/csv")
-        response['Content-Disposition'] = \
-            'attachment; ' \
-            'filename="export_{0:%Y%m%d_%H%M%S}.csv"'.format(datetime.now(
-                tz=timezone('Europe/Amsterdam')))
-        return response
 
     def paginate(self, offset, q):
         if 'size' in q:

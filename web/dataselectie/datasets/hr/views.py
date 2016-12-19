@@ -7,7 +7,7 @@ from pytz import timezone
 
 from datasets.hr import models
 from datasets.hr.queries import meta_q
-from datasets.generic.view_mixins import CSVExportView, Echo, TableSearchView
+from datasets.generic.view_mixins import CSVExportView, TableSearchView
 
 AGGKEYS = ('hoofdcategorie', 'subcategorie')
 
@@ -324,23 +324,6 @@ class HrCSV(HrBase, CSVExportView):
         items[item['_id']] = item
 
         return items
-
-    def render_to_response(self, context, **response_kwargs):
-        # Returning a CSV
-        pseudo_buffer = Echo()
-
-        # Creating the writer
-        writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
-
-        # Streaming!
-        gen = self.result_generator(context['object_list'])
-        response = StreamingHttpResponse(
-            (writer.writerow(row) for row in gen), content_type="text/csv")
-        response['Content-Disposition'] = \
-            'attachment; ' \
-            'filename="export_{0:%Y%m%d_%H%M%S}.csv"'.format(datetime.now(
-                tz=timezone('Europe/Amsterdam')))
-        return response
 
     def paginate(self, offset, q):
         if 'size' in q:
