@@ -578,7 +578,7 @@ class CSVExportView(TableSearchView):
             yield read_and_empty_buffer()
 
             # Stop the run, if end is reached
-            more = len(items) == batch_size:
+            more = len(items) == batch_size
 
     def _fill_items(self, items: dict, item: dict) -> dict:
         """
