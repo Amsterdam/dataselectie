@@ -53,7 +53,7 @@ importer:
     command: >
         bash -c "/app/docker-wait.sh \
                 && python manage.py migrate \
-                && python manage.py elastic_indices --delete"
+                && python manage.py elastic_indices --rebuild"
 
 importer_el1:
   build: ../web

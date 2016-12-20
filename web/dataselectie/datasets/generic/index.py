@@ -57,7 +57,10 @@ class ImportIndexTask(object):
         return self.queryset.order_by('id')
         # return self.queryset.iterator()
 
-    def convert(self, obj):
+    def convert_bag(self, obj):
+        raise NotImplementedError()
+
+    def convert_hr(self, obj):
         raise NotImplementedError()
 
     def batch_qs(self):
@@ -130,7 +133,14 @@ class ImportIndexTask(object):
             log.info(progres_msg)
 
             helpers.bulk(
-                client, (self.convert(obj).to_dict(include_meta=True)
+                client, (self.convert_bag(obj).to_dict(include_meta=True)
+                         for obj in qs),
+                raise_on_error=True,
+                refresh=True
+            )
+
+            helpers.bulk(
+                client, (self.convert_hr(obj).to_dict(include_meta=True)
                          for obj in qs),
                 raise_on_error=True,
                 refresh=True
