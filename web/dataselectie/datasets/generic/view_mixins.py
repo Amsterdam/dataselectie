@@ -59,38 +59,34 @@ class ElasticSearchMixin(object):
         linked info from bag is retrieved
 
 
-        { "query":{
-            "bool": {
-                "should": [
-                {"term": {"_type": "bag_locatie"}},
-                {"has_child":
-                    {"type": "vestiging",
-                    "query":
-                    [{"term": {"sbi_code": "6420"}}],
-                    "inner_hits":{}
+            { "query":{
+                "bool": {
+                    "must": [
+                    {"term": {"_type": "bag_locatie"}},
+                    {"has_child":
+                        {"type": "vestiging",
+                        "query":
+                        [{"term": {"sbi_code": "6420"}}],
+                        "inner_hits":{}
+                        }
                     }
-                }],
-                "must": [
-                {"term": {"is_hr_address": "true"}}
-                ]
-        }},
-        "aggs": {"postcode": {
-                    "terms": {
-                    "field": "postcode"},
-                "aggs": { "bag_locatie": {
-                    "children":{
-                        "type": "vestiging"},
-                        "aggs": {
-                            "sbi_code":{
-                                "terms": { "field":"sbi_code"}
+                    ]
+            }},
+            "aggs": {"postcode": {
+                        "terms": {
+                        "field": "postcode"},
+                    "vestiging": {
+                        "children":{
+                            "type": "vestiging"},
+                            "aggs": {
+                                "sbi_code":{
+                                    "terms": { "field":"sbi_code"}
                             }
                         }
                     }
                 }
             }
         }
-    }
-
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
         "bool": {
@@ -135,9 +131,8 @@ class ElasticSearchMixin(object):
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
-        # If any filters were given, add them, creating a bool query
-        if filters or mapped_filters:
-            query = self.build_el_query(filters, mapped_filters, query)
+
+        query = self.build_el_query(filters, mapped_filters, query)
 
         return self.handle_query_size_offset(query)
 
@@ -472,17 +467,19 @@ class TableSearchView(ElasticSearchMixin, ListView):
         return context
 
     def add_aggs(self, response):
-        self.extra_context_data['aggs_list'] = self.process_aggs(response)
+        aggs = response.get('aggregations', {})
+        for field in aggs.keys():
+            self.extra_context_data['aggs_list'][field] = self.process_aggs(aggs[field])
         self.extra_context_data['total'] = response['hits']['total']
 
-    def process_aggs(self, response):
+    def process_aggs(self, aggs):
         """
         Merging count with regular aggregation for a single level result
 
         :param response:
         :return:
         """
-        aggs = response.get('aggregations', {})
+
         count_keys = [key for key in aggs.keys() if key.endswith('_count')]
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']

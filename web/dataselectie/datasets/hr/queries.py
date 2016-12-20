@@ -26,23 +26,21 @@ def bld_agg() -> dict:
     aggs = \
         {
         'aggs': {
-            'aggs': {
-                'bag_locatie': {
-                    'children': {"type": "vestiging"},
-                        "aggs": {
-                        'hoofdcategorie': {
-                            'terms': {
-                                'field': 'hoofdcategorie',
-                                'size': agg_size,
-                                'order': {'_term': 'asc'},
-                                }
-                            },
-                        'subcategorie': {
-                            'terms': {
-                                'field': 'subcategorie',
-                                'size': agg_size,
-                                'order': {'_term': 'asc'},
-                                }
+            'vestiging': {
+                'children': {"type": "vestiging"},
+                    "aggs": {
+                    'hoofdcategorie': {
+                        'terms': {
+                            'field': 'hoofdcategorie',
+                            'size': agg_size,
+                            'order': {'_term': 'asc'}
+                            }
+                        },
+                    'subcategorie': {
+                        'terms': {
+                            'field': 'subcategorie',
+                            'size': agg_size,
+                            'order': {'_term': 'asc'}
                             }
                         }
                     }

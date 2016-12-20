@@ -82,8 +82,6 @@ class NummeraanduidingMeta(es.DocType):
         index = settings.ELASTIC_INDICES['DS_BAG']
         all = es.MetaField(enabled=False)
 
-    is_hr_address = es.Boolean()
-
 
 def update_doc_with_adresseerbaar_object(doc, item):
     """
@@ -192,7 +190,6 @@ def meta_from_nummeraanduiding(
     update_doc_from_param_list(doc, item, parameters)
 
     # defaults
-    doc.is_hr_address = False
     doc.centroid = None
 
     # hr vestigingen
@@ -218,9 +215,6 @@ def update_doc_with_sbicodes(doc, item):
 
     denk aan sbi.
     """
-    doc.is_hr_address = False
-    if hrmodels.DataSelectie.objects.filter(bag_numid=item.landelijk_id).exists():
-        doc.is_hr_address = True
     return doc
 
 

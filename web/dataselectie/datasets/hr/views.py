@@ -34,7 +34,7 @@ class HrBase(object):
                                     'postcode']
 
     raw_fields = []
-    fixed_filters = [{"is_hr_address": True}]
+    fixed_filters = []
     keyword_mapping = ('subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code')
     keywords = keyword_mapping + extra_context_keywords
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
@@ -100,7 +100,7 @@ class HrSearch(HrBase, TableSearchView):
 
         filterquery = { "bool":
                             {
-                            "should": [
+                            "must": [
                                 {"term": {"_type": "bag_locatie"}},
                                 {"has_child":
                                     {"type": "vestiging",
@@ -111,7 +111,7 @@ class HrSearch(HrBase, TableSearchView):
                             }
                         }
         if len(filters):
-            filterquery["bool"]["should"] += filters
+            filterquery["bool"]["must"] += filters
 
         query['query'] = filterquery
 
@@ -137,10 +137,10 @@ class HrSearch(HrBase, TableSearchView):
         for item in response['hits']['hits']:
             curitem = self.extra_context_data['items'][item['_id']] = {}
             self.add_api_fields(apifields, item)
-                
-        self.extra_context_data['total'] = response['hits']['total']
 
-        self.aggregates_parent(response)
+            aggs = response.get('aggregations', {})
+            if 'vestiging' in aggs:
+                self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
 
     def aggregates_parent(self, response, api_fields):
         """
