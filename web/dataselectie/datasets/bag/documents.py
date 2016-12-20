@@ -82,10 +82,10 @@ class NummeraanduidingMeta(es.DocType):
             'sbi_code': es.String(index='not_analyzed'),
             'hcat': es.String(index='not_analyzed'),
             'scat': es.String(index='not_analyzed'),
-            'hoofdcategorie': es.String(index='not_analyzed'),
-            'subcategorie': es.String(index='not_analyzed'),
-            'sub_sub_categorie': es.String(index='not_analyzed'),
-            'bedrijfsnaam': es.String(index='not_analyzed'),
+            'hoofdcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+            'subcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+            'sub_sub_categorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
+            'bedrijfsnaam': es.String(fields={'raw': es.String(index='not_analyzed')}),
             'vestigingsnummer': es.String(index='not_analyzed')
                 }
     })
