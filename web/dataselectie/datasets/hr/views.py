@@ -10,6 +10,7 @@ from datasets.hr import models
 from datasets.bag.views import API_FIELDS
 from datasets.bag import queries
 from datasets.hr.queries import meta_q
+from datasets.generic.queries import add_aggregations
 from datasets.generic.view_mixins import CSVExportView, TableSearchView
 
 AGGKEYS = ('hoofdcategorie', 'subcategorie')
@@ -75,10 +76,20 @@ class HrBase(object):
 
         return result
 
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
+        # Primary key from inner_Hits
+        for hit in response['hits']['hits']:
+            for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
+                elastic_data['ids'].append(ihit['_id'][2:])
+        return elastic_data
+
 
 class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query):
         res = meta_q(query, True, False)
+        res['aggs'].update(add_aggregations(res['aggs']))
+        res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
+        del res['aggs']['vestiging']
         return res
 
     def process_subcategorie(self, value):
@@ -116,13 +127,6 @@ class HrSearch(HrBase, TableSearchView):
         query['query'] = filterquery
 
         return query
-
-    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Primary key from inner_Hits
-        for hit in response['hits']['hits']:
-            for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
-                elastic_data['ids'].append(ihit['_id'][2:])
-        return elastic_data
 
     def save_context_data(self, response, elastic_data=None, apifields=None):
         """
@@ -177,7 +181,6 @@ class HrSearch(HrBase, TableSearchView):
     def flatten(self, context_data):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
         context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
-        del context_data['sbi_codes']
 
 
 class HrCSV(HrBase, CSVExportView):
@@ -244,9 +247,6 @@ class HrCSV(HrBase, CSVExportView):
         result = []
         for row in qs:
             r_dict = self._process_flatfields(row.api_json)
-            r_dict.update(self._process_flatfields(row.api_json['postadres']))
-            if len(row.api_json['betrokkenen']):
-                r_dict['rechtsvorm'] = row.api_json['betrokkenen'][0]['rechtsvorm']
             r_dict['id'] = row.id
             r_dict.update(self.process_sbi_codes(row.api_json['sbi_codes']))
             r_dict['betrokkenen'] = self.process_betrokkenen(row.api_json['betrokkenen'])
@@ -264,14 +264,14 @@ class HrCSV(HrBase, CSVExportView):
                 pass
         return result
 
-    def fill_items(self, items, item):
+    def _fill_items(self, items, item):
         """
 
         :param items:
         :param item:
         :return:
         """
-        items[item['_id']] = item
+        items[item['_id'][2:]] = item
 
         return items
 

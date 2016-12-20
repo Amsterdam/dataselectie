@@ -468,8 +468,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def add_aggs(self, response):
         aggs = response.get('aggregations', {})
-        for field in aggs.keys():
-            self.extra_context_data['aggs_list'][field] = self.process_aggs(aggs[field])
+        self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
 
     def process_aggs(self, aggs):
@@ -480,7 +479,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         :return:
         """
 
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+        count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
