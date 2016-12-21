@@ -40,7 +40,7 @@ class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, False, False)
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-                'huisnummer_toevoeging']
+             'huisnummer_toevoeging']
 
 
 class BagSearch(BagBase, TableSearchView):
@@ -65,7 +65,7 @@ class BagSearch(BagBase, TableSearchView):
         return context
 
     def Send_Response(self, resp, response_kwargs):
-        return  HttpResponse(
+        return HttpResponse(
                 rapidjson.dumps(resp),
                 content_type='application/json',
                 **response_kwargs

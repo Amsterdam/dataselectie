@@ -9,7 +9,6 @@
 """
 # Python
 # Packages
-# from elasticsearch_dsl import Search, Q, A
 
 from elasticsearch_dsl import Q
 
@@ -40,6 +39,7 @@ def meetbout_Q(query, tokens=None, num=None):
         'Index': ['meetbouten']
     }
 
+
 def add_aggregations(aggs):
     count_aggs = {}
     # Creating count aggs per aggregatie settings.AGGS_VALUE_SIZE
@@ -53,6 +53,7 @@ def add_aggregations(aggs):
             }
     aggs.update(count_aggs)
     return aggs
+
 
 def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None, qtype=None):
 
@@ -68,11 +69,11 @@ def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None, qtyp
         }
     elif qtype:
         q = {
-            'query': {"bool": { "must": [{'term': {'_type': qtype}}]}}
+            'query': {"bool": {"must": [{'term': {'_type': qtype}}]}}
         }
     else:
         q = {
-            'query': {'match_all':{}}
+            'query': {'match_all': {}}
         }
 
     if add_aggs:

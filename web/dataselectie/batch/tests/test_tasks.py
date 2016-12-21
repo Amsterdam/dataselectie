@@ -1,5 +1,4 @@
 from django.test import TransactionTestCase
-from unittest import skip
 
 class TaskTestCase(TransactionTestCase):
 

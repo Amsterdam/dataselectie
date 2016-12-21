@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 class DeleteIndexTask(object):
     index = ''  # type: str
-    doc_types = []  # type: List[str]
+    doc_types = []
     name = 'remove index'
 
     def __init__(self):
@@ -46,7 +46,7 @@ class DeleteIndexTask(object):
 
 class CreateDocTypeTask(object):
     index = ''  # type: str
-    doc_types = []  # type: List[str]
+    doc_types = []
     name = 'Create Doctypes in index'
 
     def __init__(self):
@@ -72,19 +72,15 @@ class CreateDocTypeTask(object):
         idx.create()
 
 
-
 class ImportIndexTask(object):
-    queryset = None  # type: QuerySet
+    queryset = None
     batch_size = 10000
 
     def get_queryset(self):
         return self.queryset.order_by('id')
         # return self.queryset.iterator()
 
-    def convert_bag(self, obj):
-        raise NotImplementedError()
-
-    def convert_hr(self, obj):
+    def convert(self, obj):
         raise NotImplementedError()
 
     def batch_qs(self):

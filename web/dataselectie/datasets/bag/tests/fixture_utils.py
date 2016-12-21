@@ -317,7 +317,7 @@ def create_nummeraanduiding_fixtures():
     create_openbare_ruimte_fixtures()
     create_buurt_combinaties()
     create_buurt_fixtures()
-    vb_objects = create_verblijfsobject_fixtures()
+    create_verblijfsobject_fixtures()
     create_ligplaats_fixtures()
     create_standplaats_fixtures()
 
@@ -372,7 +372,6 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000009', id='03630000000010',
                                                       verblijfsobject_id='03630000543298',
                                                       _openbare_ruimte_naam='Delflandplein')]
-
 
     hr_factories.DataSelectieHrFactory(nummeraanduidingen[1][0], 0, 2)
     hr_factories.DataSelectieHrFactory(nummeraanduidingen[3][0], 2, 3)

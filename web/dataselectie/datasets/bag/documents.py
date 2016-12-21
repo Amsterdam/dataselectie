@@ -3,7 +3,6 @@ from django.conf import settings
 import elasticsearch_dsl as es
 # Project
 from datasets.bag import models
-from datasets.hr import models as hrmodels
 from datasets.generic import analyzers
 
 import time
@@ -44,8 +43,6 @@ class NummeraanduidingMeta(es.DocType):
     huisletter = es.String()
     postcode = es.String(index='not_analyzed')
     woonplaats = es.String(index='not_analyzed')
-
-    hoofdadres = es.Boolean()
 
     buurt_code = es.String(index='not_analyzed')
     buurt_naam = es.String(index='not_analyzed')
@@ -127,8 +124,6 @@ def update_doc_with_adresseerbaar_object(doc, item):
 
     idx = int(item.type) - 1  # type: int
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
-
-    
 
 
 def add_verblijfsobject_data(item, doc):
