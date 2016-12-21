@@ -1,16 +1,12 @@
 # Python
-import csv
 from datetime import datetime
 import rapidjson
-
-from django.http import StreamingHttpResponse
+# Packages
 from django.http import HttpResponse
-from pytz import timezone
-
+# Project
 from datasets.bag import models
 from datasets.bag.queries import meta_q
 from datasets.generic.view_mixins import CSVExportView
-from datasets.generic.view_mixins import Echo
 from datasets.generic.view_mixins import GeoLocationSearchView
 from datasets.generic.view_mixins import TableSearchView
 
@@ -23,6 +19,10 @@ class BagBase(object):
     index = 'DS_BAG'
     db = 'bag'
     q_func = meta_q
+    api_fields = (
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code')
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
@@ -45,26 +45,6 @@ class BagSearch(BagBase, TableSearchView):
 
     def elastic_query(self, query):
         return meta_q(query)
-
-    def save_context_data(self, response, elastic_data=None):
-        """
-        Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
-        later to enrich the results
-        """
-        self.extra_context_data = {'items': {}}
-        fields = ('buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-                  'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-                  'stadsdeel_naam', 'stadsdeel_code')
-        for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            for field in fields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    pass
-
-        self.extra_context_data['aggs_list'] = self.process_aggs(response)
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result
@@ -161,23 +141,6 @@ class BagCSV(BagBase, CSVExportView):
             # Saving the dict
             data.append(dict_item)
         return data
-
-    def render_to_response(self, context, **response_kwargs):
-        # Returning a CSV
-        pseudo_buffer = Echo()
-
-        # Creating the writer
-        writer = csv.DictWriter(pseudo_buffer, self.headers, delimiter=';')
-
-        # Streaming!
-        gen = self.result_generator(context['object_list'])
-        response = StreamingHttpResponse(
-            (writer.writerow(row) for row in gen), content_type="text/csv")
-        response['Content-Disposition'] = \
-            'attachment; ' \
-            'filename="export_{0:%Y%m%d_%H%M%S}.csv"'.format(datetime.now(
-                tz=timezone('Europe/Amsterdam')))
-        return response
 
     def paginate(self, offset, q):
         if 'size' in q:

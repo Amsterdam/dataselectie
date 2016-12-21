@@ -77,21 +77,8 @@ class NummeraanduidingMeta(es.DocType):
     gebruik = es.String(index='not_analyzed')
     panden = es.String(index='not_analyzed')
 
-    sbi_codes = es.Nested({
-        'properties': {
-            'sbi_code': es.String(index='not_analyzed'),
-            'hcat': es.String(index='not_analyzed'),
-            'scat': es.String(index='not_analyzed'),
-            'hoofdcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-            'subcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-            'sub_sub_categorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-            'bedrijfsnaam': es.String(fields={'raw': es.String(index='not_analyzed')}),
-            'vestigingsnummer': es.String(index='not_analyzed')
-                }
-    })
-    is_hr_address = es.Boolean()
-
-    class Meta(object):
+    class Meta:
+        doc_type = 'bag_locatie'
         index = settings.ELASTIC_INDICES['DS_BAG']
         all = es.MetaField(enabled=False)
 
