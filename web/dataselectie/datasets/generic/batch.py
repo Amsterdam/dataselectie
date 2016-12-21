@@ -2,8 +2,6 @@ import logging
 
 from django.conf import settings
 
-from ..bag import models as bagmodels
-from ..hr import models as hrmodels
 from ..generic import index
 from ..bag import documents as bagdocuments
 from ..hr import documents as hrdocuments
@@ -21,29 +19,17 @@ class DeleteDsIndexTask(index.DeleteIndexTask):
     doc_types = DOC_TYPES
 
 
-class IndexDsTask(index.ImportIndexTask):
-    name = "index bag data"
+class RebuildDocTask(index.CreateDocTypeTask):
     index = settings.ELASTIC_INDICES['DS_BAG']
-
-    queryset = bagmodels.Nummeraanduiding.objects.\
-        prefetch_related('verblijfsobject').\
-        prefetch_related('standplaats').\
-        prefetch_related('ligplaats').\
-        prefetch_related('openbare_ruimte')
-
-    def convert_bag(self, obj):
-        return bagdocuments.meta_from_nummeraanduiding(obj)
-
-    def convert_hr(self, obj):
-        return hrdocuments.meta_from_hrdataselectie(obj)
+    doc_types = DOC_TYPES
 
 
-class BuildIndexDsJob(object):
-    name = "Create new search-index for all BAG and HR data from database"
+class ReBuildIndexDsJob(object):
+    name = "Recreate search-index for all BAG and HR data from database"
 
     @staticmethod
     def tasks():
-        return [IndexDsTask()]
+        return [DeleteDsIndexTask(), RebuildDocTask()]
 
 
 class DeleteIndexDsBagJob(object):

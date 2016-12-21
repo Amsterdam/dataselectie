@@ -1,14 +1,6 @@
 # Python
-import csv
-from datetime import datetime
-
-from django.http import StreamingHttpResponse
-from pytz import timezone
-from django.conf import settings
-
 from datasets.hr import models
 from datasets.bag.views import API_FIELDS
-from datasets.bag import queries
 from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
 from datasets.generic.view_mixins import CSVExportView, TableSearchView
@@ -89,7 +81,6 @@ class HrSearch(HrBase, TableSearchView):
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
         res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
-        del res['aggs']['vestiging']
         return res
 
     def process_subcategorie(self, value):

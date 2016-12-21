@@ -43,10 +43,34 @@ class DeleteIndexTask(object):
         except NotFoundError:
             log.warning("Index '%s' not found, ignoring", self.index)
 
+
+class CreateDocTypeTask(object):
+    index = ''  # type: str
+    doc_types = []  # type: List[str]
+    name = 'Create Doctypes in index'
+
+    def __init__(self):
+
+        if not self.index:
+            raise ValueError("No index specified")
+
+        if not self.doc_types:
+            raise ValueError("No doc_types specified")
+
+        connections.create_connection(
+            hosts=settings.ELASTIC_SEARCH_HOSTS,
+            retry_on_timeout=True,
+        )
+
+    def execute(self):
+
+        idx = es.Index(self.index)
+
         for dt in self.doc_types:
             idx.doc_type(dt)
 
         idx.create()
+
 
 
 class ImportIndexTask(object):
@@ -133,14 +157,7 @@ class ImportIndexTask(object):
             log.info(progres_msg)
 
             helpers.bulk(
-                client, (self.convert_bag(obj).to_dict(include_meta=True)
-                         for obj in qs),
-                raise_on_error=True,
-                refresh=True
-            )
-
-            helpers.bulk(
-                client, (self.convert_hr(obj).to_dict(include_meta=True)
+                client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),
                 raise_on_error=True,
                 refresh=True

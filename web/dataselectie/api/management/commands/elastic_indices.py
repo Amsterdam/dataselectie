@@ -2,21 +2,23 @@ from django.core.management import BaseCommand
 
 from django.conf import settings
 
-import datasets.generic.batch
+import datasets.generic.batch as genbatch
+import datasets.bag.batch as bagbatch
+import datasets.hr.batch as hrbatch
 from batch import batch
 import time
 
 
 class Command(BaseCommand):
 
-    ordered = ['ds_bag']
+    ordered = ['ds_idx']
 
     indexes = {
-        'ds_bag': [datasets.generic.batch.BuildIndexDsBagJob]
+        'ds_idx': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
     }
 
     rebuild_indexes = {
-        'ds_bag': [datasets.generic.batch.DeleteIndexDsBagJob]
+        'ds_idx': [genbatch.ReBuildIndexDsJob]
     }
 
     def add_arguments(self, parser):
