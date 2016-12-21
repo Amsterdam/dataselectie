@@ -2,24 +2,23 @@ from django.core.management import BaseCommand
 
 from django.conf import settings
 
-import datasets.bag.batch
-import datasets.hr.batch
+import datasets.generic.batch as genbatch
+import datasets.bag.batch as bagbatch
+import datasets.hr.batch as hrbatch
 from batch import batch
 import time
 
 
 class Command(BaseCommand):
 
-    ordered = ['ds_bag', 'hr_idx']
+    ordered = ['ds_idx']
 
     indexes = {
-        'ds_bag': [datasets.bag.batch.BuildIndexDsBagJob],
-        'hr_idx': [datasets.hr.batch.BuildIndexHrJob],
+        'ds_idx': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
     }
 
-    delete_indexes = {
-        'ds_bag': [datasets.bag.batch.DeleteIndexDsBagJob],
-        'hr_idx': [datasets.hr.batch.DeleteIndexHrJob],
+    rebuild_indexes = {
+        'ds_idx': [genbatch.ReBuildIndexDsJob]
     }
 
     def add_arguments(self, parser):
@@ -38,11 +37,11 @@ class Command(BaseCommand):
             help='Build elastic index from postgres')
 
         parser.add_argument(
-            '--delete',
+            '--rebuild',
             action='store_true',
-            dest='delete_indexes',
+            dest='rebuild_indexes',
             default=False,
-            help='Delete elastic indexes from elastic')
+            help='Delete and rebuild elastic indexes')
 
         parser.add_argument(
             '--partial',
@@ -84,8 +83,8 @@ class Command(BaseCommand):
         self.set_partial_config(sets, options)
 
         for ds in sets:
-            if options['delete_indexes']:
-                for job_class in self.delete_indexes[ds]:
+            if options['rebuild_indexes']:
+                for job_class in self.rebuild_indexes[ds]:
                     batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..

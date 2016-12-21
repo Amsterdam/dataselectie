@@ -10,6 +10,12 @@ from datasets.generic.view_mixins import CSVExportView
 from datasets.generic.view_mixins import GeoLocationSearchView
 from datasets.generic.view_mixins import TableSearchView
 
+API_FIELDS = (
+    'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+    'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+    'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode',
+    'woonplaats')
+
 
 class BagBase(object):
     """
@@ -19,10 +25,6 @@ class BagBase(object):
     index = 'DS_BAG'
     db = 'bag'
     q_func = meta_q
-    api_fields = (
-        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code')
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
@@ -38,7 +40,7 @@ class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, False, False)
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-                'huisnummer_toevoeging']
+             'huisnummer_toevoeging']
 
 
 class BagSearch(BagBase, TableSearchView):
@@ -63,7 +65,7 @@ class BagSearch(BagBase, TableSearchView):
         return context
 
     def Send_Response(self, resp, response_kwargs):
-        return  HttpResponse(
+        return HttpResponse(
                 rapidjson.dumps(resp),
                 content_type='application/json',
                 **response_kwargs

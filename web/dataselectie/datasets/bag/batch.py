@@ -13,11 +13,6 @@ BAG_DOC_TYPES = (
 )
 
 
-class DeleteDsBagIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['DS_BAG']
-    doc_types = BAG_DOC_TYPES
-
-
 class IndexDsBagTask(index.ImportIndexTask):
     name = "index bag data"
     index = settings.ELASTIC_INDICES['DS_BAG']
@@ -38,11 +33,3 @@ class BuildIndexDsBagJob(object):
     @staticmethod
     def tasks():
         return [IndexDsBagTask()]
-
-
-class DeleteIndexDsBagJob(object):
-    name = "Delete BAG related indexes"
-
-    @staticmethod
-    def tasks():
-        return [DeleteDsBagIndexTask()]

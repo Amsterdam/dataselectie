@@ -45,8 +45,6 @@ class NummeraanduidingMeta(es.DocType):
     postcode = es.String(index='not_analyzed')
     woonplaats = es.String(index='not_analyzed')
 
-    hoofdadres = es.Boolean()
-
     buurt_code = es.String(index='not_analyzed')
     buurt_naam = es.String(index='not_analyzed')
     buurtcombinatie_code = es.String(index='not_analyzed')
@@ -188,7 +186,6 @@ def meta_from_nummeraanduiding(
     update_doc_from_param_list(doc, item, parameters)
 
     # defaults
-    doc.is_hr_address = False
     doc.centroid = None
 
     # hr vestigingen
@@ -214,17 +211,7 @@ def update_doc_with_sbicodes(doc, item):
 
     denk aan sbi.
     """
-
-    sbi_codes = []
-    for hrinfo in hrmodels.DataSelectie.objects.filter(
-            bag_vbid=item.adresseerbaar_object.landelijk_id).all():
-
-        sbi_codes += hrinfo.api_json['sbi_codes']
-        doc.is_hr_address = True
-    if doc.is_hr_address:
-        doc.sbi_codes = sbi_codes
-    else:
-        doc.sbi_codes = []
+    return doc
 
 
 def update_doc_from_param_list(

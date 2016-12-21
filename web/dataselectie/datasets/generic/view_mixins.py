@@ -4,11 +4,9 @@ import copy
 import csv
 from datetime import date, datetime
 import io
-from typing import Any
 # Packages
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
-from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
@@ -38,13 +36,14 @@ class ElasticSearchMixin(object):
     """
 
     # A set of optional keywords to filter the results further
-    keywords = ()           # type: tuple[str]
-    raw_fields = []         # type: list[str]
-    geo_fields = {}         # type: dict[str:list]
-    keyword_mapping = {}    # type: dict
-    fixed_filters = []      # type: list
-    default_search = 'match'
+    keywords = ()
+    raw_fields = []
+    geo_fields = {}
+    keyword_mapping = {}
+    fixed_filters = []
+    default_search = 'term'
     allowed_parms = ('page', 'shape')
+    request = None
 
     def build_elastic_query(self, query):
         """
@@ -58,22 +57,35 @@ class ElasticSearchMixin(object):
         The matchall will make sure that the
         linked info from bag is retrieved
 
-        The sec
 
-        {
-    "query":{
-            "bool": {
-                "should": [
-                {"term": {"_type": "vestigingen"}},
-                {"has_parent":
-                    {"type": "bag_locatie",
-                    "query": { "match_all":{}},
-                    "inner_hits":{}
+            { "query":{
+                "bool": {
+                    "must": [
+                    {"term": {"_type": "bag_locatie"}},
+                    {"has_child":
+                        {"type": "vestiging",
+                        "query":
+                        [{"term": {"sbi_code": "6420"}}],
+                        "inner_hits":{}
+                        }
                     }
-                }],
-            "must":[{"term": {"sbi_code": "6420"}}]
-        }}}
-
+                    ]
+            }},
+            "aggs": {"postcode": {
+                        "terms": {
+                        "field": "postcode"},
+                    "vestiging": {
+                        "children":{
+                            "type": "vestiging"},
+                            "aggs": {
+                                "sbi_code":{
+                                    "terms": { "field":"sbi_code"}
+                            }
+                        }
+                    }
+                }
+            }
+        }
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
         "bool": {
@@ -91,7 +103,7 @@ class ElasticSearchMixin(object):
         # Retriving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 
-        entered_parms = [prm for prm in request_parameters.keys() if not prm in self.allowed_parms]
+        entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
         mapped_filters = []
         for filter_keyword in self.keywords:
@@ -118,13 +130,12 @@ class ElasticSearchMixin(object):
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
-        # If any filters were given, add them, creating a bool query
-        if filters or mapped_filters:
-            query = self.build_el_query(filters, mapped_filters, query)
+
+        query = self.build_el_query(filters, mapped_filters, query)
 
         return self.handle_query_size_offset(query)
 
-    def create_filters(self, filters: list, keywords:list=None) -> (list, list, list):
+    def create_filters(self, filters: list, keywords: list=None) -> (list, list, list):
         if not keywords:
             keywords = self.keywords
             check_parameters = True
@@ -133,7 +144,7 @@ class ElasticSearchMixin(object):
 
         request_parameters = getattr(self.request, self.request.method)
 
-        entered_parms = [prm for prm in request_parameters.keys() if not prm in self.allowed_parms]
+        entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
         mapped_filters = []
         for filter_keyword in keywords:
@@ -148,7 +159,7 @@ class ElasticSearchMixin(object):
 
         return request_parameters, filters, mapped_filters
 
-    def proc_parameters(self, filter_keyword, val, mapped_filters, filters):
+    def proc_parameters(self, filter_keyword: str, val: str, mapped_filters: list, filters: list) -> (list, list):
         lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
         if filter_keyword in self.keyword_mapping:
             mapped_filters.append(lfilter)
@@ -156,12 +167,14 @@ class ElasticSearchMixin(object):
             filters.append(lfilter)
         return filters, mapped_filters
 
-    def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
+    def build_el_query(self, filters: list, mapped_filters: list, query: dict) -> dict:
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
-        :param filters:
-        :return:
+        :param filters: Filters for the primary (parent) selection
+        :param mapped_filters: Filters for the secundary (child) selection
+        :param query: query to start with
+        :return: query
         """
         filters += mapped_filters
         query['query'] = {
@@ -179,13 +192,12 @@ class ElasticSearchMixin(object):
         """
         return query
 
-    def get_term_and_value(self, filter_keyword, val):
+    def get_term_and_value(self, filter_keyword: str, val: str) -> dict:
         """
         Some fields need to be searched raw while others are analysed with the default string analyser which will
         automatically convert the fields to lowercase in de the index.
         :param filter_keyword: the keyword in the index to search on
         :param val: the value we are searching for
-        :param nested_path: The path to the nested value to search
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
         if filter_keyword in self.raw_fields:
@@ -359,7 +371,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def Send_Response(self, resp, response_kwargs):
 
-        return  HttpResponse(
+        return HttpResponse(
                 rapidjson.dumps(resp),
                 content_type='application/json',
                 **response_kwargs
@@ -455,18 +467,19 @@ class TableSearchView(ElasticSearchMixin, ListView):
         return context
 
     def add_aggs(self, response):
-        self.extra_context_data['aggs_list'] = self.process_aggs(response)
+        aggs = response.get('aggregations', {})
+        self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
 
-    def process_aggs(self, response):
+    def process_aggs(self, aggs):
         """
         Merging count with regular aggregation for a single level result
 
-        :param response:
+        :param aggs:
         :return:
         """
-        aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+
+        count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
@@ -485,20 +498,23 @@ class TableSearchView(ElasticSearchMixin, ListView):
         response - the elastic response dict
         """
         if not apifields:
-            apifields = self.api_fields
+            apifields = API_FIELDS
 
-        if not 'items' in self.extra_context_data:
+        if 'items' not in self.extra_context_data:
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
             self.extra_context_data['items'][item['_id']] = {}
-            for field in apifields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    self.extra_context_data['items'][item['_id']][field] = None
+            self.add_api_fields(apifields, item)
         self.extra_context_data['total'] = response['hits']['total']
+
+    def add_api_fields(self, apifields, item):
+        for field in apifields:
+            try:
+                self.extra_context_data['items'][item['_id']][field] = \
+                    item['_source'][field]
+            except:
+                self.extra_context_data['items'][item['_id']][field] = None
 
     def update_context_data(self, context):
         """
@@ -512,11 +528,11 @@ class CSVExportView(TableSearchView):
     A base class to generate csv exports
     """
     # This is not relevant for csv export
-    preview_size = None  # type: int
+    preview_size = None
     # The headers of the csv
     headers = []  # type: list[str]
     # The pretty version of the headers
-    pretty_headers = []  # type: list[str]
+    pretty_headers = []
 
     def get_context_data(self, **kwargs):
         """
