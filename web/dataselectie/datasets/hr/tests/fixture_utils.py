@@ -22,7 +22,10 @@ JSON = [
         "betrokkenen": [
 
         ],
+        "datum_einde": None,
         "locatie_type": "B",
+        "datum_aanvang": "2010-07-01",
+        "kvk_nummer": "50322348",
         "hoofdvestiging": False,
         "vestigingsnummer": "000000004383",
         "postadres_postcode": "1064EB",
@@ -73,6 +76,9 @@ JSON = [
 
         ],
         "locatie_type": "B",
+        "datum_einde": None,
+        "datum_aanvang": "2010-07-01",
+        "kvk_nummer": "50324763",
         "hoofdvestiging": True,
         "vestigingsnummer": "000000002216",
         "postadres_postcode": "1053RT",
@@ -113,7 +119,7 @@ JSON = [
         "betrokkenen": [
             {
                 "rol": "EIGENAAR",
-                "naam": None,
+                "naam": "Van Puffelen",
                 "mac_naam": "Golf 10 V.O.F.",
                 "rechtsvorm": "VennootschapOnderFirma",
                 "functietitel": "Vennoot",
@@ -158,6 +164,16 @@ JSON = [
                 "hoofdcategorie": "financi\u00eble dienstverlening,verhuur van roerend en onroerend goed",
                 "vestigingsnummer": "000000000086",
                 "sub_sub_categorie": "Financi\u00eble holdings"
+            },
+            {
+                "hcat": "22281_12",
+                "scat": "22281_12_22259_11",
+                "sbi_code": "9003",
+                "bedrijfsnaam": "Monique Brouns",
+                "subcategorie": "kunst",
+                "hoofdcategorie": "cultuur, sport, recreatie",
+                "vestigingsnummer": "000000002216",
+                "sub_sub_categorie": "Schrijven en overige scheppende kunsten"
             }
         ],
         "kvk_nummer": "50324748",
