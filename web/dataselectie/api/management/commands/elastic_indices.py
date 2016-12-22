@@ -11,14 +11,14 @@ import time
 
 class Command(BaseCommand):
 
-    ordered = ['ds_idx']
+    ordered = ['ds_bag']
 
     indexes = {
-        'ds_idx': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
+        'ds_bag': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
     }
 
     rebuild_indexes = {
-        'ds_idx': [genbatch.ReBuildIndexDsJob]
+        'ds_bag': [genbatch.ReBuildIndexDsJob]
     }
 
     def add_arguments(self, parser):
