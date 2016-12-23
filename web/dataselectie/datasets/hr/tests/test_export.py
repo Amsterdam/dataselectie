@@ -1,3 +1,6 @@
+# Python
+import csv
+from io import StringIO
 # Packages
 from django.conf import settings
 from django.core.management import call_command
@@ -17,7 +20,7 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--rebuild', verbosity=0, interactive=False)
+        call_command('elastic_indices', '--recreate', verbosity=0, interactive=False)
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
@@ -47,4 +50,16 @@ class DataselectieExportTest(ESTestCase):
         res = res.split('\r\n')
         # 5 lines: headers + 4 items
         self.assertEqual(len(res), 5)
+        row2 = res[2].split(';')
+
+        self.assertEqual(len(row2), 32)
+        checkvalues = ('Delflandplein', '15', 'C', '', '1012AB', 'Amsterdam', 'Centrum', 'A', '', '',
+                          'Burgwallen-Nieuwe Zijde', 'A01', 'Hemelrijk', 'Delflandplein', 'A01b', '', '',
+                          '0363000000000004', '', '', '0363000000000111', '', '', '50326457', 'Golf 10 V.O.F.',
+                          '000000000809', '4639', 'handel, vervoer, opslag', '',
+                          'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)',
+                          'Van Puffelen Vennoot', '')
+        
+        for idx, val in enumerate(row2):
+            self.assertEqual(row2[idx], checkvalues[idx])
 

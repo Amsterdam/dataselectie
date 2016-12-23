@@ -58,36 +58,16 @@ class HrBase(object):
         result = "Onbekend"
         text_result = []
         for betrokken in betrokken_json:
-            text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
-            if text:
-                text += ' ' + betrokken['functietitel']
-                text_result.append(text)
+            if betrokken:
+                text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
+                if text:
+                    text += ' ' + (betrokken['functietitel'] or '')
+                    text_result.append(text)
 
         if len(text_result):
             result = ' \\ '.join(text_result)
 
         return result
-
-    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Primary key from inner_Hits
-        for hit in response['hits']['hits']:
-            for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
-                elastic_data['ids'].append(ihit['_id'][2:])
-        return elastic_data
-
-
-class HrSearch(HrBase, TableSearchView):
-    def elastic_query(self, query):
-        res = meta_q(query, True, False)
-        res['aggs'].update(add_aggregations(res['aggs']))
-        res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
-        return res
-
-    def process_subcategorie(self, value):
-        return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
-
-    def fill_aggregates(self, selected, subcats):
-        return {}
 
     def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
         """
@@ -96,6 +76,7 @@ class HrSearch(HrBase, TableSearchView):
         :param filters:
         :return:
         """
+        print('elquery filters %s, mapped_filters %s' % (filters, mapped_filters))
 
         if not mapped_filters:
             mapped_filters = {"match_all": {}}
@@ -118,6 +99,20 @@ class HrSearch(HrBase, TableSearchView):
         query['query'] = filterquery
 
         return query
+
+
+class HrSearch(HrBase, TableSearchView):
+    def elastic_query(self, query):
+        res = meta_q(query, True, False)
+        res['aggs'].update(add_aggregations(res['aggs']))
+        res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
+        return res
+
+    def process_subcategorie(self, value):
+        return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
+
+    def fill_aggregates(self, selected, subcats):
+        return {}
 
     def save_context_data(self, response, elastic_data=None, apifields=None):
         """
@@ -173,6 +168,16 @@ class HrSearch(HrBase, TableSearchView):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
         context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
 
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
+        # Primary key from inner_Hits
+        for hit in response['hits']['hits']:
+            self.fill_item_ids(elastic_data, hit)
+        return elastic_data
+
+    def fill_item_ids(self, elastic_data, hit):
+        for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
+            elastic_data['ids'].append(ihit['_id'][2:])
+
 
 class HrCSV(HrBase, CSVExportView):
     """
@@ -181,23 +186,25 @@ class HrCSV(HrBase, CSVExportView):
     """
     headers = [
         '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-        'postcode', 'gemeente', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-        'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam',
-        'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik', 'oppervlakte', 'type_desc', 'status',
+        'postcode', 'woonplaats', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
+        'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam', 'naam',
+        'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik',
         'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
         'landelijk_id']
 
-    headers_hr = ['kvk_nummer', 'naam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
-                  'subcategorieen', 'betrokkenen', 'rechtsvorm', ]
+    headers_hr = ['kvk_nummer', 'handelsnaam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
+                  'subcategorieen', 'betrokkenen', 'rechtsvorm' ]
 
     headers += headers_hr
+
+    name_conv = {'handelsnaam': 'naam'}
 
     pretty_headers = (
         'Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
         'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
         'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-        'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik', 'Oppervlakte (m2)', 'Objecttype',
-        'Verblijfsobjectstatus', 'Openbareruimte-identificatie', 'Pandidentificatie',
+        'Bewoner', 'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik',
+        'Openbareruimte-identificatie', 'Pandidentificatie',
         'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
         'Nummeraanduidingidentificatie', 'KvK-nummer', 'Handelsnaam', 'Vestigingsnummer', 'SBI-code',
         'Hoofdcategorie', 'SBI-omschrijving', 'Subcategorie', 'Naam eigenaar(en)', 'Rechtsvorm')
@@ -247,26 +254,33 @@ class HrCSV(HrBase, CSVExportView):
         return result
 
     def _process_flatfields(self, json: dict) -> dict:
+        
         result = {}
         for hdr in self.headers_hr:
+            hdr_from = hdr
+            if hdr in self.name_conv:
+                hdr_from = self.name_conv[hdr]
             try:
-                result[hdr] = json[hdr]
+                result[hdr] = json[hdr_from]
             except KeyError:
                 pass
         return result
-
-    def _fill_items(self, items, item):
-        """
-
-        :param items:
-        :param item:
-        :return:
-        """
-        items[item['_id'][2:]] = item
-
-        return items
 
     def paginate(self, offset, q):
         if 'size' in q:
             del(q['size'])
         return q
+
+    def _fill_item(self, items, item):
+        """
+        Function can be overwritten in the using class to allow for
+        specific output (hr has multi outputs
+
+        :param items:   Resulting dictionary containing the
+        :param item:    Item from elastic
+        :return: items
+        """
+        for ihit in item['inner_hits']['vestiging']['hits']['hits']:
+            items[ihit['_id'][2:]] = item
+
+        return items

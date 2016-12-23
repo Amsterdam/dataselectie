@@ -17,7 +17,7 @@ class Command(BaseCommand):
         'ds_bag': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
     }
 
-    rebuild_indexes = {
+    recreate_indexes = {
         'ds_bag': [genbatch.ReBuildIndexDsJob]
     }
 
@@ -37,11 +37,11 @@ class Command(BaseCommand):
             help='Build elastic index from postgres')
 
         parser.add_argument(
-            '--rebuild',
+            '--recreate',
             action='store_true',
-            dest='rebuild_indexes',
+            dest='recreate_indexes',
             default=False,
-            help='Delete and rebuild elastic indexes')
+            help='Delete and recreate elastic indexes')
 
         parser.add_argument(
             '--partial',
@@ -83,8 +83,8 @@ class Command(BaseCommand):
         self.set_partial_config(sets, options)
 
         for ds in sets:
-            if options['rebuild_indexes']:
-                for job_class in self.rebuild_indexes[ds]:
+            if options['recreate_indexes']:
+                for job_class in self.recreate_indexes[ds]:
                     batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..

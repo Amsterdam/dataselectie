@@ -2,6 +2,7 @@
 import codecs
 import copy
 import csv
+import logging
 from datetime import date, datetime
 import io
 # Packages
@@ -15,6 +16,8 @@ from pytz import timezone
 import rapidjson
 # Project
 from datasets.bag.models import Nummeraanduiding
+
+log = logging.getLogger(__name__)
 
 # =============================================================
 # Views
@@ -185,6 +188,12 @@ class ElasticSearchMixin(object):
         }
         return query
 
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
+        # Can be overridden in the view to allow for other primary keys
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
+        return elastic_data
+
     def handle_query_size_offset(self, query):
         """
         Handles query size and offseting
@@ -248,6 +257,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         # Removing size limit
         query['size'] = settings.MAX_SEARCH_ITEMS
         # Performing the search
+        log.info('use index %s', settings.ELASTIC_INDICES[self.index])
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index],
             body=query,
@@ -257,6 +267,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             'object_count': response['hits']['total'],
             'object_list': response['hits']['hits']
         }
+        log.info('response count %s', resp['object_count'])
         return HttpResponse(
             rapidjson.dumps(resp),
             content_type='application/json'
@@ -416,12 +427,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Enrich result data with neede info
         self.save_context_data(response, elastic_data)
 
-        return elastic_data
-
-    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Can be overridden in the view to allow for other primary keys
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -590,7 +595,7 @@ class CSVExportView(TableSearchView):
 
             # Collecting items for batch
             for item in es_generator:
-                items = self._fill_items(items, item)
+                items = self._fill_item(items, item)
                 # Breaking on batch size
                 if len(items) == batch_size:
                     break
@@ -611,20 +616,6 @@ class CSVExportView(TableSearchView):
 
             # Stop the run, if end is reached
             more = len(items) == batch_size
-
-    def _fill_items(self, items: dict, item: dict) -> dict:
-        """
-        Default fill items with item info from elastic query. Can be
-        overridden in using class to create more complex
-        datastructures
-
-        :param items:
-        :param item:
-        :return: items
-        """
-        items[item['_id']] = item
-
-        return items
 
     def _model_to_dict(self, item: Nummeraanduiding):
         """
@@ -666,7 +657,7 @@ class CSVExportView(TableSearchView):
                 item[key] = value
         return data
 
-    def fill_items(self, items, item):
+    def _fill_item(self, items, item):
         """
         Function can be overwritten in the using class to allow for
         specific output (hr has multi outputs
