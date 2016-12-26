@@ -412,7 +412,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         postcode - A postcode to limit the results to
         """
         # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {}}
+        elastic_data = {'ids': [], 'filters': {}, 'extra_data':[]}
         # looking for a query
         query_string = self.request_parameters.get('query', None)
 
@@ -509,17 +509,20 @@ class TableSearchView(ElasticSearchMixin, ListView):
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            self.add_api_fields(apifields, item)
-        self.extra_context_data['total'] = response['hits']['total']
+            id = self.define_id(item, elastic_data)
+            self.extra_context_data['items'][id] = {}
+            self.add_api_fields(apifields, item, id)
+            
+        self.define_total(response)
+        
 
-    def add_api_fields(self, apifields, item):
+    def add_api_fields(self, apifields, item, id):
         for field in apifields:
             try:
-                self.extra_context_data['items'][item['_id']][field] = \
+                self.extra_context_data['items'][id][field] = \
                     item['_source'][field]
             except:
-                self.extra_context_data['items'][item['_id']][field] = None
+                self.extra_context_data['items'][id][field] = None
 
     def update_context_data(self, context):
         """
@@ -527,6 +530,13 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         return context
 
+    def define_id(self, item, elastic_data):
+        return item['_id']
+    
+    def define_total(self, response):
+        self.extra_context_data['total'] = response['hits']['total']
+        return self.extra_context_data['total']
+        
 
 class CSVExportView(TableSearchView):
     """

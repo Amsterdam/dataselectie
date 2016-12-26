@@ -96,7 +96,7 @@ class DataselectieApiTest(ESTestCase):
         velden_in_api = ('bag_numid', 'bag_vbid', 'bedrijfsnaam', 'betrokkenen',
                          'bezoekadres_afgeschermd', 'bezoekadres_correctie',
                          'bezoekadres_volledig_adres', 'datum_aanvang',
-                         'datum_einde', 'geometrie', 'hoofdcategorieen',
+                         'datum_einde', 'hoofdcategorieen',
                          'hoofdvestiging', 'id', 'kvk_nummer', 'locatie_type',
                          'postadres_afgeschermd', 'postadres_correctie',
                          'postadres_huisletter', 'postadres_huisnummer',

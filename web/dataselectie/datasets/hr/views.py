@@ -76,7 +76,6 @@ class HrBase(object):
         :param filters:
         :return:
         """
-        print('elquery filters %s, mapped_filters %s' % (filters, mapped_filters))
 
         if not mapped_filters:
             mapped_filters = {"match_all": {}}
@@ -111,45 +110,34 @@ class HrSearch(HrBase, TableSearchView):
     def process_subcategorie(self, value):
         return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
 
-    def fill_aggregates(self, selected, subcats):
-        return {}
+    def define_id(self, item, elastic_data):
+        return elastic_data['extra_data']
+    
+    def define_total(self, response):
+        aggs = response.get('aggregations', {})
+        if 'vestiging' in aggs:
+            self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
 
-    def save_context_data(self, response, elastic_data=None, apifields=None):
+    def save_context_data(self, response, elastic_data=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        apifields = API_FIELDS
+        super().save_context_data(response, elastic_data, API_FIELDS)
 
-        if not 'items' in self.extra_context_data:
-            self.extra_context_data = {'items': {}}
-
-        for item in response['hits']['hits']:
-            curitem = self.extra_context_data['items'][item['_id']] = {}
-            self.add_api_fields(apifields, item)
-
-            aggs = response.get('aggregations', {})
-            if 'vestiging' in aggs:
-                self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
-
-    def aggregates_parent(self, response, api_fields):
-        """
-        
-        :param response:
-        :param api_fields:
-        :return:
-        """
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
         # moving the jsonapi info one level down
+        ignore_list = ('geometrie', )
         for i in range(len(context['object_list'])):
             for json_key, values in context['object_list'][i]['api_json'].items():
-                try:
-                    nwfield = self.fieldname_mapping[json_key]
-                except KeyError:
-                    nwfield = json_key
-                context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+                if json_key not in ignore_list:
+                    try:
+                        nwfield = self.fieldname_mapping[json_key]
+                    except KeyError:
+                        nwfield = json_key
+                    context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
 
             del context['object_list'][i]['api_json']
 
@@ -158,6 +146,8 @@ class HrSearch(HrBase, TableSearchView):
             # Adding the extra context
             bag_numid = context['object_list'][i]['bag_numid']
             if bag_numid in self.extra_context_data['items']:
+                print('&&bag_numid %s' % bag_numid)
+                print(self.extra_context_data['items'][bag_numid])
                 context['object_list'][i].update(self.extra_context_data['items'][bag_numid])
 
         context['total'] = self.extra_context_data['total']
@@ -166,6 +156,7 @@ class HrSearch(HrBase, TableSearchView):
 
     def flatten(self, context_data):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
+        del context_data['sbi_codes']
         context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
 
     def fill_ids(self, response: dict, elastic_data: dict) -> dict:
@@ -175,8 +166,10 @@ class HrSearch(HrBase, TableSearchView):
         return elastic_data
 
     def fill_item_ids(self, elastic_data, hit):
-        for ihit in hit['inner_hits']['vestiging']['hits']['hits']:
+        in_hits = hit['inner_hits']['vestiging']['hits']['hits']
+        for ihit in in_hits:
             elastic_data['ids'].append(ihit['_id'][2:])
+        elastic_data['extra_data'] = in_hits[0]['_source']['bag_numid']
 
 
 class HrCSV(HrBase, CSVExportView):
