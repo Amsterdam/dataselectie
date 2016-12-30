@@ -43,17 +43,17 @@ tests:
 
 importer:
   image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
-    links:
-        - elasticsearch:elasticsearch
-        - database_dataselectie:database_dataselectie
-        - database_BAG:database_BAG
-        - database_HR:database_HR
-    environment:
-        DJANGO_SETTINGS_MODULE: dataselectie.settings
-    command: >
-        bash -c "/app/docker-wait.sh \
-                && python manage.py migrate \
-                && python manage.py elastic_indices --recreate"
+  links:
+    - elasticsearch:elasticsearch
+    - database_dataselectie:database_dataselectie
+    - database_BAG:database_BAG
+    - database_HR:database_HR
+  environment:
+    DJANGO_SETTINGS_MODULE: dataselectie.settings
+  command: >
+    bash -c "/app/docker-wait.sh \
+            && python manage.py migrate \
+            && python manage.py elastic_indices --recreate"
 
 importer_el1:
   image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
