@@ -24,8 +24,10 @@ from datasets.bag.models import Nummeraanduiding
 
 API_FIELDS = []
 
+
 class BadReq(Exception):
     pass
+
 
 class ElasticSearchMixin(object):
     """
@@ -57,9 +59,9 @@ class ElasticSearchMixin(object):
         vestigingsinfo and the bag info,
         The matchall will make sure that the
         linked info from bag is retrieved
-        
+
         The sec
-        
+
         {
     "query":{
             "bool": {
@@ -81,7 +83,6 @@ class ElasticSearchMixin(object):
                     { "match": {"stadsdeel_naam": "Centrum"}}
                         ]
                 }
-        
         """
         # Adding filters
         if self.fixed_filters:
@@ -91,7 +92,7 @@ class ElasticSearchMixin(object):
         # Retriving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 
-        entered_parms = [prm for prm in request_parameters.keys() if not prm in self.allowed_parms]
+        entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
         mapped_filters = []
         for filter_keyword in self.keywords:
@@ -132,7 +133,7 @@ class ElasticSearchMixin(object):
             filters.append(lfilter)
         return filters, mapped_filters
 
-    def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
+    def build_el_query(self, filters: list, mapped_filters: list, query: dict) -> dict:
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
@@ -183,7 +184,6 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True,
             refresh=True
         )
-
 
     def dispatch(self, request, *args, **kwargs):
         self.request_parameters = getattr(request, request.method)
@@ -335,7 +335,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def Send_Response(self, resp, response_kwargs):
 
-        return  HttpResponse(
+        return HttpResponse(
                 rapidjson.dumps(resp),
                 content_type='application/json',
                 **response_kwargs
@@ -455,7 +455,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         if not apifields:
             apifields = self.api_fields
 
-        if not 'items' in self.extra_context_data:
+        if 'items' not in self.extra_context_data:
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
@@ -649,7 +649,6 @@ class CSVExportView(TableSearchView):
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
-
         # Streaming!
         gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(gen, content_type="text/csv")
