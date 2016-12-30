@@ -42,7 +42,7 @@ tests:
   command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
 
 importer:
-  image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
+  build: ../web
   links:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
@@ -56,7 +56,7 @@ importer:
             && python manage.py elastic_indices --recreate"
 
 importer_el1:
-  image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
+  build: ../web
   links:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
@@ -69,7 +69,7 @@ importer_el1:
             && python manage.py elastic_indices --partial=1/3 --build"
 
 importer_el2:
-  image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
+  build: ../web
   links:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
@@ -82,7 +82,7 @@ importer_el2:
             && python manage.py elastic_indices --partial=2/3 --build"
 
 importer_el3:
-  image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:production
+  build: ../web
   links:
     - elasticsearch:elasticsearch
     - database_dataselectie:database_dataselectie
