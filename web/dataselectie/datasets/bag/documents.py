@@ -45,8 +45,6 @@ class NummeraanduidingMeta(es.DocType):
     postcode = es.String(index='not_analyzed')
     woonplaats = es.String(index='not_analyzed')
 
-    hoofdadres = es.Boolean()
-
     buurt_code = es.String(index='not_analyzed')
     buurt_naam = es.String(index='not_analyzed')
     buurtcombinatie_code = es.String(index='not_analyzed')
@@ -81,21 +79,6 @@ class NummeraanduidingMeta(es.DocType):
         doc_type = 'bag_locatie'
         index = settings.ELASTIC_INDICES['DS_BAG']
         all = es.MetaField(enabled=False)
-
-    #
-    # sbi_codes = es.Nested({
-    #     'properties': {
-    #         'sbi_code': es.String(index='not_analyzed'),
-    #         'hcat': es.String(index='not_analyzed'),
-    #         'scat': es.String(index='not_analyzed'),
-    #         'hoofdcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'subcategorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'sub_sub_categorie': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'bedrijfsnaam': es.String(fields={'raw': es.String(index='not_analyzed')}),
-    #         'vestigingsnummer': es.String(index='not_analyzed')
-    #             }
-    # })
-    # is_hr_address = es.Boolean()
 
 
 def update_doc_with_adresseerbaar_object(doc, item):
@@ -203,7 +186,6 @@ def meta_from_nummeraanduiding(
     update_doc_from_param_list(doc, item, parameters)
 
     # defaults
-    doc.is_hr_address = False
     doc.centroid = None
 
     # hr vestigingen
@@ -229,7 +211,6 @@ def update_doc_with_sbicodes(doc, item):
 
     denk aan sbi.
     """
-
     return doc
 
 

@@ -46,9 +46,10 @@ class CodeOmschrijvingMixin(models.Model):
     def __str__(self) -> str:
         return "{}: {}".format(self.code, self.omschrijving)
 
+
 class JSONinputMixin(models.Model):
     id = models.CharField(
-        max_length = 20,
+        max_length=20,
         primary_key=True)
     api_json = JSONField()
 

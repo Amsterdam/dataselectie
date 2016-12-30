@@ -2,13 +2,12 @@
 import codecs
 import copy
 import csv
+import logging
 from datetime import date, datetime
 import io
-from typing import Any
 # Packages
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
-from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
@@ -17,6 +16,8 @@ from pytz import timezone
 import rapidjson
 # Project
 from datasets.bag.models import Nummeraanduiding
+
+log = logging.getLogger(__name__)
 
 # =============================================================
 # Views
@@ -40,13 +41,14 @@ class ElasticSearchMixin(object):
     """
 
     # A set of optional keywords to filter the results further
-    keywords = ()           # type: tuple[str]
-    raw_fields = []         # type: list[str]
-    geo_fields = {}         # type: dict[str:list]
-    keyword_mapping = {}    # type: dict
-    fixed_filters = []      # type: list
-    default_search = 'match'
+    keywords = ()
+    raw_fields = []
+    geo_fields = {}
+    keyword_mapping = {}
+    fixed_filters = []
+    default_search = 'term'
     allowed_parms = ('page', 'shape')
+    request = None
 
     def build_elastic_query(self, query):
         """
@@ -60,29 +62,51 @@ class ElasticSearchMixin(object):
         The matchall will make sure that the
         linked info from bag is retrieved
 
-        The sec
-
         {
-    "query":{
-            "bool": {
-                "should": [
-                {"term": {"_type": "vestigingen"}},
-                {"has_parent":
-                    {"type": "bag_locatie",
-                    "query": { "match_all":{}},
-                    "inner_hits":{}
+            "query":{
+                "bool": {
+                    "must": [
+                        {
+                            "term": {"_type": "bag_locatie"}
+                        },{
+                            "has_child": {
+                                "type": "vestiging",
+                                "query": [
+                                    {
+                                        "term": {"sbi_code": "6420"}
+                                    }
+                                ],
+                                "inner_hits":{}
+                            }
+                        }
+                    ]
+                }
+            },
+            "aggs": {
+                "postcode": {
+                    "terms": {"field": "postcode"},
+                    "vestiging": {
+                        "children": {
+                            "type": "vestiging"
+                        },
+                        "aggs": {
+                            "sbi_code":{
+                                "terms": { "field":"sbi_code"}
+                            }
+                        }
                     }
-                }],
-            "must":[{"term": {"sbi_code": "6420"}}]
-        }}}
-
+                }
+            }
+        }
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
-        "bool": {
+        {
+            "bool": {
                 "must: [
                     { "match": {"stadsdeel_naam": "Centrum"}}
-                        ]
-                }
+                ]
+            }
+        }
         """
         # Adding filters
         if self.fixed_filters:
@@ -119,13 +143,36 @@ class ElasticSearchMixin(object):
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
-        # If any filters were given, add them, creating a bool query
-        if filters or mapped_filters:
-            query = self.build_el_query(filters, mapped_filters, query)
+
+        query = self.build_el_query(filters, mapped_filters, query)
 
         return self.handle_query_size_offset(query)
 
-    def proc_parameters(self, filter_keyword, val, mapped_filters, filters):
+    def create_filters(self, filters: list, keywords: list=None) -> (list, list, list):
+        if not keywords:
+            keywords = self.keywords
+            check_parameters = True
+        else:
+            check_parameters = False
+
+        request_parameters = getattr(self.request, self.request.method)
+
+        entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
+
+        mapped_filters = []
+        for filter_keyword in keywords:
+            val = request_parameters.get(filter_keyword, None)
+            if val is not None:     # parameter is entered
+                del entered_parms[entered_parms.index(filter_keyword)]
+                filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
+
+        if check_parameters and len(entered_parms):
+            wrongparms = ','.join(entered_parms)
+            raise BadReq(entered_parms, "Parameter(s) {} not supported".format(wrongparms))
+
+        return request_parameters, filters, mapped_filters
+
+    def proc_parameters(self, filter_keyword: str, val: str, mapped_filters: list, filters: list) -> (list, list):
         lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
         if filter_keyword in self.keyword_mapping:
             mapped_filters.append(lfilter)
@@ -137,8 +184,10 @@ class ElasticSearchMixin(object):
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
-        :param filters:
-        :return:
+        :param filters: Filters for the primary (parent) selection
+        :param mapped_filters: Filters for the secundary (child) selection
+        :param query: query to start with
+        :return: query
         """
         filters += mapped_filters
         query['query'] = {
@@ -149,6 +198,12 @@ class ElasticSearchMixin(object):
         }
         return query
 
+    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
+        # Can be overridden in the view to allow for other primary keys
+        for hit in response['hits']['hits']:
+            elastic_data['ids'].append(hit['_id'])
+        return elastic_data
+
     def handle_query_size_offset(self, query):
         """
         Handles query size and offseting
@@ -156,7 +211,7 @@ class ElasticSearchMixin(object):
         """
         return query
 
-    def get_term_and_value(self, filter_keyword, val):
+    def get_term_and_value(self, filter_keyword: str, val: str) -> dict:
         """
         Some fields need to be searched raw while others are analysed with the default string analyser which will
         automatically convert the fields to lowercase in de the index.
@@ -212,6 +267,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         # Removing size limit
         query['size'] = settings.MAX_SEARCH_ITEMS
         # Performing the search
+        log.info('use index %s', settings.ELASTIC_INDICES[self.index])
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index],
             body=query,
@@ -221,6 +277,7 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             'object_count': response['hits']['total'],
             'object_list': response['hits']['hits']
         }
+        log.info('response count %s', resp['object_count'])
         return HttpResponse(
             rapidjson.dumps(resp),
             content_type='application/json'
@@ -365,7 +422,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         postcode - A postcode to limit the results to
         """
         # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {}}
+        elastic_data = {'ids': [], 'filters': {}, 'extra_data': []}
         # looking for a query
         query_string = self.request_parameters.get('query', None)
 
@@ -375,17 +432,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Performing the search
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = self.fill_ids(response, elastic_data)
+        # add aggregations
+        self.add_aggs(response)
         # Enrich result data with neede info
         self.save_context_data(response, elastic_data)
-        # Merge aggregations
-        self.process_aggs(response)
 
-        return elastic_data
-
-    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Can be overridden in the view to allow for other primary keys
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
         return elastic_data
 
     def create_queryset(self, elastic_data):
@@ -430,11 +481,20 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = self.update_context_data(context)
         return context
 
-    def process_aggs(self, response):
-        self.extra_context_data['total'] = response['hits']['total']
-        # Merging count with regular aggregation
+    def add_aggs(self, response):
         aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
+        self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
+        self.extra_context_data['total'] = response['hits']['total']
+
+    def process_aggs(self, aggs):
+        """
+        Merging count with regular aggregation for a single level result
+
+        :param aggs:
+        :return:
+        """
+
+        count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
@@ -453,36 +513,25 @@ class TableSearchView(ElasticSearchMixin, ListView):
         response - the elastic response dict
         """
         if not apifields:
-            apifields = self.api_fields
+            apifields = API_FIELDS
 
         if 'items' not in self.extra_context_data:
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
-            self.extra_context_data['items'][item['_id']] = {}
-            for field in apifields:
-                try:
-                    self.extra_context_data['items'][item['_id']][field] = \
-                        item['_source'][field]
-                except:
-                    self.extra_context_data['items'][item['_id']][field] = None
-        self.extra_context_data['total'] = response['hits']['total']
+            id = self.define_id(item, elastic_data)
+            self.extra_context_data['items'][id] = {}
+            self.add_api_fields(apifields, item, id)
 
-    def process_aggs(self, response):
-        """
-        Merging count with regular aggregation for a single level result
+        self.define_total(response)
 
-        :param response:
-        :return:
-        """
-
-        aggs = response.get('aggregations', {})
-        count_keys = [key for key in aggs.keys() if key.endswith('_count')]
-        for key in count_keys:
-            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-            # Removing the individual count aggregation
-            del aggs[key]
-        self.extra_context_data['aggs_list'] = aggs
+    def add_api_fields(self, apifields, item, id):
+        for field in apifields:
+            try:
+                self.extra_context_data['items'][id][field] = \
+                    item['_source'][field]
+            except:
+                self.extra_context_data['items'][id][field] = None
 
     def update_context_data(self, context):
         """
@@ -490,17 +539,24 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         return context
 
+    def define_id(self, item, elastic_data):
+        return item['_id']
+
+    def define_total(self, response):
+        self.extra_context_data['total'] = response['hits']['total']
+        return self.extra_context_data['total']
+
 
 class CSVExportView(TableSearchView):
     """
     A base class to generate csv exports
     """
     # This is not relevant for csv export
-    preview_size = None  # type: int
+    preview_size = None
     # The headers of the csv
     headers = []  # type: list[str]
     # The pretty version of the headers
-    pretty_headers = []  # type: list[str]
+    pretty_headers = []
 
     def get_context_data(self, **kwargs):
         """
@@ -558,7 +614,7 @@ class CSVExportView(TableSearchView):
 
             # Collecting items for batch
             for item in es_generator:
-                items = self._fill_items(items, item)
+                items = self._fill_item(items, item)
                 # Breaking on batch size
                 if len(items) == batch_size:
                     break
@@ -579,20 +635,6 @@ class CSVExportView(TableSearchView):
 
             # Stop the run, if end is reached
             more = len(items) == batch_size
-
-    def _fill_items(self, items: dict, item: dict) -> dict:
-        """
-        Default fill items with item info from elastic query. Can be
-        overridden in using class to create more complex
-        datastructures
-
-        :param items:
-        :param item:
-        :return: items
-        """
-        items[item['_id']] = item
-
-        return items
 
     def _model_to_dict(self, item: Nummeraanduiding):
         """
@@ -634,7 +676,7 @@ class CSVExportView(TableSearchView):
                 item[key] = value
         return data
 
-    def fill_items(self, items, item):
+    def _fill_item(self, items, item):
         """
         Function can be overwritten in the using class to allow for
         specific output (hr has multi outputs

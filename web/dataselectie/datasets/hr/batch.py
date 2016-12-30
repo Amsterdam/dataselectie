@@ -14,11 +14,6 @@ HR_DOC_TYPES = (
 )
 
 
-class DeleteHrIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['DS_BAG']
-    doc_types = HR_DOC_TYPES
-
-
 class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_BAG']
@@ -35,11 +30,3 @@ class BuildIndexHrJob(object):
     @staticmethod
     def tasks():
         return [IndexHrTask()]
-
-
-class DeleteIndexHrJob(object):
-    name = "Delete HR related indexes"
-
-    @staticmethod
-    def tasks():
-        return [DeleteHrIndexTask()]

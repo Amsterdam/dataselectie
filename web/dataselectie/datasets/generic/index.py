@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 class DeleteIndexTask(object):
     index = ''  # type: str
-    doc_types = []  # type: List[str]
+    doc_types = []
     name = 'remove index'
 
     def __init__(self):
@@ -43,6 +43,29 @@ class DeleteIndexTask(object):
         except NotFoundError:
             log.warning("Index '%s' not found, ignoring", self.index)
 
+
+class CreateDocTypeTask(object):
+    index = ''  # type: str
+    doc_types = []
+    name = 'Create Doctypes in index'
+
+    def __init__(self):
+
+        if not self.index:
+            raise ValueError("No index specified")
+
+        if not self.doc_types:
+            raise ValueError("No doc_types specified")
+
+        connections.create_connection(
+            hosts=settings.ELASTIC_SEARCH_HOSTS,
+            retry_on_timeout=True,
+        )
+
+    def execute(self):
+
+        idx = es.Index(self.index)
+
         for dt in self.doc_types:
             idx.doc_type(dt)
 
@@ -50,7 +73,7 @@ class DeleteIndexTask(object):
 
 
 class ImportIndexTask(object):
-    queryset = None  # type: QuerySet
+    queryset = None
     batch_size = 10000
 
     def get_queryset(self):
@@ -128,7 +151,7 @@ class ImportIndexTask(object):
                 )
 
             log.info(progres_msg)
-
+            
             helpers.bulk(
                 client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),

@@ -2,24 +2,31 @@ from django.core.management import BaseCommand
 
 from django.conf import settings
 
-import datasets.bag.batch
-import datasets.hr.batch
+import datasets.generic.batch as genbatch
+import datasets.bag.batch as bagbatch
+import datasets.hr.batch as hrbatch
 from batch import batch
 import time
 
 
 class Command(BaseCommand):
 
-    ordered = ['ds_bag', 'hr_idx']
+    ordered = ['ds_bag']
 
     indexes = {
-        'ds_bag': [datasets.bag.batch.BuildIndexDsBagJob],
-        'hr_idx': [datasets.hr.batch.BuildIndexHrJob],
+        'ds_bag': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
     }
 
-    delete_indexes = {
-        'ds_bag': [datasets.bag.batch.DeleteIndexDsBagJob],
-        'hr_idx': [datasets.hr.batch.DeleteIndexHrJob],
+    hrindexes = {
+        'ds_bag': [hrbatch.BuildIndexHrJob]
+    }
+    
+    bagindexes = {
+        'ds_bag': [hrbatch.BuildIndexHrJob]
+    }
+    
+    recreate_indexes = {
+        'ds_bag': [genbatch.ReBuildIndexDsJob]
     }
 
     def add_arguments(self, parser):
@@ -33,16 +40,30 @@ class Command(BaseCommand):
         parser.add_argument(
             '--build',
             action='store_true',
-            dest='build_index',
+            dest='build_all_indexes',
             default=False,
-            help='Build elastic index from postgres')
+            help='Build all elastic indexes from postgres')
 
         parser.add_argument(
-            '--delete',
+            '--buildhr',
             action='store_true',
-            dest='delete_indexes',
+            dest='build_hrindex',
             default=False,
-            help='Delete elastic indexes from elastic')
+            help='Build hr-index from postgres')
+
+        parser.add_argument(
+            '--buildbag',
+            action='store_true',
+            dest='build_bagindex',
+            default=False,
+            help='Build bag-index from postgres')
+
+        parser.add_argument(
+            '--recreate',
+            action='store_true',
+            dest='recreate_indexes',
+            default=False,
+            help='Delete and recreate elastic indexes')
 
         parser.add_argument(
             '--partial',
@@ -84,14 +105,22 @@ class Command(BaseCommand):
         self.set_partial_config(sets, options)
 
         for ds in sets:
-            if options['delete_indexes']:
-                for job_class in self.delete_indexes[ds]:
+            if options['recreate_indexes']:
+                for job_class in self.recreate_indexes[ds]:
                     batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..
 
-            if options['build_index']:
+            if options['build_all_indexes']:
                 for job_class in self.indexes[ds]:
+                    batch.execute(job_class(), )
+
+            if options['build_hrindex']:
+                for job_class in self.hrindexes[ds]:
+                    batch.execute(job_class(), )
+
+            if options['build_bagindex']:
+                for job_class in self.bagindexes[ds]:
                     batch.execute(job_class(), )
 
         self.stdout.write(
