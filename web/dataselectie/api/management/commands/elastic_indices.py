@@ -20,11 +20,11 @@ class Command(BaseCommand):
     hrindexes = {
         'ds_bag': [hrbatch.BuildIndexHrJob]
     }
-    
+
     bagindexes = {
         'ds_bag': [hrbatch.BuildIndexHrJob]
     }
-    
+
     recreate_indexes = {
         'ds_bag': [genbatch.ReBuildIndexDsJob]
     }
