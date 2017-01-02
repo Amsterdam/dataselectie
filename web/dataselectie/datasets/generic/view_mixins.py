@@ -25,8 +25,10 @@ log = logging.getLogger(__name__)
 
 API_FIELDS = []
 
+
 class BadReq(Exception):
     pass
+
 
 class ElasticSearchMixin(object):
     """
@@ -60,29 +62,36 @@ class ElasticSearchMixin(object):
         The matchall will make sure that the
         linked info from bag is retrieved
 
-
-            { "query":{
+        {
+            "query":{
                 "bool": {
                     "must": [
-                    {"term": {"_type": "bag_locatie"}},
-                    {"has_child":
-                        {"type": "vestiging",
-                        "query":
-                        [{"term": {"sbi_code": "6420"}}],
-                        "inner_hits":{}
+                        {
+                            "term": {"_type": "bag_locatie"}
+                        },{
+                            "has_child": {
+                                "type": "vestiging",
+                                "query": [
+                                    {
+                                        "term": {"sbi_code": "6420"}
+                                    }
+                                ],
+                                "inner_hits":{}
+                            }
                         }
-                    }
                     ]
-            }},
-            "aggs": {"postcode": {
-                        "terms": {
-                        "field": "postcode"},
+                }
+            },
+            "aggs": {
+                "postcode": {
+                    "terms": {"field": "postcode"},
                     "vestiging": {
-                        "children":{
-                            "type": "vestiging"},
-                            "aggs": {
-                                "sbi_code":{
-                                    "terms": { "field":"sbi_code"}
+                        "children": {
+                            "type": "vestiging"
+                        },
+                        "aggs": {
+                            "sbi_code":{
+                                "terms": { "field":"sbi_code"}
                             }
                         }
                     }
@@ -91,12 +100,13 @@ class ElasticSearchMixin(object):
         }
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
-        "bool": {
+        {
+            "bool": {
                 "must: [
                     { "match": {"stadsdeel_naam": "Centrum"}}
-                        ]
-                }
-
+                ]
+            }
+        }
         """
         # Adding filters
         if self.fixed_filters:
@@ -412,7 +422,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         postcode - A postcode to limit the results to
         """
         # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {}, 'extra_data':[]}
+        elastic_data = {'ids': [], 'filters': {}, 'extra_data': []}
         # looking for a query
         query_string = self.request_parameters.get('query', None)
 
@@ -512,9 +522,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
             id = self.define_id(item, elastic_data)
             self.extra_context_data['items'][id] = {}
             self.add_api_fields(apifields, item, id)
-            
+
         self.define_total(response)
-        
 
     def add_api_fields(self, apifields, item, id):
         for field in apifields:
@@ -532,11 +541,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def define_id(self, item, elastic_data):
         return item['_id']
-    
+
     def define_total(self, response):
         self.extra_context_data['total'] = response['hits']['total']
         return self.extra_context_data['total']
-        
+
 
 class CSVExportView(TableSearchView):
     """
@@ -682,7 +691,6 @@ class CSVExportView(TableSearchView):
 
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
-
         # Streaming!
         gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(gen, content_type="text/csv")
