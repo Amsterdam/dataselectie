@@ -3,7 +3,7 @@ from datasets.hr import models
 from datasets.bag.views import API_FIELDS
 from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
-from datasets.generic.view_mixins import CSVExportView, TableSearchView
+from datasets.generic.view_mixins import CSVExportView, TableSearchView, GeoLocationSearchView
 
 AGGKEYS = ('hoofdcategorie', 'subcategorie')
 
@@ -277,3 +277,12 @@ class HrCSV(HrBase, CSVExportView):
             items[ihit['_id'][2:]] = item
 
         return items
+
+
+class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
+
+    def elastic_query(self, query):
+        return meta_q(query, False, False)
+
+    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
+             'huisnummer_toevoeging']
