@@ -16,7 +16,7 @@ class FailingTask(object):
     name = "failing"
 
     def execute(self):
-        raise Exception()
+        raise Exception("Oops")
 
 
 class FailedJob(object):
@@ -49,9 +49,6 @@ class JobTest(TestCase):
         self.assertIsNotNone(e.date_finished)
         self.assertEqual(e.status, models.JobExecution.STATUS_FINISHED)
 
-    def test_failed_job_results_in_failed_execution(self):
-        e = batch.execute(FailedJob())
-
     def test_task_can_be_function(self):
         done = False
 
@@ -75,24 +72,6 @@ class JobTest(TestCase):
         self.assertEqual(len(t), 2)
         self.assertEqual(t[0].status, models.TaskExecution.STATUS_FINISHED)
         self.assertEqual(t[1].status, models.TaskExecution.STATUS_FINISHED)
-
-    def test_task_results_in_execution(self):
-        class Task(object):
-            def __init__(self):
-                self.executed = False
-                self.torn_down = False
-
-            def execute(self):
-                self.executed = True
-
-            def tear_down(self):
-                self.torn_down = True
-
-        t = Task()
-
-        batch.execute(SimpleJob("simple", t))
-        self.assertEqual(t.executed, True)
-        self.assertEqual(t.torn_down, True)
 
 
 class DurationTestCase(SimpleTestCase):

@@ -28,5 +28,4 @@ class Migration(migrations.Migration):
                 'managed': True,
             },
         ),
-        
     ]

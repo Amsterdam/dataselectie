@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
-set -e
-set -u
-
+##
 echo "clean up old dockers";
-for container_id in $(docker ps -a --filter status=exited -q);do docker rm $container_id;done
+docker rm $(docker ps -qa);
 echo "clean up completed";
 
 echo "clean up old images";
-docker 2>/dev/null 1>&2 rmi `docker images -aq` || true
+docker rmi $(docker images -q);
 echo "clean up images completed";
 
 echo "clean up old volumes";

@@ -16,7 +16,7 @@ from ..generic.queries import create_query
 def meta_q(query: str, add_aggs=True, add_count_aggs=True) -> dict:
     # @TODO change to setting
     aggs = bld_agg()
-    return create_query(query, add_aggs, add_count_aggs, aggs, qtype='bag_locatie')
+    return create_query(query, add_aggs, add_count_aggs, aggs)
 
 
 def bld_agg():

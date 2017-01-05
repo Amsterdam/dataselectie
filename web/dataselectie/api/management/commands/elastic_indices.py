@@ -2,9 +2,7 @@ from django.core.management import BaseCommand
 
 from django.conf import settings
 
-import datasets.generic.batch as genbatch
-import datasets.bag.batch as bagbatch
-import datasets.hr.batch as hrbatch
+import datasets.bag.batch
 from batch import batch
 import time
 
@@ -14,19 +12,11 @@ class Command(BaseCommand):
     ordered = ['ds_bag']
 
     indexes = {
-        'ds_bag': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
+        'ds_bag': [datasets.bag.batch.BuildIndexDsBagJob],
     }
 
-    hrindexes = {
-        'ds_bag': [hrbatch.BuildIndexHrJob]
-    }
-
-    bagindexes = {
-        'ds_bag': [hrbatch.BuildIndexHrJob]
-    }
-
-    recreate_indexes = {
-        'ds_bag': [genbatch.ReBuildIndexDsJob]
+    delete_indexes = {
+        'ds_bag': [datasets.bag.batch.DeleteIndexDsBagJob],
     }
 
     def add_arguments(self, parser):
@@ -40,30 +30,16 @@ class Command(BaseCommand):
         parser.add_argument(
             '--build',
             action='store_true',
-            dest='build_all_indexes',
+            dest='build_index',
             default=False,
-            help='Build all elastic indexes from postgres')
+            help='Build elastic index from postgres')
 
         parser.add_argument(
-            '--buildhr',
+            '--delete',
             action='store_true',
-            dest='build_hrindex',
+            dest='delete_indexes',
             default=False,
-            help='Build hr-index from postgres')
-
-        parser.add_argument(
-            '--buildbag',
-            action='store_true',
-            dest='build_bagindex',
-            default=False,
-            help='Build bag-index from postgres')
-
-        parser.add_argument(
-            '--recreate',
-            action='store_true',
-            dest='recreate_indexes',
-            default=False,
-            help='Delete and recreate elastic indexes')
+            help='Delete elastic indexes from elastic')
 
         parser.add_argument(
             '--partial',
@@ -105,22 +81,14 @@ class Command(BaseCommand):
         self.set_partial_config(sets, options)
 
         for ds in sets:
-            if options['recreate_indexes']:
-                for job_class in self.recreate_indexes[ds]:
+            if options['delete_indexes']:
+                for job_class in self.delete_indexes[ds]:
                     batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..
 
-            if options['build_all_indexes']:
+            if options['build_index']:
                 for job_class in self.indexes[ds]:
-                    batch.execute(job_class(), )
-
-            if options['build_hrindex']:
-                for job_class in self.hrindexes[ds]:
-                    batch.execute(job_class(), )
-
-            if options['build_bagindex']:
-                for job_class in self.bagindexes[ds]:
                     batch.execute(job_class(), )
 
         self.stdout.write(
