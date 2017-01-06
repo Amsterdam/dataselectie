@@ -14,39 +14,53 @@ from ..bag.queries import bld_agg as bag_bld_agg
 from ..generic.queries import create_query
 
 
-def meta_q(query, add_aggs=False, add_count_aggs=True):
+def meta_q(query, add_aggs=True, add_count_aggs=True):
     # @TODO change to setting
 
     aggs = bld_agg()
-    return create_query(query, add_aggs, add_count_aggs, aggs, qtype='vestiging')
+    return create_query(query, add_aggs, add_count_aggs, aggs)
 
 
 def bld_agg() -> dict:
     agg_size = settings.AGGS_VALUE_SIZE
-    aggs = \
-        {
-        'aggs': {
-            'vestiging': {
-                'children': {"type": "vestiging"},
+    aggs = {"aggs": {
+                "sbi_codes": {
+                    "nested": {
+                        "path": "sbi_codes"
+                    },
                     "aggs": {
-                    'hoofdcategorie': {
-                        'terms': {
-                            'field': 'hoofdcategorie',
-                            'size': agg_size,
-                            'order': {'_term': 'asc'}
+                        "sbi_code_count": {
+                            "terms": {
+                                "field": "sbi_codes.sbi_code",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
                             }
                         },
-                    'subcategorie': {
-                        'terms': {
-                            'field': 'subcategorie',
-                            'size': agg_size,
-                            'order': {'_term': 'asc'}
+                        "subcategorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.subcategorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        },
+                        "sub_sub_categorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.sub_sub_categorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
+                            }
+                        },
+                        "hoofdcategorie_count": {
+                            "terms": {
+                                "field": "sbi_codes.hoofdcategorie",
+                                "size": agg_size,
+                                "order": {"_term": "asc"}
                             }
                         }
                     }
                 }
-            }
         }
+    }
 
     aggs['aggs'].update(bag_bld_agg()['aggs'])
     return aggs

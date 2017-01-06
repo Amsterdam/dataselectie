@@ -199,9 +199,6 @@ ELASTIC_INDICES = {
 }
 
 MAX_SEARCH_ITEMS = 10000
-MIN_BAG_NR = 1000
-MIN_HR_NR = 1000
-
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
@@ -246,11 +243,8 @@ STATIC_URL = '/static/'
 
 # settings below are just for unit test purposes and need to be put in a test_settings.py module
 TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
-
 IN_TEST_MODE = TESTING
 # Setting test prefix on index names in test
 if TESTING:
-    MIN_BAG_NR = 0
-    MIN_HR_NR = 0
     for k, v in ELASTIC_INDICES.items():
         ELASTIC_INDICES[k] = 'test_{}'.format(v)
