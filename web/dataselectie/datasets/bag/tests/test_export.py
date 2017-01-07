@@ -17,7 +17,7 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--recreate', verbosity=0, interactive=False)
+        call_command('elastic_indices', '--delete', verbosity=0, interactive=False)
         call_command('elastic_indices', '--build', verbosity=0, interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
@@ -49,7 +49,6 @@ class DataselectieExportTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = (b''.join(response.streaming_content)).decode('utf-8').strip()
-
         res = res.split('\r\n')
         # 11 lines: headers + 10 items
         self.assertEqual(len(res), 11)

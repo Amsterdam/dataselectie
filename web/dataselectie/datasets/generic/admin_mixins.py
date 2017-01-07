@@ -4,7 +4,7 @@ __author__ = 'yigalduppen'
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
-    readonly_fields = []
+    readonly_fields = []  # type: List[str]
 
     def get_readonly_fields(self, request, obj=None):
         return list(self.readonly_fields) + [field.name for field in obj._meta.fields]
