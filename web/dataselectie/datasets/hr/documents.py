@@ -45,6 +45,13 @@ def meta_from_hrdataselectie(obj):
 
 
 def get_NummerAanduiding(obj, doc):
+    """
+    Retrieve the nummeraanduiding using different methods
+    
+    :param obj: vestiging info from handelsregister
+    :param doc: elastic doc
+    :return: found numeraanduiding row
+    """
     numaan = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
                                              Q(verblijfsobject__landelijk_id=obj.bag_vbid)).first()
     if numaan:
