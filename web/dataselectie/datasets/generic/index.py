@@ -9,6 +9,7 @@ from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as es
 from elasticsearch_dsl.connections import connections
 
+from batch import batch
 
 log = logging.getLogger(__name__)
 
@@ -158,7 +159,9 @@ class ImportIndexTask(object):
                 raise_on_error=True,
                 refresh=True
             )
-
+            
             now = time.time()
             elapsed = now - start_time
             loop_time = now - loop_start
+        
+        batch.statistics.report()

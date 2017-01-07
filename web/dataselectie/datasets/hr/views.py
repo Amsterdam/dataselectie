@@ -111,7 +111,8 @@ class HrSearch(HrBase, TableSearchView):
         return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
 
     def define_id(self, item, elastic_data):
-        return elastic_data['extra_data']
+        return item['inner_hits']['vestiging']['hits']['hits'][0]['_id']
+        # return elastic_data['extra_data']
     
     def define_total(self, response):
         aggs = response.get('aggregations', {})
@@ -144,11 +145,9 @@ class HrSearch(HrBase, TableSearchView):
             self.flatten(context['object_list'][i])
 
             # Adding the extra context
-            bag_numid = context['object_list'][i]['bag_numid']
-            if bag_numid in self.extra_context_data['items']:
-                print('&&bag_numid %s' % bag_numid)
-                print(self.extra_context_data['items'][bag_numid])
-                context['object_list'][i].update(self.extra_context_data['items'][bag_numid])
+            vestigingsid = 'HR' + context['object_list'][i]['id']
+            if vestigingsid in self.extra_context_data['items']:
+                context['object_list'][i].update(self.extra_context_data['items'][vestigingsid])
 
         context['total'] = self.extra_context_data['total']
         context['aggs_list'] = self.extra_context_data['aggs_list']
@@ -169,7 +168,7 @@ class HrSearch(HrBase, TableSearchView):
         in_hits = hit['inner_hits']['vestiging']['hits']['hits']
         for ihit in in_hits:
             elastic_data['ids'].append(ihit['_id'][2:])
-        elastic_data['extra_data'] = in_hits[0]['_source']['bag_numid']
+        elastic_data['extra_data'] = in_hits[0]['_parent']
 
 
 class HrCSV(HrBase, CSVExportView):
