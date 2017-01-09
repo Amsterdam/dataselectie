@@ -96,6 +96,7 @@ def update_doc_with_adresseerbaar_object(doc, item):
             adresseerbaar_object
             .geometrie.centroid.transform('wgs84', clone=True).coords)
     except AttributeError:
+        batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
         log.error(adresseerbaar_object)
         pass
@@ -103,16 +104,19 @@ def update_doc_with_adresseerbaar_object(doc, item):
     # Adding the ggw data
     ggw = adresseerbaar_object._gebiedsgerichtwerken
     if ggw:
+        batch.statistics.add('BAG Gebiedsgericht werken', total=False)
         doc.ggw_code = ggw.code
         doc.ggw_naam = ggw.naam
 
     # Grootstedelijk ontbreekt nog
     gsg = adresseerbaar_object._grootstedelijkgebied
     if gsg:
+        batch.statistics.add('BAG Grootstedelijk gebied', total=False)
         doc.gsg_naam = gsg.naam
 
     buurt = adresseerbaar_object.buurt
     if buurt:
+        batch.statistics.add('BAG Inclusief buurt', total=False)
         doc.buurt_code = '%s%s' % (
             str(buurt.stadsdeel.code),
             str(buurt.code)
@@ -157,6 +161,8 @@ def meta_from_nummeraanduiding(
     met bag informatie en hr informatie
     """
 
+    batch.statistics.add('BAG Nummeraanduiding', total=False)
+
     start = time.time()
 
     doc = NummeraanduidingMeta(_id=item.id)
@@ -191,26 +197,17 @@ def meta_from_nummeraanduiding(
     # hr vestigingen
     if item.adresseerbaar_object:
         # BAG
+        batch.statistics.add('BAG Adresseerbaar objecten', total=False)
         update_doc_with_adresseerbaar_object(doc, item)
-        # HR
-        update_doc_with_sbicodes(doc, item)
 
     # Verblijfsobject specific
     if item.verblijfsobject:
+        batch.statistics.add('BAG Verblijfs objecten', total=False)
         add_verblijfsobject_data(doc, item)
 
     log.debug('doctime %s', (time.time() - start))
 
     # asserts?
-    return doc
-
-
-def update_doc_with_sbicodes(doc, item):
-    """
-    Geef een nummeraanduiding eventuele hr data attributen mee
-
-    denk aan sbi.
-    """
     return doc
 
 

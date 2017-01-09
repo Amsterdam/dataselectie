@@ -1,4 +1,7 @@
 # Python
+import logging
+# Packages
+# Project
 from datasets.hr import models
 from datasets.bag.views import API_FIELDS
 from datasets.hr.queries import meta_q
@@ -7,8 +10,6 @@ from datasets.generic.view_mixins import CSVExportView, TableSearchView
 
 AGGKEYS = ('hoofdcategorie', 'subcategorie')
 
-
-import logging
 log = logging.getLogger(__name__)
 
 
@@ -69,7 +70,7 @@ class HrBase(object):
 
         return result
 
-    def build_el_query(self, filters:list, mapped_filters:list, query:dict) -> dict:
+    def build_el_query(self, filters: list, mapped_filters: list, query: dict) -> dict:
         """
         Adds innerhits to the query and other selection criteria
 
@@ -80,16 +81,15 @@ class HrBase(object):
         if not mapped_filters:
             mapped_filters = {"match_all": {}}
 
-        filterquery = { "bool":
-                            {
-                            "must": [
-                                {"term": {"_type": "bag_locatie"}},
-                                {"has_child":
-                                    {"type": "vestiging",
-                                    "query": mapped_filters,
-                                    "inner_hits": {}
-                                    }
-                                }]
+        filterquery = {"bool":
+                            {"must": [
+                                    {"term": {"_type": "bag_locatie"}},
+                                    {"has_child":
+                                        {"type": "vestiging",
+                                        "query": mapped_filters,
+                                        "inner_hits": {}
+                                        }
+                                    }]
                             }
                         }
         if len(filters):
@@ -119,13 +119,12 @@ class HrSearch(HrBase, TableSearchView):
         if 'vestiging' in aggs:
             self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
 
-    def save_context_data(self, response, elastic_data=None):
+    def save_context_data(self, response, elastic_data=None, apifields=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
         super().save_context_data(response, elastic_data, API_FIELDS)
-
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
@@ -185,7 +184,7 @@ class HrCSV(HrBase, CSVExportView):
         'landelijk_id']
 
     headers_hr = ['kvk_nummer', 'handelsnaam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
-                  'subcategorieen', 'betrokkenen', 'rechtsvorm' ]
+                  'subcategorieen', 'betrokkenen', 'rechtsvorm']
 
     headers += headers_hr
 
@@ -203,31 +202,6 @@ class HrCSV(HrBase, CSVExportView):
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
-    #
-    # def create_geometry_dict(self, db_item):
-    #     """
-    #     Creates a geometry dict that can be used to add
-    #     geometry information to the result set
-    #
-    #     Returns a dict with geometry information if one
-    #     can be created. If not, an empty dict is returned
-    #     """
-    #     res = {}
-    #     try:
-    #         geom = db_item.adresseerbaar_object.geometrie.centroid
-    #     except AttributeError:
-    #         geom = None
-    #     if geom:
-    #         # Convert to wgs
-    #         geom_wgs = geom.transform('wgs84', clone=True).coords
-    #         geom = geom.coords
-    #         res = {
-    #             'geometrie_rd_x': int(geom[0]),
-    #             'geometrie_rd_y': int(geom[1]),
-    #             'geometrie_wgs_lat': ('{:.7f}'.format(geom_wgs[1])).replace('.', ','),
-    #             'geometrie_wgs_lon': ('{:.7f}'.format(geom_wgs[0])).replace('.', ',')
-    #         }
-    #     return res
 
     def _convert_to_dicts(self, qs):
         """

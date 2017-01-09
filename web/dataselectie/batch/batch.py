@@ -44,7 +44,6 @@ def _execute_task(job_execution, task):
     task_execution = TaskExecution.objects.create(
         job=job_execution, name=task_name, date_started=timezone.now()
     )
-
     try:
         execute_func()
     except:

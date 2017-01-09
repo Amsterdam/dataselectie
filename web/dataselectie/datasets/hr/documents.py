@@ -1,12 +1,15 @@
+# Python
+import logging
+# Packages
 import elasticsearch_dsl as es
 from django.conf import settings
 from django.db.models import Q
-
-from ..bag.models import Nummeraanduiding, Verblijfsobject, OpenbareRuimte
+# Project
+from ..bag.models import Nummeraanduiding
 from batch import batch
 
-import logging
 log = logging.getLogger(__name__)
+
 
 class VestigingenMeta(es.DocType):
     """
@@ -36,7 +39,7 @@ def meta_from_hrdataselectie(obj):
     doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid
 
-    numaan = get_NummerAanduiding(obj, doc)
+    numaan = get_nummeraanduiding(obj, doc)
         
     if numaan:
         doc._parent = numaan.id                  # reference to the parent
@@ -44,14 +47,7 @@ def meta_from_hrdataselectie(obj):
     return doc
 
 
-def get_NummerAanduiding(obj, doc):
-    """
-    Retrieve the nummeraanduiding using different methods
-    
-    :param obj: vestiging info from handelsregister
-    :param doc: elastic doc
-    :return: found numeraanduiding row
-    """
+def get_nummeraanduiding(obj, doc):
     numaan = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
                                              Q(verblijfsobject__landelijk_id=obj.bag_vbid)).first()
     if numaan:
@@ -68,12 +64,12 @@ def get_NummerAanduiding(obj, doc):
             if numaan:
                 batch.statistics.add('HR Nummeraanduiding via bag_numid')
             else:
-                no_Numaan_Found(obj, doc.bedrijfsnaam)
+                no_numaan_found(obj, doc.bedrijfsnaam)
         
     return numaan
 
 
-def no_Numaan_Found(obj, bedrijfsnaam):
+def no_numaan_found(obj, bedrijfsnaam):
     if 'amsterdam' in obj.api_json['bezoekadres_volledig_adres'].lower():
         batch.statistics.add('HR bezoekadressen in Amsterdam niet gevonden',
                              (obj.bag_numid, obj.id, bedrijfsnaam))
