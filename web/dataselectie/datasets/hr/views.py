@@ -124,7 +124,7 @@ class HrSearch(HrBase, TableSearchView):
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        super().save_context_data(response, elastic_data, API_FIELDS)
+        super().save_context_data(response, elastic_data, list(API_FIELDS) + self.bezoekadres_context_keywords)
 
     def update_context_data(self, context):
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,

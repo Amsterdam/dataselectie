@@ -104,7 +104,9 @@ class DataselectieApiTest(ESTestCase):
                          'postadres_volledig_adres', 'sbicodes', 'subcategorieen',
                          'vestigingsnummer', 'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
                          'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-                         'stadsdeel_naam', 'stadsdeel_code', 'woonplaats')
+                         'stadsdeel_naam', 'stadsdeel_code', 'woonplaats',
+                         '_openbare_ruimte_naam', 'huisnummer',
+                         'huisletter', 'toevoeging', 'postcode')
         q = {'page': 1, 'sbi_code': '85314'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
