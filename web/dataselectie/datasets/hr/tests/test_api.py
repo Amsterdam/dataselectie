@@ -121,6 +121,7 @@ class DataselectieApiTest(ESTestCase):
 
     def test_get_dataselectie_hr_sbi_code2(self):
         """
+
         Test elastic querying on field `sbi_code` top-down
         """
         q = {'page': 1, 'sbi_code': '9003'}
