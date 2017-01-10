@@ -23,6 +23,7 @@ class VestigingenMeta(es.DocType):
     sbi_code = es.String(index='not_analyzed', multi=True)
     bedrijfsnaam = es.String(index='not_analyzed')
     bag_numid = es.String(index='not_analyzed')
+    sbi_omschrijving = es.String(index='not_analyzed', multi=True)
 
     class Meta:
         doc_type = 'vestiging'
@@ -35,6 +36,7 @@ def meta_from_hrdataselectie(obj):
     doc.hoofdcategorie = [sbi['hoofdcategorie'] for sbi in obj.api_json['sbi_codes']]
     doc.subcategorie = [sbi['subcategorie'] for sbi in obj.api_json['sbi_codes']]
     doc.sbi_code = [sbi['sbi_code'] for sbi in obj.api_json['sbi_codes']]
+    doc.sbi_omschrijving = [sbi['sub_sub_categorie'] for sbi in obj.api_json['sbi_codes']]
     doc.bedrijfsnaam = obj.api_json['naam']
     doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid

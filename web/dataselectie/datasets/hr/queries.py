@@ -41,6 +41,13 @@ def bld_agg() -> dict:
                             'size': agg_size,
                             'order': {'_term': 'asc'}
                         }
+                    },
+                    'sbi_omschrijving': {
+                        'terms': {
+                            'field': 'sbi_omschrijving',
+                            'size': agg_size,
+                            'order': {'_term': 'asc'}
+                        }
                     }
                 }
             }

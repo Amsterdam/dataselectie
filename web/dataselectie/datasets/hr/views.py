@@ -29,7 +29,7 @@ class HrBase(object):
 
     raw_fields = []
     fixed_filters = []
-    keyword_mapping = ('subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code')
+    keyword_mapping = ('subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code', 'sbi_omschrijving')
     keywords = keyword_mapping + extra_context_keywords
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
@@ -46,6 +46,9 @@ class HrBase(object):
         result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
 
         result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
+
+        result['sbi_omschrijving'] = ' \\ '.join(set([sc['sub_sub_categorie'] for sc in sbi_json]))
+
         return result
 
     def process_betrokkenen(self, betrokken_json: list) -> str:

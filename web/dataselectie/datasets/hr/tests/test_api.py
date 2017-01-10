@@ -72,6 +72,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertIn('buckets', res['aggs_list']['buurt_naam'])
         self.assertIn('buurtcombinatie_code', res['aggs_list'])
         self.assertIn('buckets', res['aggs_list']['buurtcombinatie_code'])
+        self.assertIn('buckets', res['aggs_list']['sbi_omschrijving'])
 
     def test_get_dataselectie_invalidparm(self):
         """
@@ -106,7 +107,7 @@ class DataselectieApiTest(ESTestCase):
                          'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
                          'stadsdeel_naam', 'stadsdeel_code', 'woonplaats',
                          '_openbare_ruimte_naam', 'huisnummer',
-                         'huisletter', 'toevoeging', 'postcode')
+                         'huisletter', 'toevoeging', 'postcode', 'sbi_omschrijving')
         q = {'page': 1, 'sbi_code': '85314'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
@@ -163,6 +164,15 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(len(res['object_list']), 2)
         self.check_in(res['object_list'], 'id', ('000000002216', '000000000086'))
+        self.assertEqual(res['page_count'], 1)
+
+    def test_get_dataselectie_sbi_omschrijving(self):
+        q = {'page': 1, 'sbi_omschrijving': 'Brede scholengemeenschappen voor voortgezet onderwijs'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(len(res['object_list']), 1)
+        self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_parent(self):
