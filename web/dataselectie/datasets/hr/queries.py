@@ -23,30 +23,29 @@ def meta_q(query, add_aggs=False, add_count_aggs=True):
 
 def bld_agg() -> dict:
     agg_size = settings.AGGS_VALUE_SIZE
-    aggs = \
-        {'aggs':
-            {'vestiging':
-                {'children':
-                    {"type": "vestiging"},
-                 "aggs":
-                    {'hoofdcategorie':
-                        {'terms':
-                            {'field': 'hoofdcategorie',
-                             'size': agg_size,
-                             'order': {'_term': 'asc'}
-                            }
-                        },
-                        'subcategorie': {
-                            'terms': {
-                                'field': 'subcategorie',
-                                'size': agg_size,
-                                'order': {'_term': 'asc'}
-                            }
+    aggs = {
+        'aggs': {
+            'vestiging': {
+                'children': {"type": "vestiging"},
+                "aggs": {
+                    'hoofdcategorie': {
+                        'terms': {
+                            'field': 'hoofdcategorie',
+                            'size': agg_size,
+                            'order': {'_term': 'asc'}
+                        }
+                    },
+                    'subcategorie': {
+                        'terms': {
+                            'field': 'subcategorie',
+                            'size': agg_size,
+                            'order': {'_term': 'asc'}
                         }
                     }
                 }
             }
         }
+    }
 
     aggs['aggs'].update(bag_bld_agg()['aggs'])
     return aggs

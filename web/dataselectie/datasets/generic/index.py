@@ -103,7 +103,7 @@ class ImportIndexTask(object):
         numerator = settings.PARTIAL_IMPORT['numerator']
         denominator = settings.PARTIAL_IMPORT['denominator']
 
-        log.info("PART: %s OF %s" % (numerator+1, denominator))
+        log.info("PART: %s OF %s" % (numerator + 1, denominator))
 
         end_part = count = total = qs.count()
         chunk_size = batch_size
@@ -123,7 +123,7 @@ class ImportIndexTask(object):
         total_batches = int(chunk_size / batch_size)
         for i, start in enumerate(range(start_index, end_part, batch_size)):
             end = min(start + batch_size, end_part)
-            yield (i+1, total_batches+1, start, end, total, qs[start:end])
+            yield (i + 1, total_batches + 1, start, end, total, qs[start: end])
 
     def execute(self):
         """
@@ -152,16 +152,16 @@ class ImportIndexTask(object):
                 )
 
             log.info(progres_msg)
-            
+
             helpers.bulk(
                 client, (self.convert(obj).to_dict(include_meta=True)
                          for obj in qs),
                 raise_on_error=True,
                 refresh=True
             )
-            
+
             now = time.time()
             elapsed = now - start_time
             loop_time = now - loop_start
-        
+
         batch.statistics.report()

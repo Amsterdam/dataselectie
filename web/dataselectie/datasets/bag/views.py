@@ -58,18 +58,17 @@ class BagSearch(BagBase, TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][
-                                                 context['object_list'][i][
-                                                     'id']])
+                                             context['object_list'][i]['id']])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
 
     def Send_Response(self, resp, response_kwargs):
         return HttpResponse(
-                rapidjson.dumps(resp),
-                content_type='application/json',
-                **response_kwargs
-            )
+            rapidjson.dumps(resp),
+            content_type='application/json',
+            **response_kwargs
+        )
 
 
 class BagCSV(BagBase, CSVExportView):

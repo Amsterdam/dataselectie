@@ -7,28 +7,29 @@ def dataselectiehrfactory(vbobj, from_nr, to_nr):
     hrs = []
     for json in fixture_utils.JSON[from_nr:to_nr]:
         id = json['vestigingsnummer']
-        hrdoc = models.DataSelectie.objects.get_or_create(id=id, api_json = json,
-                                                          bag_numid=vbobj.landelijk_id, bag_vbid = vbobj.openbare_ruimte_id)
+        hrdoc = models.DataSelectie.objects.get_or_create(
+            id=id, api_json=json, bag_numid=vbobj.landelijk_id, bag_vbid=vbobj.openbare_ruimte_id)
         hrs.append(hrdoc)
     return hrs
 
 
 def dataselectiesbicodefactory():
     hc = (
-            ("22272_12", "handel, vervoer, opslag"),
-            ("22273_12", "productie, installatie, reparatie"),
-            ("22274_12", "bouw"),
-            ("22275_12", "landbouw"),
-            ("22276_12", "horeca"),
-            ("22277_12", "informatie, telecommunicatie"),
-            ("22278_12", "financiële dienstverlening,verhuur van roerend en onroerend goed"),
-            ("22279_12", "zakelijke dienstverlening"),
-            ("22280_12", "overheid, onderwijs, zorg"),
-            ("22281_12", "cultuur, sport, recreatie"),
-            ("22282_12", "persoonlijke dienstverlening"),
-            ("22283_12", "overige niet hierboven genoemd")
+        ("22272_12", "handel, vervoer, opslag"),
+        ("22273_12", "productie, installatie, reparatie"),
+        ("22274_12", "bouw"),
+        ("22275_12", "landbouw"),
+        ("22276_12", "horeca"),
+        ("22277_12", "informatie, telecommunicatie"),
+        ("22278_12", "financiële dienstverlening,verhuur van roerend en onroerend goed"),
+        ("22279_12", "zakelijke dienstverlening"),
+        ("22280_12", "overheid, onderwijs, zorg"),
+        ("22281_12", "cultuur, sport, recreatie"),
+        ("22282_12", "persoonlijke dienstverlening"),
+        ("22283_12", "overige niet hierboven genoemd")
     )
-    for c,o in hc:
+
+    for c, o in hc:
         m = models.CBS_sbi_hoofdcat(c, o)
         m.save()
 
@@ -98,7 +99,8 @@ def dataselectiesbicodefactory():
         ("22283_12_22269_11", "idieële organisaties", "22283_12"),
         ("22283_12_22270_11", "hobbyclubs", "22283_12"),
         ("22283_12_22271_11", "overige", "22283_12")
-        )
+    )
+
     for c, o, r in sc:
         m = models.CBS_sbi_subcat(c, o, r)
         m.save()

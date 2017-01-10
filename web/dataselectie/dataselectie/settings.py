@@ -179,9 +179,9 @@ LOGGING = {
 
         # Log all unhandled exceptions
         'django.request': {
-                'handlers': ['console'],
-                'level': 'ERROR',
-                'propagate': False,
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
         },
     },
 }

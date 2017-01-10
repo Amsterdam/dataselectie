@@ -28,8 +28,7 @@ class RedenAfvoer(mixins.ImportStatusMixin,
 
 
 class RedenOpvoer(
-            mixins.ImportStatusMixin,
-            mixins.CodeOmschrijvingMixin, models.Model):
+        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Reden Opvoer"
@@ -37,8 +36,7 @@ class RedenOpvoer(
 
 
 class Eigendomsverhouding(
-            mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-            models.Model):
+        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Eigendomsverhouding"
@@ -46,8 +44,7 @@ class Eigendomsverhouding(
 
 
 class Financieringswijze(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Financieringswijze"
@@ -55,8 +52,7 @@ class Financieringswijze(
 
 
 class Ligging(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Ligging"
@@ -64,8 +60,7 @@ class Ligging(
 
 
 class Gebruik(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
+        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
     class Meta:
         managed = False
         verbose_name = "Gebruik"

@@ -53,4 +53,3 @@ class DataselectieExportTest(ESTestCase):
         res = res.split('\r\n')
         # 11 lines: headers + 10 items
         self.assertEqual(len(res), 11)
-

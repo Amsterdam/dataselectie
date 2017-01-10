@@ -246,26 +246,26 @@ def create_ligplaats_fixtures():
             id='03630000000111', landelijk_id='0363000000000111', status_id='33',
             _huisnummer=15, _huisletter='', _huisnummer_toevoeging='', buurt_id='2',
             geometrie=Polygon(
-                    (
-                        (0.0, 0.0),
-                        (0.0, 50.0),
-                        (50.0, 50.0),
-                        (50.0, 0.0),
-                        (0.0, 0.0)
-                    )
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
             )),
 
         models.Ligplaats.objects.get_or_create(
             id='03630000000112', landelijk_id='0363000000000112', status_id='33',
             _huisnummer=345, _huisletter='', _huisnummer_toevoeging='', buurt_id='3',
             geometrie=Polygon(
-                    (
-                        (0.0, 0.0),
-                        (0.0, 50.0),
-                        (50.0, 50.0),
-                        (50.0, 0.0),
-                        (0.0, 0.0)
-                    )
+                (
+                    (0.0, 0.0),
+                    (0.0, 50.0),
+                    (50.0, 50.0),
+                    (50.0, 0.0),
+                    (0.0, 0.0)
+                )
             ))]
 
 

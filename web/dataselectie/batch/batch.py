@@ -99,7 +99,7 @@ class Statistics:
 
     def add(self, reporting_group, extra_info=None, total=True):
 
-        if not reporting_group in self.counters:
+        if reporting_group not in self.counters:
             self.counters[reporting_group] = 1
         else:
             self.counters[reporting_group] += 1
@@ -112,7 +112,7 @@ class Statistics:
 
         if total:
             self.totaal += 1
-            
+
     def report(self):
         for reporting_group, count in self.counters.items():
             print('{0: <50}: {1}'.format(reporting_group, count))
@@ -120,7 +120,7 @@ class Statistics:
         if self.totaal:
             print('{0: <50}: {1}'.format('* totaal', self.totaal))
             self.totaal = 0
-            
+
     def report_extra_info(self):
         for reporting_group, extra_info in self.extra_info.items():
             print('\n' + reporting_group)

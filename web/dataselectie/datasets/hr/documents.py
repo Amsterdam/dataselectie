@@ -40,7 +40,7 @@ def meta_from_hrdataselectie(obj):
     doc.bag_vbid = obj.bag_vbid
 
     numaan = get_nummeraanduiding(obj, doc)
-        
+
     if numaan:
         doc._parent = numaan.id                  # reference to the parent
 
@@ -53,7 +53,7 @@ def get_nummeraanduiding(obj, doc):
     if numaan:
         batch.statistics.add('HR verblijfsobjecten')
     else:
-        
+
         numaan = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
                                                  Q(ligplaats__landelijk_id=obj.bag_vbid) |
                                                  Q(standplaats__landelijk_id=obj.bag_vbid)).first()
@@ -65,7 +65,7 @@ def get_nummeraanduiding(obj, doc):
                 batch.statistics.add('HR Nummeraanduiding via bag_numid')
             else:
                 no_numaan_found(obj, doc.bedrijfsnaam)
-        
+
     return numaan
 
 
@@ -73,7 +73,7 @@ def no_numaan_found(obj, bedrijfsnaam):
     if 'amsterdam' in obj.api_json['bezoekadres_volledig_adres'].lower():
         batch.statistics.add('HR bezoekadressen in Amsterdam niet gevonden',
                              (obj.bag_numid, obj.id, bedrijfsnaam))
-    
+
     elif 'amsterdam' in obj.api_json['postadres_volledig_adres'].lower():
         batch.statistics.add('HR postadressen in Amsterdam niet gevonden',
                              (obj.bag_numid, obj.id, bedrijfsnaam))

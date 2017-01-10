@@ -41,14 +41,11 @@ class HrBase(object):
         """
         result = {}
 
-        result['sbicodes'] = ' \\ '.join(
-                [str(sbi['sbi_code']) for sbi in sbi_json])
+        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
 
-        result['hoofdcategorieen'] = ' \\ '.join(set([
-            hc['hoofdcategorie'] for hc in sbi_json]))
+        result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
 
-        result['subcategorieen'] = ' \\ '.join(set(
-            [sc['subcategorie'] for sc in sbi_json]))
+        result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
         return result
 
     def process_betrokkenen(self, betrokken_json: list) -> str:
@@ -81,17 +78,24 @@ class HrBase(object):
         if not mapped_filters:
             mapped_filters = {"match_all": {}}
 
-        filterquery = {"bool":
-                            {"must": [
-                                    {"term": {"_type": "bag_locatie"}},
-                                    {"has_child":
-                                        {"type": "vestiging",
-                                        "query": mapped_filters,
-                                        "inner_hits": {}
-                                        }
-                                    }]
-                            }
+        filterquery = {
+            "bool": {
+                "must": [
+                    {
+                        "term": {
+                            "_type": "bag_locatie"
                         }
+                    },
+                    {
+                        "has_child": {
+                            "type": "vestiging",
+                            "query": mapped_filters,
+                            "inner_hits": {}
+                        }
+                    }]
+            }
+        }
+
         if len(filters):
             filterquery["bool"]["must"] += filters
 
@@ -112,8 +116,7 @@ class HrSearch(HrBase, TableSearchView):
 
     def define_id(self, item, elastic_data):
         return item['inner_hits']['vestiging']['hits']['hits'][0]['_id']
-        # return elastic_data['extra_data']
-    
+
     def define_total(self, response):
         aggs = response.get('aggregations', {})
         if 'vestiging' in aggs:
@@ -220,7 +223,7 @@ class HrCSV(HrBase, CSVExportView):
         return result
 
     def _process_flatfields(self, json: dict) -> dict:
-        
+
         result = {}
         for hdr in self.headers_hr:
             hdr_from = hdr

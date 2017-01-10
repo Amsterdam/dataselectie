@@ -11,22 +11,16 @@ import time
 
 class Command(BaseCommand):
 
-    ordered = ['ds_bag']
-
-    indexes = {
-        'ds_bag': [bagbatch.BuildIndexDsBagJob, hrbatch.BuildIndexHrJob]
+    indexname = 'ds_bag'
+    datasetcommands = {
+        'bag': (bagbatch.BuildIndexDsBagJob,),
+        'hr': (hrbatch.BuildIndexHrJob,)
     }
 
-    hrindexes = {
-        'ds_bag': [hrbatch.BuildIndexHrJob]
-    }
-
-    bagindexes = {
-        'ds_bag': [hrbatch.BuildIndexHrJob]
-    }
+    ordered = ['bag', 'hr']
 
     recreate_indexes = {
-        'ds_bag': [genbatch.ReBuildIndexDsJob]
+        'bag': (genbatch.ReBuildIndexDsJob,)
     }
 
     def add_arguments(self, parser):
@@ -35,28 +29,14 @@ class Command(BaseCommand):
             nargs='*',
             default=self.ordered,
             help="Dataset to use, choose from {}".format(
-                ', '.join(self.indexes.keys())))
+                ', '.join(self.datasetcommands.keys())))
 
         parser.add_argument(
             '--build',
             action='store_true',
-            dest='build_all_indexes',
+            dest='build',
             default=False,
             help='Build all elastic indexes from postgres')
-
-        parser.add_argument(
-            '--buildhr',
-            action='store_true',
-            dest='build_hrindex',
-            default=False,
-            help='Build hr-index from postgres')
-
-        parser.add_argument(
-            '--buildbag',
-            action='store_true',
-            dest='build_bagindex',
-            default=False,
-            help='Build bag-index from postgres')
 
         parser.add_argument(
             '--recreate',
@@ -94,7 +74,7 @@ class Command(BaseCommand):
         start = time.time()
 
         for ds in dataset:
-            if ds not in self.indexes.keys():
+            if ds not in self.ordered:
                 self.stderr.write("Unkown dataset: {}".format(ds))
                 return
 
@@ -106,21 +86,14 @@ class Command(BaseCommand):
 
         for ds in sets:
             if options['recreate_indexes']:
-                for job_class in self.recreate_indexes[ds]:
-                    batch.execute(job_class())
+                if ds in self.recreate_indexes:
+                    for job_class in self.recreate_indexes[ds]:
+                            batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..
 
-            if options['build_all_indexes']:
-                for job_class in self.indexes[ds]:
-                    batch.execute(job_class(), )
-
-            if options['build_hrindex']:
-                for job_class in self.hrindexes[ds]:
-                    batch.execute(job_class(), )
-
-            if options['build_bagindex']:
-                for job_class in self.bagindexes[ds]:
+            if options['build']:
+                for job_class in self.datasetcommands[ds]:
                     batch.execute(job_class(), )
 
         self.stdout.write(

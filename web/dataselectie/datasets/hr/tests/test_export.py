@@ -51,12 +51,11 @@ class DataselectieExportTest(ESTestCase):
 
         self.assertEqual(len(row2), 32)
         checkvalues = ('Delflandplein', '15', 'C', '', '1012AB', 'Amsterdam', 'Centrum', 'A', '', '',
-                          'Burgwallen-Nieuwe Zijde', 'A01', 'Hemelrijk', 'Delflandplein', 'A01b', '', '',
-                          '0363000000000004', '', '', '0363000000000111', '', '', '50326457', 'Golf 10 V.O.F.',
-                          '000000000809', '4639', 'handel, vervoer, opslag', '',
-                          'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)',
-                          'Van Puffelen Vennoot', '')
-        
+                       'Burgwallen-Nieuwe Zijde', 'A01', 'Hemelrijk', 'Delflandplein', 'A01b', '', '',
+                       '0363000000000004', '', '', '0363000000000111', '', '', '50326457', 'Golf 10 V.O.F.',
+                       '000000000809', '4639', 'handel, vervoer, opslag', '',
+                       'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)',
+                       'Van Puffelen Vennoot', '')
+
         for idx, val in enumerate(row2):
             self.assertEqual(row2[idx], checkvalues[idx])
-            

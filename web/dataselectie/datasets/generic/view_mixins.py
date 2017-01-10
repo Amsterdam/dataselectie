@@ -368,11 +368,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def Send_Response(self, resp, response_kwargs):
 
-        return HttpResponse(
-                rapidjson.dumps(resp),
-                content_type='application/json',
-                **response_kwargs
-            )
+        return HttpResponse(rapidjson.dumps(resp),
+                            content_type='application/json',
+                            **response_kwargs)
     # Tableview methods
 
     def paginate(self, offset, q):

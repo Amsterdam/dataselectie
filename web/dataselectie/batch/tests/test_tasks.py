@@ -1,5 +1,6 @@
 from django.test import TransactionTestCase
 
+
 class TaskTestCase(TransactionTestCase):
 
     def setUp(self):

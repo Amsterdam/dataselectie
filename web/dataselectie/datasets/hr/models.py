@@ -1,5 +1,3 @@
-import rapidjson
-
 from django.contrib.gis.db import models
 from django.contrib.postgres.fields import JSONField
 
