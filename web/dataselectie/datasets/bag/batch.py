@@ -15,7 +15,7 @@ BAG_DOC_TYPES = (
 
 class IndexDsBagTask(index.ImportIndexTask):
     name = "index bag data"
-    index = settings.ELASTIC_INDICES['DS_BAG']
+    index = settings.ELASTIC_INDICES['DS_INDEX']
 
     queryset = models.Nummeraanduiding.objects.\
         prefetch_related('verblijfsobject').\

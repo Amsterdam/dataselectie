@@ -1,16 +1,21 @@
 # Python
-import logging
 # Packages
+from django.db.models import QuerySet
 # Project
 from datasets.hr import models
-from datasets.bag.views import API_FIELDS
+from datasets.bag.views import BAG_APIFIELDS
 from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
 from datasets.generic.view_mixins import CSVExportView, TableSearchView
 
-AGGKEYS = ('hoofdcategorie', 'subcategorie')
 
-log = logging.getLogger(__name__)
+HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
+                'huisletter', 'toevoeging', 'woonplaats',
+                'postcode']
+
+
+HR_KEYWORDS = ['subcategorie', 'hoofdcategorie', 'bedrijfsnaam',
+               'sbi_code', 'sbi_omschrijving']
 
 
 class HrBase(object):
@@ -18,19 +23,13 @@ class HrBase(object):
     Base class mixing for data settings
     """
     model = models.DataSelectie
-    index = 'DS_BAG'
+    index = 'DS_INDEX'
     db = 'hr'
     q_func = meta_q
-    extra_context_keywords = API_FIELDS
-
-    bezoekadres_context_keywords = ['_openbare_ruimte_naam', 'huisnummer',
-                                    'huisletter', 'toevoeging', 'woonplaats',
-                                    'postcode']
 
     raw_fields = []
     fixed_filters = []
-    keyword_mapping = ('subcategorie', 'hoofdcategorie', 'bedrijfsnaam', 'sbi_code', 'sbi_omschrijving')
-    keywords = keyword_mapping + extra_context_keywords
+    keywords = HR_KEYWORDS + BAG_APIFIELDS
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
@@ -108,31 +107,29 @@ class HrBase(object):
 
 
 class HrSearch(HrBase, TableSearchView):
-    def elastic_query(self, query):
+    def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
         res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
         return res
 
-    def process_subcategorie(self, value):
-        return [], models.CBS_sbi_subcat.filter(hoofdcategorie=value).all()
-
-    def define_id(self, item, elastic_data):
+    def define_id(self, item: dict, elastic_data: dict) -> str:
         return item['inner_hits']['vestiging']['hits']['hits'][0]['_id']
 
-    def define_total(self, response):
+    def define_total(self, response: dict):
         aggs = response.get('aggregations', {})
         if 'vestiging' in aggs:
             self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
 
-    def save_context_data(self, response, elastic_data=None, apifields=None):
+    def save_context_data(self, response: dict, apifields: list, elastic_data: dict=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        super().save_context_data(response, elastic_data, list(API_FIELDS) + self.bezoekadres_context_keywords)
+        super().save_context_data(response, apifields=BAG_APIFIELDS + HR_APIFIELDS,
+                                  elastic_data=elastic_data)
 
-    def update_context_data(self, context):
+    def update_context_data(self, context: dict) -> dict:
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
         # moving the jsonapi info one level down
         ignore_list = ('geometrie', )
@@ -158,7 +155,7 @@ class HrSearch(HrBase, TableSearchView):
         context['aggs_list'] = self.extra_context_data['aggs_list']
         return context
 
-    def flatten(self, context_data):
+    def flatten(self, context_data: dict):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
         del context_data['sbi_codes']
         context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
@@ -166,14 +163,23 @@ class HrSearch(HrBase, TableSearchView):
     def fill_ids(self, response: dict, elastic_data: dict) -> dict:
         # Primary key from inner_Hits
         for hit in response['hits']['hits']:
-            self.fill_item_ids(elastic_data, hit)
+            elastic_data = self.fill_item_ids(elastic_data, hit)
         return elastic_data
 
-    def fill_item_ids(self, elastic_data, hit):
+    def fill_item_ids(self, elastic_data: dict, hit: dict) -> dict:
         in_hits = hit['inner_hits']['vestiging']['hits']['hits']
         for ihit in in_hits:
             elastic_data['ids'].append(ihit['_id'][2:])
         elastic_data['extra_data'] = in_hits[0]['_parent']
+        return elastic_data
+
+    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
+        lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
+        if filter_keyword in HR_KEYWORDS:
+            child_filters.append(lfilter)
+        else:
+            filters.append(lfilter)
+        return filters, child_filters
 
 
 class HrCSV(HrBase, CSVExportView):
@@ -209,7 +215,7 @@ class HrCSV(HrBase, CSVExportView):
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
 
-    def _convert_to_dicts(self, qs):
+    def _convert_to_dicts(self, qs: QuerySet) -> list:
         """
         Overwriting the default conversion so that 1 to n data is
         flattened according to specs
@@ -238,12 +244,12 @@ class HrCSV(HrBase, CSVExportView):
                 pass
         return result
 
-    def paginate(self, offset, q):
+    def paginate(self, offset, q: dict) -> dict:
         if 'size' in q:
             del(q['size'])
         return q
 
-    def _fill_item(self, items, item):
+    def _fill_item(self, items: dict, item: dict) -> dict:
         """
         Function can be overwritten in the using class to allow for
         specific output (hr has multi outputs

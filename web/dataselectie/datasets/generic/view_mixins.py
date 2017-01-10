@@ -1,5 +1,6 @@
 # Python
 import codecs
+from typing import Generator
 import copy
 import csv
 import logging
@@ -8,6 +9,7 @@ import io
 # Packages
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
+from django.db.models import QuerySet
 from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django.views.generic import ListView, View
 from elasticsearch import Elasticsearch
@@ -23,7 +25,7 @@ log = logging.getLogger(__name__)
 # Views
 # =============================================================
 
-API_FIELDS = []
+BAG_APIFIELDS = []
 
 
 class BadReq(Exception):
@@ -118,12 +120,12 @@ class ElasticSearchMixin(object):
 
         entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
-        mapped_filters = []
+        child_filters = []
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
             if val is not None:     # parameter is entered
                 del entered_parms[entered_parms.index(filter_keyword)]
-                filters, mapped_filters = self.proc_parameters(filter_keyword, val, mapped_filters, filters)
+                filters, child_filters = self.proc_parameters(filter_keyword, val, child_filters, filters)
 
         if len(entered_parms):
             wrongparms = ','.join(entered_parms)
@@ -144,28 +146,24 @@ class ElasticSearchMixin(object):
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
 
-        query = self.build_el_query(filters, mapped_filters, query)
+        query = self.build_el_query(filters, child_filters, query)
 
         return self.handle_query_size_offset(query)
 
-    def proc_parameters(self, filter_keyword: str, val: str, mapped_filters: list, filters: list) -> (list, list):
-        lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
-        if filter_keyword in self.keyword_mapping:
-            mapped_filters.append(lfilter)
-        else:
-            filters.append(lfilter)
-        return filters, mapped_filters
+    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
+        filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
+        return filters, child_filters
 
-    def build_el_query(self, filters: list, mapped_filters: list, query: dict) -> dict:
+    def build_el_query(self, filters: list, child_filters: list, query: dict) -> dict:
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
         :param filters: Filters for the primary (parent) selection
-        :param mapped_filters: Filters for the secundary (child) selection
+        :param child_filters: Filters for the secundary (child) selection
         :param query: query to start with
         :return: query
         """
-        filters += mapped_filters
+        filters += child_filters
         query['query'] = {
             'bool': {
                 'must': [query['query']],
@@ -180,7 +178,7 @@ class ElasticSearchMixin(object):
             elastic_data['ids'].append(hit['_id'])
         return elastic_data
 
-    def handle_query_size_offset(self, query):
+    def handle_query_size_offset(self, query: dict) -> dict:
         """
         Handles query size and offseting
         By defualt it does nothing
@@ -207,14 +205,18 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
     """
     http_method_names = ['get', 'post']
     # To overwrite methods
-    index = 'DS_BAG'  # type: str
+    index = 'DS_INDEX'  # type: str
 
     def __init__(self):
         super(View, self).__init__()
+        self.request_parameters = None
         self.elastic = Elasticsearch(
             hosts=settings.ELASTIC_SEARCH_HOSTS, retry_on_timeout=True,
             refresh=True
         )
+
+    def elastic_query(self, query):
+        raise NotImplemented
 
     def dispatch(self, request, *args, **kwargs):
         self.request_parameters = getattr(request, request.method)
@@ -232,8 +234,6 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
         """
         Handling the request for goelocation information
         """
-        # Creating empty result set. Just in case
-        elastic_data = {'ids': [], 'filters': {}}
         # looking for a query
         query_string = self.request_parameters.get('query', None)
 
@@ -269,7 +269,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # The model class to use
     model = None
     # The name of the index to search in
-    index = 'DS_BAG'
+    index = 'DS_INDEX'
     # A set of optional keywords to filter the results further
     keywords = None
     # The name of the index to search in
@@ -286,6 +286,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
 
+    def elastic_query(self, query):
+        raise NotImplemented
+
     def __init__(self):
         super(ListView, self).__init__()
         self.elastic = Elasticsearch(
@@ -301,7 +304,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
             response = HttpResponseBadRequest(content=str(e))
         return response
 
-    def _stringify_item_value(self, value):
+    def _stringify_item_value(self, value) -> str:
         """
         Makes sure that the dict contains only strings for easy jsoning of the dict
         Following actions are taken:
@@ -336,7 +339,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
             return ''
 
     # Listview methods overloading
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         """
         This function is called by list view to generate the query set
         It is overwritten to first use elastic to retrieve the ids then
@@ -346,7 +349,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         qs = self.create_queryset(elastic_data)
         return qs
 
-    def render_to_response(self, context, **response_kwargs):
+    def render_to_response(self, context: dict, **response_kwargs) -> HttpResponse:
         # Checking if pretty and debug
         resp = {}
         resp['object_list'] = list(context['object_list'])
@@ -366,14 +369,14 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
         return self.Send_Response(resp, response_kwargs)
 
-    def Send_Response(self, resp, response_kwargs):
+    def Send_Response(self, resp: dict, response_kwargs) -> HttpResponse:
 
         return HttpResponse(rapidjson.dumps(resp),
                             content_type='application/json',
                             **response_kwargs)
     # Tableview methods
 
-    def paginate(self, offset, q):
+    def paginate(self, offset: int, q: dict) -> dict:
         # Sanity check to make sure we do not pass 10000
         if offset and settings.MAX_SEARCH_ITEMS:
             if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
@@ -409,11 +412,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # add aggregations
         self.add_aggs(response)
         # Enrich result data with neede info
-        self.save_context_data(response, elastic_data)
+        self.save_context_data(response, elastic_data=elastic_data, apifields=BAG_APIFIELDS)
 
         return elastic_data
 
-    def create_queryset(self, elastic_data):
+    def create_queryset(self, elastic_data: dict) -> QuerySet:
         """
         Generates a query set based on the ids retrieved from elastic
         """
@@ -428,7 +431,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
             # No ids where found
             return self.model.objects.none().values()
 
-    def handle_query_size_offset(self, query):
+    def handle_query_size_offset(self, query: dict) -> dict:
         """
         Handles query size and offseting
         """
@@ -447,7 +450,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 pass
         return self.paginate(offset, query)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         """
         Overwrite the context retrital
         """
@@ -455,12 +458,12 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = self.update_context_data(context)
         return context
 
-    def add_aggs(self, response):
+    def add_aggs(self, response: dict):
         aggs = response.get('aggregations', {})
         self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
 
-    def process_aggs(self, aggs):
+    def process_aggs(self, aggs: dict) -> dict:
         """
         Merging count with regular aggregation for a single level result
 
@@ -478,7 +481,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
-    def save_context_data(self, response, elastic_data=None, apifields=None):
+    def save_context_data(self, response: dict, apifields: list, elastic_data: dict=None):
         """
         Can be used by the subclass to save extra data to be used
         later to correct context data
@@ -486,20 +489,18 @@ class TableSearchView(ElasticSearchMixin, ListView):
         Parameter:
         response - the elastic response dict
         """
-        if not apifields:
-            apifields = API_FIELDS
 
         if 'items' not in self.extra_context_data:
             self.extra_context_data = {'items': {}}
 
         for item in response['hits']['hits']:
-            id = self.define_id(item, elastic_data)
-            self.extra_context_data['items'][id] = {}
-            self.add_api_fields(apifields, item, id)
+            el_id = self.define_id(item, elastic_data)
+            self.extra_context_data['items'][el_id] = {}
+            self.add_api_fields(apifields, item, el_id)
 
         self.define_total(response)
 
-    def add_api_fields(self, apifields, item, id):
+    def add_api_fields(self, apifields: list, item: dict, id: str):
         for field in apifields:
             try:
                 self.extra_context_data['items'][id][field] = \
@@ -513,12 +514,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         return context
 
-    def define_id(self, item, elastic_data):
+    def define_id(self, item: dict, elastic_data: dict) -> str:
         return item['_id']
 
-    def define_total(self, response):
+    def define_total(self, response: dict):
         self.extra_context_data['total'] = response['hits']['total']
-        return self.extra_context_data['total']
 
 
 class CSVExportView(TableSearchView):
@@ -536,10 +536,9 @@ class CSVExportView(TableSearchView):
         """
         Overwrite the context retrival
         """
-        context = super(TableSearchView, self).get_context_data(**kwargs)
-        return context
+        return super(TableSearchView, self).get_context_data(**kwargs)
 
-    def get_queryset(self):
+    def get_queryset(self) -> Generator:
         """
         Instead of an actual queryset,
         it returns an elastic scroll api generator
@@ -557,7 +556,7 @@ class CSVExportView(TableSearchView):
             self.elastic, query=query,
             index=settings.ELASTIC_INDICES[self.index])
 
-    def result_generator(self, es_generator, batch_size=100):
+    def result_generator(self, es_generator: Generator, batch_size: int=100):
         """
         Generate the result set for the CSV eport
         """
@@ -610,7 +609,7 @@ class CSVExportView(TableSearchView):
             # Stop the run, if end is reached
             more = len(items) == batch_size
 
-    def _model_to_dict(self, item: Nummeraanduiding):
+    def _model_to_dict(self, item: Nummeraanduiding) -> dict:
         """
         Converts a django model to a dict.
         It does not do a deep conversion
@@ -625,7 +624,7 @@ class CSVExportView(TableSearchView):
                 data[field.name] = field.value_from_object(item)
         return data
 
-    def _convert_to_dicts(self, qs):
+    def _convert_to_dicts(self, qs) -> list:
         """
         Converts every item in the queryset to a dict
         with property name as key and property value as value
@@ -634,7 +633,7 @@ class CSVExportView(TableSearchView):
         """
         return [self._model_to_dict(d) for d in qs]
 
-    def _combine_data(self, data, es):
+    def _combine_data(self, data: list, es: dict) -> list:
         """
         Combines the elastic data with the
         data retrieved from the query

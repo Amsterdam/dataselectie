@@ -77,7 +77,7 @@ class NummeraanduidingMeta(es.DocType):
 
     class Meta:
         doc_type = 'bag_locatie'
-        index = settings.ELASTIC_INDICES['DS_BAG']
+        index = settings.ELASTIC_INDICES['DS_INDEX']
         all = es.MetaField(enabled=False)
 
 

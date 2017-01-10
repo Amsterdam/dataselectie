@@ -15,12 +15,12 @@ DOC_TYPES = (
 
 
 class DeleteDsIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['DS_BAG']
+    index = settings.ELASTIC_INDICES['DS_INDEX']
     doc_types = DOC_TYPES
 
 
 class RebuildDocTask(index.CreateDocTypeTask):
-    index = settings.ELASTIC_INDICES['DS_BAG']
+    index = settings.ELASTIC_INDICES['DS_INDEX']
     doc_types = DOC_TYPES
 
 

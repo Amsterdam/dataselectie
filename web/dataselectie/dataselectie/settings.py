@@ -14,6 +14,7 @@ import os
 import re
 import sys
 
+from typing import List
 
 TESTING = 'test' in sys.argv
 
@@ -195,7 +196,7 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', '9200'))]
 
 ELASTIC_INDICES = {
-    'DS_BAG': 'ds_bag'
+    'DS_INDEX': 'ds_index'
 }
 
 MAX_SEARCH_ITEMS = 10000

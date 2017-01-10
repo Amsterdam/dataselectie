@@ -6,6 +6,7 @@ from django.conf import settings
 from django.db.models import Q
 # Project
 from ..bag.models import Nummeraanduiding
+from ..hr.models import DataSelectie
 from batch import batch
 
 log = logging.getLogger(__name__)
@@ -28,10 +29,10 @@ class VestigingenMeta(es.DocType):
     class Meta:
         doc_type = 'vestiging'
         parent = es.MetaField(type='bag_locatie')
-        index = settings.ELASTIC_INDICES['DS_BAG']
+        index = settings.ELASTIC_INDICES['DS_INDEX']
 
 
-def meta_from_hrdataselectie(obj):
+def meta_from_hrdataselectie(obj: DataSelectie) -> VestigingenMeta:
     doc = VestigingenMeta(_id="HR" + obj.id)      # HR is added to prevent id collisions
     doc.hoofdcategorie = [sbi['hoofdcategorie'] for sbi in obj.api_json['sbi_codes']]
     doc.subcategorie = [sbi['subcategorie'] for sbi in obj.api_json['sbi_codes']]
@@ -41,37 +42,37 @@ def meta_from_hrdataselectie(obj):
     doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid
 
-    numaan = get_nummeraanduiding(obj, doc)
+    nummeraanduiding = get_nummeraanduiding(obj, doc)
 
-    if numaan:
-        doc._parent = numaan.id                  # reference to the parent
+    if nummeraanduiding:
+        doc._parent = nummeraanduiding.id                  # reference to the parent
 
     return doc
 
 
-def get_nummeraanduiding(obj, doc):
-    numaan = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
-                                             Q(verblijfsobject__landelijk_id=obj.bag_vbid)).first()
-    if numaan:
+def get_nummeraanduiding(obj: DataSelectie, doc: VestigingenMeta) -> Nummeraanduiding:
+    nummeraanduiding = Nummeraanduiding.objects.filter(hoofdadres=True,
+                                                       verblijfsobject__landelijk_id=obj.bag_vbid).first()
+    if nummeraanduiding:
         batch.statistics.add('HR verblijfsobjecten')
     else:
 
-        numaan = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
-                                                 Q(ligplaats__landelijk_id=obj.bag_vbid) |
-                                                 Q(standplaats__landelijk_id=obj.bag_vbid)).first()
-        if numaan:
+        nummeraanduiding = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
+                                                           Q(ligplaats__landelijk_id=obj.bag_vbid) |
+                                                           Q(standplaats__landelijk_id=obj.bag_vbid)).first()
+        if nummeraanduiding:
             batch.statistics.add('HR ligplaatsen/standplaatsen')
         else:
-            numaan = Nummeraanduiding.objects.filter(landelijk_id=obj.bag_numid).first()
-            if numaan:
+            nummeraanduiding = Nummeraanduiding.objects.filter(landelijk_id=obj.bag_numid).first()
+            if nummeraanduiding:
                 batch.statistics.add('HR Nummeraanduiding via bag_numid')
             else:
-                no_numaan_found(obj, doc.bedrijfsnaam)
+                no_nummeraanduiding_found(obj, doc.bedrijfsnaam)
 
-    return numaan
+    return nummeraanduiding
 
 
-def no_numaan_found(obj, bedrijfsnaam):
+def no_nummeraanduiding_found(obj: DataSelectie, bedrijfsnaam: es.String):
     if 'amsterdam' in obj.api_json['bezoekadres_volledig_adres'].lower():
         batch.statistics.add('HR bezoekadressen in Amsterdam niet gevonden',
                              (obj.bag_numid, obj.id, bedrijfsnaam))

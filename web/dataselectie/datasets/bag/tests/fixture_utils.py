@@ -309,8 +309,6 @@ def create_nummeraanduiding_fixtures():
     :return: a list of nummeraanduiding objects
     """
 
-    hr_factories.dataselectiesbicodefactory()
-
     create_gemeente_fixture()
     create_gebiedsgericht_werken_fixtures()
     create_grootstedelijk_werken_fixtures()

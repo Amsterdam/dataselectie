@@ -16,7 +16,7 @@ HR_DOC_TYPES = (
 
 class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
-    index = settings.ELASTIC_INDICES['DS_BAG']
+    index = settings.ELASTIC_INDICES['DS_INDEX']
 
     queryset = models.DataSelectie.objects
 

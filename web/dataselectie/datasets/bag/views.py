@@ -10,11 +10,11 @@ from datasets.generic.view_mixins import CSVExportView
 from datasets.generic.view_mixins import GeoLocationSearchView
 from datasets.generic.view_mixins import TableSearchView
 
-API_FIELDS = (
+BAG_APIFIELDS = [
     'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
     'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
     'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode',
-    'woonplaats')
+    'woonplaats']
 
 
 class BagBase(object):
@@ -22,7 +22,7 @@ class BagBase(object):
     Base class mixing for data settings
     """
     model = models.Nummeraanduiding
-    index = 'DS_BAG'
+    index = 'DS_INDEX'
     db = 'bag'
     q_func = meta_q
     keywords = (

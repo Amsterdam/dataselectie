@@ -11,7 +11,6 @@ import time
 
 class Command(BaseCommand):
 
-    indexname = 'ds_bag'
     datasetcommands = {
         'bag': (bagbatch.BuildIndexDsBagJob,),
         'hr': (hrbatch.BuildIndexHrJob,)
