@@ -213,6 +213,7 @@ class HrCSV(HrBase, CSVExportView):
         'Hoofdcategorie', 'SBI-omschrijving', 'Subcategorie', 'Naam eigenaar(en)', 'Rechtsvorm')
 
     def elastic_query(self, query):
+        print(meta_q(query, add_aggs=False))
         return meta_q(query, add_aggs=False)
 
     def _convert_to_dicts(self, qs: QuerySet) -> list:
@@ -220,6 +221,7 @@ class HrCSV(HrBase, CSVExportView):
         Overwriting the default conversion so that 1 to n data is
         flattened according to specs
         """
+        print('Converting to dicts')
         result = []
         for row in qs:
             r_dict = self._process_flatfields(row.api_json)

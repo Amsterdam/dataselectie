@@ -103,5 +103,5 @@ el-backup:
   user: root
   command: >
     bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-            && curl -X PUT http://el:9200/_snapshot/backup/ds_bag?wait_for_completion=true -d '{ \"indices\": \"ds_bag\" }' \
+            && curl -X PUT http://el:9200/_snapshot/backup/ds_index?wait_for_completion=true -d '{ \"indices\": \"ds_index\" }' \
             && chown -R 997:997 /tmp/backups"

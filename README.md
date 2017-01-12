@@ -31,7 +31,7 @@ $ docker-compose exec database_BAG update-db.sh atlas
 $ docker-compose exec database_HR update-db.sh handelsregister
 $ docker-compose exec dataselectie python manage.py migrate
 $ docker-compose exec elasticsearch update-el.sh atlas bag brk nummeraanduiding
-$ docker-compose exec elasticsearch update-el.sh ds_bag ds_bag
+$ docker-compose exec elasticsearch update-el.sh ds_index ds_index
 ```
 
 `Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim twee uur in beslag neemt`

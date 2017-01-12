@@ -665,6 +665,7 @@ class CSVExportView(TableSearchView):
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         # Streaming!
+        print('Streaming')
         gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \
