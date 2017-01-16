@@ -30,6 +30,7 @@ class HrBase(object):
     raw_fields = []
     fixed_filters = []
     keywords = HR_KEYWORDS + BAG_APIFIELDS
+    apifields = BAG_APIFIELDS + HR_APIFIELDS
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
@@ -74,6 +75,8 @@ class HrBase(object):
         Adds innerhits to the query and other selection criteria
 
         :param filters:
+        :param mapped_filters: Filters that are mapped to the child
+        :param query: The query to be executed
         :return:
         """
 
@@ -121,13 +124,12 @@ class HrSearch(HrBase, TableSearchView):
         if 'vestiging' in aggs:
             self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
 
-    def save_context_data(self, response: dict, apifields: list, elastic_data: dict=None):
+    def save_context_data(self, response: dict, elastic_data: dict=None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
         """
-        super().save_context_data(response, apifields=BAG_APIFIELDS + HR_APIFIELDS,
-                                  elastic_data=elastic_data)
+        super().save_context_data(response, elastic_data=elastic_data)
 
     def update_context_data(self, context: dict) -> dict:
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
@@ -213,7 +215,6 @@ class HrCSV(HrBase, CSVExportView):
         'Hoofdcategorie', 'SBI-omschrijving', 'Subcategorie', 'Naam eigenaar(en)', 'Rechtsvorm')
 
     def elastic_query(self, query):
-        print(meta_q(query, add_aggs=False))
         return meta_q(query, add_aggs=False)
 
     def _convert_to_dicts(self, qs: QuerySet) -> list:
@@ -221,14 +222,12 @@ class HrCSV(HrBase, CSVExportView):
         Overwriting the default conversion so that 1 to n data is
         flattened according to specs
         """
-        print('Converting to dicts')
         result = []
-        for row in qs:
+        for nr, row in enumerate(qs):
             r_dict = self._process_flatfields(row.api_json)
             r_dict['id'] = row.id
             r_dict.update(self.process_sbi_codes(row.api_json['sbi_codes']))
             r_dict['betrokkenen'] = self.process_betrokkenen(row.api_json['betrokkenen'])
-
             result.append(r_dict)
 
         return result

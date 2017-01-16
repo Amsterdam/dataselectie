@@ -16,8 +16,7 @@ mkdir -p ${DIR}/backups
 
 dc build --pull
 
-dc up -d database_BAG
-dc up -d database_HR
+dc up -d database_BAG database_HR
 
 sleep 14 # waiting for postgres to start
 

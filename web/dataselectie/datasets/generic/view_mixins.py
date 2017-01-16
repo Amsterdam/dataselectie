@@ -282,6 +282,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     keyword_mapping = {}
     # context data saved
     extra_context_data = {'items': {}}
+    # apifields
+    apifields = []
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
@@ -412,7 +414,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # add aggregations
         self.add_aggs(response)
         # Enrich result data with neede info
-        self.save_context_data(response, elastic_data=elastic_data, apifields=BAG_APIFIELDS)
+        self.save_context_data(response, elastic_data=elastic_data)
 
         return elastic_data
 
@@ -463,6 +465,14 @@ class TableSearchView(ElasticSearchMixin, ListView):
         self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
 
+    def add_api_fields(self, item: dict, id: str):
+        for field in self.apifields:
+            try:
+                self.extra_context_data['items'][id][field] = \
+                    item['_source'][field]
+            except:
+                self.extra_context_data['items'][id][field] = None
+
     def process_aggs(self, aggs: dict) -> dict:
         """
         Merging count with regular aggregation for a single level result
@@ -481,7 +491,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
-    def save_context_data(self, response: dict, apifields: list, elastic_data: dict=None):
+    def save_context_data(self, response: dict, elastic_data: dict=None):
         """
         Can be used by the subclass to save extra data to be used
         later to correct context data
@@ -496,17 +506,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
         for item in response['hits']['hits']:
             el_id = self.define_id(item, elastic_data)
             self.extra_context_data['items'][el_id] = {}
-            self.add_api_fields(apifields, item, el_id)
+            self.add_api_fields(item, el_id)
 
         self.define_total(response)
-
-    def add_api_fields(self, apifields: list, item: dict, id: str):
-        for field in apifields:
-            try:
-                self.extra_context_data['items'][id][field] = \
-                    item['_source'][field]
-            except:
-                self.extra_context_data['items'][id][field] = None
 
     def update_context_data(self, context):
         """
@@ -515,6 +517,12 @@ class TableSearchView(ElasticSearchMixin, ListView):
         return context
 
     def define_id(self, item: dict, elastic_data: dict) -> str:
+        """
+        Define the id that is used to retrieve the extra context data
+        :param item:
+        :param elastic_data:
+        :return: id
+        """
         return item['_id']
 
     def define_total(self, response: dict):
@@ -531,12 +539,6 @@ class CSVExportView(TableSearchView):
     headers = []
     # The pretty version of the headers
     pretty_headers = []
-
-    def get_context_data(self, **kwargs):
-        """
-        Overwrite the context retrival
-        """
-        return super(TableSearchView, self).get_context_data(**kwargs)
 
     def get_queryset(self) -> Generator:
         """
@@ -581,18 +583,20 @@ class CSVExportView(TableSearchView):
         writer.writerow(header_dict)
         yield read_and_empty_buffer()
 
-        # Yielding results in batches
-        while more:
-            items = {}
 
+        # Yielding results in batches of batch_size
+        while more:
+
+            items = {}
             # Collecting items for batch
             for item in es_generator:
                 items = self._fill_item(items, item)
                 # Breaking on batch size
-                if len(items) == batch_size:
+                if len(items) >= batch_size:
                     break
 
             # Retrieving the database data
+
             qs = self.model.objects.filter(id__in=list(items.keys()))
             qs = self._convert_to_dicts(qs)
 
@@ -607,7 +611,7 @@ class CSVExportView(TableSearchView):
             yield read_and_empty_buffer()
 
             # Stop the run, if end is reached
-            more = len(items) == batch_size
+            more = len(items) >= batch_size
 
     def _model_to_dict(self, item: Nummeraanduiding) -> dict:
         """
@@ -665,7 +669,6 @@ class CSVExportView(TableSearchView):
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         # Streaming!
-        print('Streaming')
         gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \
