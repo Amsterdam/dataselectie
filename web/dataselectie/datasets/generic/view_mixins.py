@@ -554,8 +554,7 @@ class CSVExportView(TableSearchView):
         # Returning the elastic generator
         return scan(
             self.elastic, query=query,
-            index=settings.ELASTIC_INDICES[self.index],
-            request_timeout=2)
+            index=settings.ELASTIC_INDICES[self.index])
 
     def result_generator(self, es_generator: Generator, batch_size: int=100):
         """
