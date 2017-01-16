@@ -554,7 +554,8 @@ class CSVExportView(TableSearchView):
         # Returning the elastic generator
         return scan(
             self.elastic, query=query,
-            index=settings.ELASTIC_INDICES[self.index])
+            index=settings.ELASTIC_INDICES[self.index],
+            request_timeout=2)
 
     def result_generator(self, es_generator: Generator, batch_size: int=100):
         """
@@ -665,7 +666,6 @@ class CSVExportView(TableSearchView):
     def render_to_response(self, context, **response_kwargs):
         # Returning a CSV
         # Streaming!
-        print('Streaming')
         gen = self.result_generator(context['object_list'])
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \
