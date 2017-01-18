@@ -146,6 +146,8 @@ class HrSearch(HrBase, TableSearchView):
         if 'vestiging' in aggs:
             aggs = super().process_aggs(aggs['vestiging'])
             aggs = self.includeagg(aggs)
+            if 'doc_count' in aggs:
+                del aggs['doc_count']
             self.extra_context_data['aggs_list'].update(aggs)
             del self.extra_context_data['aggs_list']['vestiging']
 
