@@ -590,7 +590,6 @@ class CSVExportView(TableSearchView):
         writer.writerow(header_dict)
         yield read_and_empty_buffer()
 
-
         # Yielding results in batches of batch_size
         while more:
 

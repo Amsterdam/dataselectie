@@ -18,7 +18,7 @@ def dataselectiehrfactory(vbobj, from_nr, to_nr):
     )
 
     for hcat_id, hcat_oms in hcat_rows:
-        hcr = models.CBS_sbi_hoofdcat( hcat=hcat_id, hoofdcategorie=hcat_oms)
+        hcr = models.CBS_sbi_hoofdcat(hcat=hcat_id, hoofdcategorie=hcat_oms)
         hcr.save()
 
     subcat_rows = (
@@ -56,5 +56,5 @@ def dataselectiehrfactory(vbobj, from_nr, to_nr):
         ("85314", "Brede scholengemeenschappen voor voortgezet onderwijs", "22280_12_22257_11")
     )
     for sbicode, sbi_oms, subcat_id in sbicode_rows:
-        c = models.CBS_sbicodes(sbi_code=sbicode, sub_sub_categorie = sbi_oms, scat_id=subcat_id)
+        c = models.CBS_sbicodes(sbi_code=sbicode, sub_sub_categorie=sbi_oms, scat_id=subcat_id)
         c.save()

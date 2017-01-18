@@ -165,8 +165,8 @@ class HrSearch(HrBase, TableSearchView):
             self.selection += [hc[5:] for hc in selectedfilter if hc[0:5] == 'HCAT@']
         elif filter_keyword == 'sbi_omschrijving':
             selectedfilter = [val,
-                             self.sbi_sub_subcategorie_values[val]['subcategorie'],
-                             self.sbi_sub_subcategorie_values[val]['hoofdcategorie']]
+                              self.sbi_sub_subcategorie_values[val]['subcategorie'],
+                              self.sbi_sub_subcategorie_values[val]['hoofdcategorie']]
             self.selection += selectedfilter
         return
 
@@ -198,9 +198,9 @@ class HrSearch(HrBase, TableSearchView):
             self.sbi_top_down_values[hoofdcat.hoofdcategorie] = {}
             for subcat in hoofdcat.cbs_sbi_subcat_set.all():
                 self.sbi_top_down_values[hoofdcat.hoofdcategorie][subcat.subcategorie] = {}
-                self.sbi_subcategorie_values[subcat.subcategorie] = { "HCAT@" + hoofdcat.hoofdcategorie: {} }
+                self.sbi_subcategorie_values[subcat.subcategorie] = {"HCAT@" + hoofdcat.hoofdcategorie: {}}
                 for sbi in subcat.cbs_sbicodes_set.all():
-                    self.sbi_top_down_values [hoofdcat.hoofdcategorie][subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
+                    self.sbi_top_down_values[hoofdcat.hoofdcategorie][subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
                     self.sbi_subcategorie_values[subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
                     self.sbi_sub_subcategorie_values[sbi.sub_sub_categorie] = {
                         'sbi_code': sbi.sbi_code,
