@@ -121,6 +121,7 @@ class ElasticSearchMixin(object):
         entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
         child_filters = []
+        self.selection = []         # cash bashing!
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
             if val is not None:     # parameter is entered

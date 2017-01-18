@@ -2,6 +2,7 @@
 # Packages
 from django.db.models import QuerySet
 from collections import OrderedDict as od
+from itertools import chain
 import copy
 # Project
 from datasets.hr import models
@@ -127,6 +128,9 @@ class HrBase(object):
 
 class HrSearch(HrBase, TableSearchView):
     selection = []
+    sbi_sub_subcategorie_values = []
+    filtercategories = ('hoofdcategorie', 'subcategorie', 'sbi_omschrijving')
+    mapfiltercats = {'sbi_omschrijving': 'sub_sub_categorie'}
 
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
@@ -146,28 +150,29 @@ class HrSearch(HrBase, TableSearchView):
             del self.extra_context_data['aggs_list']['vestiging']
 
     def filterkeys(self, filter_keyword: str, val: str):
-        if not self.sbi_top_down_values:
+        """
+        Based on the entered filter keys a list is constructed containing
+        the descriptions of the categories, subcategories and sbi_description
+
+        :param filter_keyword:
+        :param val: the value to use in the select
+        :return:
+        """
+
+        if not self.sbi_sub_subcategorie_values:
             self.build_sbi_filterkeys()
 
-        if filter_keyword == 'hoofdcategorie':
-            selectedfilter = list(self.sbi_top_down_values[val].keys())
-            for key in self.sbi_top_down_values[val].keys():
-                selectedfilter += list(self.sbi_top_down_values[val][key].keys())
-            self.selection += [val] + selectedfilter
-        elif filter_keyword == 'subcategorie':
-            selectedfilter = list(self.sbi_subcategorie_values[val].keys()) + [val]
-            for key in list(self.sbi_subcategorie_values[val].keys()):
-                if isinstance(self.sbi_subcategorie_values[val][key], str):
-                    selectedfilter.append(self.sbi_subcategorie_values[val][key])
-                else:
-                    selectedfilter += list(self.sbi_subcategorie_values[val][key].keys())
-            self.selection += copy.copy(selectedfilter)
-            self.selection += [hc[5:] for hc in selectedfilter if hc[0:5] == 'HCAT@']
-        elif filter_keyword == 'sbi_omschrijving':
-            selectedfilter = [val,
-                              self.sbi_sub_subcategorie_values[val]['subcategorie'],
-                              self.sbi_sub_subcategorie_values[val]['hoofdcategorie']]
-            self.selection += selectedfilter
+        if filter_keyword in self.filtercategories:
+            try:
+                fk = self.mapfiltercats[filter_keyword]
+            except KeyError:
+                fk = filter_keyword
+            ab = [[s['hoofdcategorie'], s['subcategorie'], s['sub_sub_categorie']]
+                 for s in self.sbi_sub_subcategorie_values if s[fk] == val]
+            self.selection += chain.from_iterable(ab)
+
+        self.selection = list(set(self.selection))
+
         return
 
     def includeagg(self, aggs: dict) -> dict:
@@ -179,13 +184,12 @@ class HrSearch(HrBase, TableSearchView):
         """
 
         if len(self.selection):
-            for fieldkey in ('hoofdcategorie', 'subcategorie', 'sbi_omschrijving'):
+            for fieldkey in self.filtercategories:
                 delete_row = [idx for idx, b in enumerate(aggs[fieldkey]['buckets']) if not b['key'] in self.selection]
                 delete_row.reverse()
                 for idx in delete_row:
                     del aggs[fieldkey]['buckets'][idx]
 
-        self.selection = []
         return aggs
 
     def build_sbi_filterkeys(self):
@@ -194,20 +198,20 @@ class HrSearch(HrBase, TableSearchView):
         parameters (aggs)
         :return:
         """
+        self.sbi_sub_subcategorie_values = []
         for hoofdcat in models.CBS_sbi_hoofdcat.objects.select_related():
-            self.sbi_top_down_values[hoofdcat.hoofdcategorie] = {}
             for subcat in hoofdcat.cbs_sbi_subcat_set.all():
-                self.sbi_top_down_values[hoofdcat.hoofdcategorie][subcat.subcategorie] = {}
-                self.sbi_subcategorie_values[subcat.subcategorie] = {"HCAT@" + hoofdcat.hoofdcategorie: {}}
                 for sbi in subcat.cbs_sbicodes_set.all():
-                    self.sbi_top_down_values[hoofdcat.hoofdcategorie][subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
-                    self.sbi_subcategorie_values[subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
-                    self.sbi_sub_subcategorie_values[sbi.sub_sub_categorie] = {
+                    self.sbi_sub_subcategorie_values.append(
+                        {
                         'sbi_code': sbi.sbi_code,
                         'hoofdcategorie': hoofdcat.hoofdcategorie,
+                        'sub_sub_categorie': sbi.sub_sub_categorie,
                         'subcategorie': subcat.subcategorie,
                         'hcat': hoofdcat.hcat,
-                        'scat': subcat.scat}
+                        'scat': subcat.scat
+                        })
+
 
     def save_context_data(self, response: dict, elastic_data: dict = None):
         """
