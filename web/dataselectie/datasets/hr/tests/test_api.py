@@ -63,7 +63,7 @@ class DataselectieApiTest(ESTestCase):
                     'overheid, onderwijs, zorg': 1,
                     'zakelijke dienstverlening': 1}
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
-        self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 5)
+        self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 1)
         hoofdcategorieen = [(k['key'], k['doc_count']) for k in res['aggs_list']['hoofdcategorie']['buckets']]
         for cat, count in hoofdcategorieen:
             self.assertEqual(testcats[cat], count)
@@ -107,7 +107,7 @@ class DataselectieApiTest(ESTestCase):
                          'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
                          'stadsdeel_naam', 'stadsdeel_code', 'woonplaats',
                          '_openbare_ruimte_naam', 'huisnummer',
-                         'huisletter', 'toevoeging', 'postcode', 'sbi_omschrijving')
+                         'huisletter', 'huisnummer_toevoeging', 'postcode', 'sbi_omschrijving')
         q = {'page': 1, 'sbi_code': '85314'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)

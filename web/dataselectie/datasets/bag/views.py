@@ -28,7 +28,8 @@ class BagBase(object):
     keywords = (
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode')
+        'stadsdeel_naam', 'stadsdeel_code', 'naam', 'postcode',
+        '_openbare_ruimte_naam')
     raw_fields = ['naam', '_openbare_ruimte_naam']
     geo_fields = {
         'shape': ['centroid', 'geo_polygon'],

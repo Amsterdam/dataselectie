@@ -126,6 +126,7 @@ class ElasticSearchMixin(object):
             if val is not None:     # parameter is entered
                 del entered_parms[entered_parms.index(filter_keyword)]
                 filters, child_filters = self.proc_parameters(filter_keyword, val, child_filters, filters)
+                self.filterkeys(filter_keyword, val)
 
         if len(entered_parms):
             wrongparms = ','.join(entered_parms)
@@ -149,6 +150,9 @@ class ElasticSearchMixin(object):
         query = self.build_el_query(filters, child_filters, query)
 
         return self.handle_query_size_offset(query)
+
+    def filterkeys(self, filter_keyword: str, val: str):
+        pass
 
     def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
         filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
@@ -464,6 +468,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
         aggs = response.get('aggregations', {})
         self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
+
+    def includeagg(self, aggs: dict) -> dict:
+        return aggs
 
     def add_api_fields(self, item: dict, id: str):
         for field in self.apifields:

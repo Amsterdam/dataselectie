@@ -1,6 +1,8 @@
 # Python
 # Packages
 from django.db.models import QuerySet
+from collections import OrderedDict as od
+import copy
 # Project
 from datasets.hr import models
 from datasets.bag.views import BAG_APIFIELDS
@@ -8,11 +10,9 @@ from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
 from datasets.generic.view_mixins import CSVExportView, TableSearchView
 
-
 HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
-                'huisletter', 'toevoeging', 'woonplaats',
+                'huisletter', 'huisnummer_toevoeging', 'woonplaats',
                 'postcode']
-
 
 HR_KEYWORDS = ['subcategorie', 'hoofdcategorie', 'bedrijfsnaam',
                'sbi_code', 'sbi_omschrijving']
@@ -32,6 +32,9 @@ class HrBase(object):
     keywords = HR_KEYWORDS + BAG_APIFIELDS
     apifields = BAG_APIFIELDS + HR_APIFIELDS
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
+    sbi_top_down_values = {}
+    sbi_subcategorie_values = {}
+    sbi_sub_subcategorie_values = {}
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
         """
@@ -43,13 +46,26 @@ class HrBase(object):
 
         result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
 
-        result['hoofdcategorieen'] = ' \\ '.join(set([hc['hoofdcategorie'] for hc in sbi_json]))
+        result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(sbi_json, 'hoofdcategorie'))
 
-        result['subcategorieen'] = ' \\ '.join(set([sc['subcategorie'] for sc in sbi_json]))
+        result['subcategorieen'] = ' \\ '.join(self.unique_value(sbi_json, 'subcategorie'))
 
-        result['sbi_omschrijving'] = ' \\ '.join(set([sc['sub_sub_categorie'] for sc in sbi_json]))
+        result['sbi_omschrijving'] = ' \\ '.join(self.unique_value(sbi_json, 'sub_sub_categorie'))
 
         return result
+
+    def unique_value(self, sbi_json, fieldname):
+        """
+        Make sure the original order is retained!
+
+        :param sbi_json:
+        :param fieldname:
+        :return:
+        """
+        hcunique = od()
+        for hc in sbi_json:
+            hcunique[hc[fieldname]] = True
+        return hcunique.keys()
 
     def process_betrokkenen(self, betrokken_json: list) -> str:
         """
@@ -110,6 +126,8 @@ class HrBase(object):
 
 
 class HrSearch(HrBase, TableSearchView):
+    selection = []
+
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
@@ -122,9 +140,76 @@ class HrSearch(HrBase, TableSearchView):
     def define_total(self, response: dict):
         aggs = response.get('aggregations', {})
         if 'vestiging' in aggs:
-            self.extra_context_data['aggs_list'].update(super().process_aggs(aggs['vestiging']))
+            aggs = super().process_aggs(aggs['vestiging'])
+            aggs = self.includeagg(aggs)
+            self.extra_context_data['aggs_list'].update(aggs)
+            del self.extra_context_data['aggs_list']['vestiging']
 
-    def save_context_data(self, response: dict, elastic_data: dict=None):
+    def filterkeys(self, filter_keyword: str, val: str):
+        if not self.sbi_top_down_values:
+            self.build_sbi_filterkeys()
+
+        if filter_keyword == 'hoofdcategorie':
+            selectedfilter = list(self.sbi_top_down_values[val].keys())
+            for key in self.sbi_top_down_values[val].keys():
+                selectedfilter += list(self.sbi_top_down_values[val][key].keys())
+            self.selection += [val] + selectedfilter
+        elif filter_keyword == 'subcategorie':
+            selectedfilter = list(self.sbi_subcategorie_values[val].keys()) + [val]
+            for key in list(self.sbi_subcategorie_values[val].keys()):
+                if isinstance(self.sbi_subcategorie_values[val][key], str):
+                    selectedfilter.append(self.sbi_subcategorie_values[val][key])
+                else:
+                    selectedfilter += list(self.sbi_subcategorie_values[val][key].keys())
+            self.selection += copy.copy(selectedfilter)
+            self.selection += [hc[5:] for hc in selectedfilter if hc[0:5] == 'HCAT@']
+        elif filter_keyword == 'sbi_omschrijving':
+            selectedfilter = [val,
+                             self.sbi_sub_subcategorie_values[val]['subcategorie'],
+                             self.sbi_sub_subcategorie_values[val]['hoofdcategorie']]
+            self.selection += selectedfilter
+        return
+
+    def includeagg(self, aggs: dict) -> dict:
+        """
+        Correct results returned from elastic.
+
+        :param aggs:
+        :return: aggs
+        """
+
+        if len(self.selection):
+            for fieldkey in ('hoofdcategorie', 'subcategorie', 'sbi_omschrijving'):
+                delete_row = [idx for idx, b in enumerate(aggs[fieldkey]['buckets']) if not b['key'] in self.selection]
+                delete_row.reverse()
+                for idx in delete_row:
+                    del aggs[fieldkey]['buckets'][idx]
+
+        self.selection = []
+        return aggs
+
+    def build_sbi_filterkeys(self):
+        """
+        One time build of sbi codes to enable rapid check against
+        parameters (aggs)
+        :return:
+        """
+        for hoofdcat in models.CBS_sbi_hoofdcat.objects.select_related():
+            self.sbi_top_down_values[hoofdcat.hoofdcategorie] = {}
+            for subcat in hoofdcat.cbs_sbi_subcat_set.all():
+                self.sbi_top_down_values[hoofdcat.hoofdcategorie][subcat.subcategorie] = {}
+                self.sbi_subcategorie_values[subcat.subcategorie] = { "HCAT@" + hoofdcat.hoofdcategorie: {} }
+                for sbi in subcat.cbs_sbicodes_set.all():
+                    self.sbi_top_down_values [hoofdcat.hoofdcategorie][subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
+                    self.sbi_subcategorie_values[subcat.subcategorie][sbi.sub_sub_categorie] = sbi.sbi_code
+                    self.sbi_sub_subcategorie_values[sbi.sub_sub_categorie] = {
+                        'sbi_code': sbi.sbi_code,
+                        'hoofdcategorie': hoofdcat.hoofdcategorie,
+                        'subcategorie': subcat.subcategorie,
+                        'hcat': hoofdcat.hcat,
+                        'scat': subcat.scat}
+
+    def save_context_data(self, response: dict, elastic_data: dict = None):
         """
         Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
         later to enrich the results
@@ -134,7 +219,7 @@ class HrSearch(HrBase, TableSearchView):
     def update_context_data(self, context: dict) -> dict:
         # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
         # moving the jsonapi info one level down
-        ignore_list = ('geometrie', )
+        ignore_list = ('geometrie',)
         for i in range(len(context['object_list'])):
             for json_key, values in context['object_list'][i]['api_json'].items():
                 if json_key not in ignore_list:
