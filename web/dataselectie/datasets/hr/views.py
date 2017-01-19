@@ -28,7 +28,7 @@ class HrBase(object):
     db = 'hr'
     q_func = meta_q
 
-    raw_fields = []
+    raw_fields = ['naam', '_openbare_ruimte_naam']
     fixed_filters = []
     keywords = HR_KEYWORDS + BAG_APIFIELDS
     apifields = BAG_APIFIELDS + HR_APIFIELDS
