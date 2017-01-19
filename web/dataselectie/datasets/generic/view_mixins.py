@@ -51,6 +51,7 @@ class ElasticSearchMixin(object):
     default_search = 'term'
     allowed_parms = ('page', 'shape')
     request = None
+    selection = []
 
     def build_elastic_query(self, query):
         """
@@ -159,7 +160,8 @@ class ElasticSearchMixin(object):
         filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
         return filters, child_filters
 
-    def build_el_query(self, filters: list, child_filters: list, query: dict) -> dict:
+    @staticmethod
+    def build_el_query(filters: list, child_filters: list, query: dict) -> dict:
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
@@ -289,6 +291,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     extra_context_data = {'items': {}}
     # apifields
     apifields = []
+    # request parameters
+    request_parameters = None
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
@@ -311,7 +315,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
             response = HttpResponseBadRequest(content=str(e))
         return response
 
-    def _stringify_item_value(self, value) -> str:
+    @staticmethod
+    def _stringify_item_value(value) -> str:
         """
         Makes sure that the dict contains only strings for easy jsoning of the dict
         Following actions are taken:
@@ -358,8 +363,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def render_to_response(self, context: dict, **response_kwargs) -> HttpResponse:
         # Checking if pretty and debug
-        resp = {}
-        resp['object_list'] = list(context['object_list'])
+        resp = {'object_list': list(context['object_list'])}
         # Cleaning all but the objects and aggregations
         try:
             resp['aggs_list'] = context['aggs_list']
@@ -473,21 +477,22 @@ class TableSearchView(ElasticSearchMixin, ListView):
     def includeagg(self, aggs: dict) -> dict:
         return aggs
 
-    def add_api_fields(self, item: dict, id: str):
+    def add_api_fields(self, item: dict, id_value: str):
         for field in self.apifields:
             try:
-                self.extra_context_data['items'][id][field] = \
+                self.extra_context_data['items'][id_value][field] = \
                     item['_source'][field]
             except:
-                self.extra_context_data['items'][id][field] = None
+                self.extra_context_data['items'][id_value][field] = None
                 try:
                     getfield = getattr(self, 'process_' + field)
                 except AttributeError:
                     pass
                 else:
-                    self.extra_context_data['items'][id][field] = getfield(item['_source'])
+                    self.extra_context_data['items'][id_value][field] = getfield(item['_source'])
 
-    def process_aggs(self, aggs: dict) -> dict:
+    @staticmethod
+    def process_aggs(aggs: dict) -> dict:
         """
         Merging count with regular aggregation for a single level result
 
@@ -572,7 +577,8 @@ class CSVExportView(TableSearchView):
             self.elastic, query=query,
             index=settings.ELASTIC_INDICES[self.index])
 
-    def result_generator(self, es_generator: Generator, batch_size: int=100):
+    # TODO type es_generator
+    def result_generator(self, es_generator, batch_size: int=100):
         """
         Generate the result set for the CSV eport
         """
@@ -626,7 +632,8 @@ class CSVExportView(TableSearchView):
             # Stop the run, if end is reached
             more = len(items) >= batch_size
 
-    def _model_to_dict(self, item: Nummeraanduiding) -> dict:
+    @staticmethod
+    def _model_to_dict(item: Nummeraanduiding) -> dict:
         """
         Converts a django model to a dict.
         It does not do a deep conversion

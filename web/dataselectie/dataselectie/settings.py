@@ -76,7 +76,7 @@ ROOT_URLCONF = 'dataselectie.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['%s/datasets/generic/templates' % BASE_DIR],
+        'DIRS': ['{}/datasets/generic/templates'.format(BASE_DIR)],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [

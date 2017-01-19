@@ -51,7 +51,8 @@ class Command(BaseCommand):
             default=0,
             help='Build X/Y parts 1/3, 2/3, 3/3')
 
-    def set_partial_config(self, sets, options):
+    @staticmethod
+    def set_partial_config(options):
         """
         Do partial configuration
         """
@@ -81,7 +82,7 @@ class Command(BaseCommand):
 
         self.stdout.write("Working on {}".format(", ".join(sets)))
 
-        self.set_partial_config(sets, options)
+        self.set_partial_config(options)
 
         for ds in sets:
             if options['recreate_indexes']:

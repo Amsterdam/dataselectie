@@ -1,9 +1,8 @@
 # Python
 # Packages
 from django.db.models import QuerySet
-from collections import OrderedDict as od
+from collections import OrderedDict
 from itertools import chain
-import copy
 # Project
 from datasets.hr import models
 from datasets.bag.views import BAG_APIFIELDS
@@ -44,9 +43,9 @@ class HrBase(object):
         Eerst wordt de json gesorteerd, zodat die op volgorde van
         sbi_code wordt getoond.
         """
-        new_json = sorted(sbi_json, key=self.sort_on_sbicode)
+        new_json = sorted(sbi_json, key=lambda x: int(x['sbi_code']))
 
-        result = {}
+        result = dict()
 
         result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in new_json])
         result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'hoofdcategorie'))
@@ -55,10 +54,8 @@ class HrBase(object):
 
         return result
 
-    def sort_on_sbicode(self, json):
-        return int(json['sbi_code'])
-
-    def unique_value(self, sbi_json, fieldname):
+    @staticmethod
+    def unique_value(sbi_json, fieldname):
         """
         Make sure the original order is retained!
 
@@ -66,12 +63,13 @@ class HrBase(object):
         :param fieldname:
         :return:
         """
-        hcunique = od()
+        hcunique = OrderedDict()
         for hc in sbi_json:
             hcunique[hc[fieldname]] = True
         return hcunique.keys()
 
-    def process_betrokkenen(self, betrokken_json: list) -> str:
+    @staticmethod
+    def process_betrokkenen(betrokken_json: list) -> str:
         """
         Betrokkenen zijn binnen handelsregister zowel verantwoordelijk
         voor als ondergeschikt aan.
@@ -90,7 +88,8 @@ class HrBase(object):
 
         return result
 
-    def build_el_query(self, filters: list, mapped_filters: list, query: dict) -> dict:
+    @staticmethod
+    def build_el_query(filters: list, mapped_filters: list, query: dict) -> dict:
         """
         Adds innerhits to the query and other selection criteria
 
@@ -128,7 +127,8 @@ class HrBase(object):
 
         return query
 
-    def process_huisnummer_toevoeging(self, source):
+    @staticmethod
+    def process_huisnummer_toevoeging(source):
         """
         Sloop huisnummer van toevoeging
         :param source:
@@ -136,7 +136,7 @@ class HrBase(object):
         """
         if source['toevoeging']:
             hnummer_len = 0
-            if source['huisnummer'] :
+            if source['huisnummer']:
                 hnummer_len = len(str(source['huisnummer']))
                 if str(source['huisnummer']) != source['toevoeging'][0:hnummer_len]:
                     hnummer_len = 0
@@ -187,7 +187,7 @@ class HrSearch(HrBase, TableSearchView):
             except KeyError:
                 fk = filter_keyword
             ab = [[s['hoofdcategorie'], s['subcategorie'], s['sub_sub_categorie']]
-                 for s in self.sbi_sub_subcategorie_values if s[fk] == val]
+                  for s in self.sbi_sub_subcategorie_values if s[fk] == val]
             self.selection += chain.from_iterable(ab)
 
         self.selection = list(set(self.selection))
@@ -223,14 +223,13 @@ class HrSearch(HrBase, TableSearchView):
                 for sbi in subcat.cbs_sbicodes_set.all():
                     self.sbi_sub_subcategorie_values.append(
                         {
-                        'sbi_code': sbi.sbi_code,
-                        'hoofdcategorie': hoofdcat.hoofdcategorie,
-                        'sub_sub_categorie': sbi.sub_sub_categorie,
-                        'subcategorie': subcat.subcategorie,
-                        'hcat': hoofdcat.hcat,
-                        'scat': subcat.scat
+                            'sbi_code': sbi.sbi_code,
+                            'hoofdcategorie': hoofdcat.hoofdcategorie,
+                            'sub_sub_categorie': sbi.sub_sub_categorie,
+                            'subcategorie': subcat.subcategorie,
+                            'hcat': hoofdcat.hcat,
+                            'scat': subcat.scat
                         })
-
 
     def save_context_data(self, response: dict, elastic_data: dict = None):
         """
@@ -278,7 +277,8 @@ class HrSearch(HrBase, TableSearchView):
             elastic_data = self.fill_item_ids(elastic_data, hit)
         return elastic_data
 
-    def fill_item_ids(self, elastic_data: dict, hit: dict) -> dict:
+    @staticmethod
+    def fill_item_ids(elastic_data: dict, hit: dict) -> dict:
         in_hits = hit['inner_hits']['vestiging']['hits']['hits']
         for ihit in in_hits:
             elastic_data['ids'].append(ihit['_id'][2:])

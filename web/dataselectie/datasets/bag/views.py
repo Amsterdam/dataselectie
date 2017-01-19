@@ -1,5 +1,4 @@
 # Python
-from datetime import datetime
 import rapidjson
 # Packages
 from django.http import HttpResponse
@@ -14,8 +13,8 @@ BAG_APIFIELDS = [
     'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
     'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
     'stadsdeel_naam', 'stadsdeel_code', 'postcode',
-    'woonplaats', '_openbare_ruimte_naam']
-
+    'woonplaats', '_openbare_ruimte_naam', 'naam']
+#TODO naam moet eruit, maar wel als zoekcriteria aanwezig blijven!
 
 class BagBase(object):
     """
@@ -95,7 +94,8 @@ class BagCSV(BagBase, CSVExportView):
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
 
-    def create_geometry_dict(self, db_item):
+    @staticmethod
+    def create_geometry_dict(db_item):
         """
         Creates a geometry dict that can be used to add
         geometry information to the result set

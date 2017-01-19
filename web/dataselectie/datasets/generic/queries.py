@@ -11,8 +11,6 @@
 # Packages
 # from elasticsearch_dsl import Search, Q, A
 
-from elasticsearch_dsl import Q
-
 import logging
 
 log = logging.getLogger(__name__)
