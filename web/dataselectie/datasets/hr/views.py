@@ -49,11 +49,8 @@ class HrBase(object):
         result = {}
 
         result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in new_json])
-
         result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'hoofdcategorie'))
-
         result['subcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'subcategorie'))
-
         result['sbi_omschrijving'] = ' \\ '.join(self.unique_value(new_json, 'sub_sub_categorie'))
 
         return result
@@ -130,6 +127,20 @@ class HrBase(object):
         query['query'] = filterquery
 
         return query
+
+    def process_huisnummer_toevoeging(self, source):
+        """
+        Sloop huisnummer van toevoeging
+        :param source:
+        :return: toevoeging zonder huisnummer
+        """
+        if source['toevoeging']:
+            hnummer_len = 0
+            if source['huisnummer'] :
+                hnummer_len = len(str(source['huisnummer']))
+                if str(source['huisnummer']) != source['toevoeging'][0:hnummer_len]:
+                    hnummer_len = 0
+            return source['toevoeging'][hnummer_len:].strip()
 
 
 class HrSearch(HrBase, TableSearchView):

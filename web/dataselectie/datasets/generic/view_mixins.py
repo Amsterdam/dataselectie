@@ -480,6 +480,12 @@ class TableSearchView(ElasticSearchMixin, ListView):
                     item['_source'][field]
             except:
                 self.extra_context_data['items'][id][field] = None
+                try:
+                    getfield = getattr(self, 'process_' + field)
+                except AttributeError:
+                    pass
+                else:
+                    self.extra_context_data['items'][id][field] = getfield(item['_source'])
 
     def process_aggs(self, aggs: dict) -> dict:
         """
