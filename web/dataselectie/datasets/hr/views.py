@@ -40,20 +40,26 @@ class HrBase(object):
     def process_sbi_codes(self, sbi_json: list) -> dict:
         """
         Sbi codes worden platgeslagen, waardoor die in de rij
-        geexporteerd kunnne worden. Het scheidingsteken is
-        \
+        geexporteerd kunnen worden. Het scheidingsteken is \
+        Eerst wordt de json gesorteerd, zodat die op volgorde van
+        sbi_code wordt getoond.
         """
+        new_json = sorted(sbi_json, key=self.sort_on_sbicode)
+
         result = {}
 
-        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in sbi_json])
+        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in new_json])
 
-        result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(sbi_json, 'hoofdcategorie'))
+        result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'hoofdcategorie'))
 
-        result['subcategorieen'] = ' \\ '.join(self.unique_value(sbi_json, 'subcategorie'))
+        result['subcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'subcategorie'))
 
-        result['sbi_omschrijving'] = ' \\ '.join(self.unique_value(sbi_json, 'sub_sub_categorie'))
+        result['sbi_omschrijving'] = ' \\ '.join(self.unique_value(new_json, 'sub_sub_categorie'))
 
         return result
+
+    def sort_on_sbicode(self, json):
+        return int(json['sbi_code'])
 
     def unique_value(self, sbi_json, fieldname):
         """
