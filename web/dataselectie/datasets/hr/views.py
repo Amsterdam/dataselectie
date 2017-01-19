@@ -156,7 +156,7 @@ class HrSearch(HrBase, TableSearchView):
         return res
 
     def define_id(self, item: dict, elastic_data: dict) -> str:
-        return item['inner_hits']['vestiging']['hits']['hits'][0]['_id']
+        return item['inner_hits']['vestiging']['hits']['hits'][0]['_source']['bag_vbid']
 
     def define_total(self, response: dict):
         aggs = response.get('aggregations', {})
@@ -257,9 +257,11 @@ class HrSearch(HrBase, TableSearchView):
             self.flatten(context['object_list'][i])
 
             # Adding the extra context
-            vestigingsid = 'HR' + context['object_list'][i]['id']
-            if vestigingsid in self.extra_context_data['items']:
-                context['object_list'][i].update(self.extra_context_data['items'][vestigingsid])
+            bagvbid = context['object_list'][i]['bag_vbid']
+            if bagvbid in self.extra_context_data['items']:
+                context['object_list'][i].update(self.extra_context_data['items'][bagvbid])
+            else:
+                print('bag_vbid %s not found' % bagvbid)
 
         context['total'] = self.extra_context_data['total']
         context['aggs_list'] = self.extra_context_data['aggs_list']
