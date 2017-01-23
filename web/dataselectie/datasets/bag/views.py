@@ -14,7 +14,10 @@ BAG_APIFIELDS = [
     'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
     'stadsdeel_naam', 'stadsdeel_code', 'postcode',
     'woonplaats', '_openbare_ruimte_naam', 'naam']
-#TODO naam moet eruit, maar wel als zoekcriteria aanwezig blijven!
+
+
+# TODO naam moet eruit, maar wel als zoekcriteria aanwezig blijven!
+
 
 class BagBase(object):
     """
@@ -33,15 +36,14 @@ class BagBase(object):
 
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
-
     def elastic_query(self, query):
         return meta_q(query, False, False)
+
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
              'huisnummer_toevoeging']
 
 
 class BagSearch(BagBase, TableSearchView):
-
     def elastic_query(self, query):
         return meta_q(query)
 
@@ -55,7 +57,7 @@ class BagSearch(BagBase, TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items'][
-                                             context['object_list'][i]['id']])
+                                                 context['object_list'][i]['id']])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
@@ -143,5 +145,5 @@ class BagCSV(BagBase, CSVExportView):
 
     def paginate(self, offset, q):
         if 'size' in q:
-            del(q['size'])
+            del (q['size'])
         return q

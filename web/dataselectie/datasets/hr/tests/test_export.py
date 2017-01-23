@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
+from urllib.parse import urlencode
 # Project
 from datasets.bag.tests import fixture_utils
 
@@ -59,3 +60,15 @@ class DataselectieExportTest(ESTestCase):
 
         for idx, val in enumerate(row2):
             self.assertEqual(row2[idx], checkvalues[idx])
+
+    def test_export_hr_subcategorie(self):
+        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)'}
+        response = self.client.get('/dataselectie/hr/export/?{}'.format(urlencode(q)))
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = (b''.join(response.streaming_content)).decode('utf-8').strip()
+
+        res = res.split('\r\n')
+        # 2 lines: headers + 1 items
+        self.assertEqual(len(res), 2)

@@ -25,7 +25,6 @@ class HrBase(object):
     model = models.DataSelectie
     index = 'DS_INDEX'
     db = 'hr'
-    q_func = meta_q
 
     raw_fields = ['naam', '_openbare_ruimte_naam']
     fixed_filters = []
@@ -141,6 +140,14 @@ class HrBase(object):
                 if str(source['huisnummer']) != source['toevoeging'][0:hnummer_len]:
                     hnummer_len = 0
             return source['toevoeging'][hnummer_len:].strip()
+
+    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
+        lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
+        if filter_keyword in HR_KEYWORDS:
+            child_filters.append(lfilter)
+        else:
+            filters.append(lfilter)
+        return filters, child_filters
 
 
 class HrSearch(HrBase, TableSearchView):
@@ -284,14 +291,6 @@ class HrSearch(HrBase, TableSearchView):
             elastic_data['ids'].append(ihit['_id'][2:])
         elastic_data['extra_data'] = in_hits[0]['_parent']
         return elastic_data
-
-    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
-        lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
-        if filter_keyword in HR_KEYWORDS:
-            child_filters.append(lfilter)
-        else:
-            filters.append(lfilter)
-        return filters, child_filters
 
 
 class HrCSV(HrBase, CSVExportView):
