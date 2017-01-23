@@ -28,6 +28,7 @@ class HrBase(object):
 
     raw_fields = ['naam', '_openbare_ruimte_naam']
     fixed_filters = []
+    default_search = 'term'
     keywords = HR_KEYWORDS + BAG_APIFIELDS
     apifields = BAG_APIFIELDS + HR_APIFIELDS
     fieldname_mapping = {'naam': 'bedrijfsnaam'}
@@ -298,30 +299,27 @@ class HrCSV(HrBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
+    defaultvalues = {'woonplaats_postadres': 'Amsterdam'}
+
     headers = [
-        '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-        'postcode', 'woonplaats', 'stadsdeel_naam', 'stadsdeel_code', 'ggw_naam', 'ggw_code',
-        'buurtcombinatie_naam', 'buurtcombinatie_code', 'buurt_naam', 'naam',
-        'buurt_code', 'gebruiksdoel_omschrijving', 'gebruik',
-        'openabre_ruimte_landelijk_id', 'panden', 'verblijfsobject', 'ligplaats', 'standplaats',
-        'landelijk_id']
+        'kvk_nummer', 'handelsnaam', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
+        'postcode', 'woonplaats', 'postadres_straatnaam', 'postadres_huisnummer', 'postadres_huisletter',
+        'postadres_huisnummertoevoeging', 'postadres_postcode', 'woonplaats_postadres',
+        'hoofdcategorieen', 'subcategorieen', 'subsubcategorieen', 'sbicodes',
+        'datum_aanvang', 'datum_einde', 'betrokkenen']
 
-    headers_hr = ['kvk_nummer', 'handelsnaam', 'vestigingsnummer', 'sbicodes', 'hoofdcategorieen', 'subsubcategorieen',
-                  'subcategorieen', 'betrokkenen', 'rechtsvorm']
-
-    headers += headers_hr
+    headers_hr = ['kvk_nummer', 'handelsnaam', 'hoofdcategorieen', 'subsubcategorieen', 'subcategorieen', 'sbicodes',
+                  'betrokkenen', 'rechtsvorm', 'datum_aanvang', 'datum_einde']
 
     name_conv = {'handelsnaam': 'naam'}
 
     pretty_headers = (
-        'Naam openbare ruimte', 'Huisnummer', 'Huisletter', 'Huisnummertoevoeging',
-        'Postcode', 'Woonplaats', 'Naam stadsdeel', 'Code stadsdeel', 'Naam gebiedsgerichtwerkengebied',
-        'Code gebiedsgerichtwerkengebied', 'Naam buurtcombinatie', 'Code buurtcombinatie', 'Naam buurt',
-        'Bewoner', 'Code buurt', 'Gebruiksdoel', 'Feitelijk gebruik',
-        'Openbareruimte-identificatie', 'Pandidentificatie',
-        'Verblijfsobjectidentificatie', 'Ligplaatsidentificatie', 'Standplaatsidentificatie',
-        'Nummeraanduidingidentificatie', 'KvK-nummer', 'Handelsnaam', 'Vestigingsnummer', 'SBI-code',
-        'Hoofdcategorie', 'SBI-omschrijving', 'Subcategorie', 'Naam eigenaar(en)', 'Rechtsvorm')
+        'KvK-nummer', 'Handelsnaam', 'Openbare ruimte bezoekadres', 'Huisnummer bezoekadres',
+        'Huisletter bezoekadres', 'Huisnummertoevoeging bezoekadres', 'Postcode bezoekadres',
+        'Woonplaats bezoekadres', 'Openbare ruimte postadres', 'Huisnummer postadres',
+        'Huisletter postadres', 'Huisnummertoevoeging postadres', 'Postcode postadres',
+        'Woonplaats postadres', 'Hoofdcategorie', 'Subcategorie', 'SBI-omschrijving', 'SBI-code',
+        'Datum aanvang', 'Datum einde', 'Naam eigenaar(en)')
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
@@ -351,6 +349,8 @@ class HrCSV(HrBase, CSVExportView):
             try:
                 result[hdr] = json[hdr_from]
             except KeyError:
+                if hdr in self.defaultvalues:
+                    result[hdr] = getwoonplaats(json['postadres_volledig_adres'], 'woonplaats')
                 pass
         return result
 
@@ -372,3 +372,8 @@ class HrCSV(HrBase, CSVExportView):
             items[ihit['_id'][2:]] = item
 
         return items
+
+def getwoonplaats(volledig_adres, part):
+    ad_parts = volledig_adres.split()
+    if part == 'woonplaats':
+        return ad_parts[-1]
