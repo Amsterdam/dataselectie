@@ -9,7 +9,9 @@ from datasets.hr import models
 from datasets.bag.views import BAG_APIFIELDS
 from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
-from datasets.generic.view_mixins import CSVExportView, TableSearchView
+from datasets.generic.tablesearchview import TableSearchView
+from datasets.generic.csvexportview import CSVExportView
+from datasets.generic.geolocationsearchview import GeoLocationSearchView
 
 HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
                 'huisletter', 'huisnummer_toevoeging', 'woonplaats',
@@ -132,14 +134,14 @@ class HrBase(object):
     @staticmethod
     def process_huisnummer_toevoeging(source):
         """
-        Sloop huisnummer van toevoeging
+        Sloop huisnummer en huisletter uit de toevoeging
         :param source:
         :return: toevoeging zonder huisnummer
         """
         if source['toevoeging']:
             hnm = [h  for h in source['toevoeging'].split() if not h in (str(source['huisnummer']),
                                                                              source['huisletter'])]
-            return ','.join(hnm)
+            return ''.join(hnm)
 
     def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
         lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
@@ -148,6 +150,11 @@ class HrBase(object):
         else:
             filters.append(lfilter)
         return filters, child_filters
+
+
+class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
+    def elastic_query(self, query):
+        return meta_q(query, False, False)
 
 
 class HrSearch(HrBase, TableSearchView):

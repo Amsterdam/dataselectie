@@ -374,5 +374,6 @@ def create_nummeraanduiding_fixtures():
     hr_factories.dataselectiehrfactory(nummeraanduidingen[1][0], 0, 2)
     hr_factories.dataselectiehrfactory(nummeraanduidingen[3][0], 2, 3)
     hr_factories.dataselectiehrfactory(nummeraanduidingen[4][0], 3, 4)
+    hr_factories.dataselectiehrfactory(nummeraanduidingen[2][0], 4, 5)
 
     return nummeraanduidingen

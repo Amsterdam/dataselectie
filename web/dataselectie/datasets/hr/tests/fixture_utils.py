@@ -207,5 +207,23 @@ JSON = [
         "bezoekadres_volledig_adres": "Sumatrakade 117 1019PJ Amsterdam",
         "postadres_straat_huisnummer": None,
         "postadres_huisnummertoevoeging": None
-    }
+    },
+    {"naam": "Deckers Management B.V.", "geometrie": [113802.0, 484742.0], "sbi_codes": [
+        {"hcat": "22279_12", "scat": "22279_12_22251_11", "sbi_code": "7112", "bedrijfsnaam": "Deckers Management B.V.",
+         "subcategorie": "technisch ontwerp, advies, keuring/research", "hoofdcategorie": "zakelijke dienstverlening",
+         "vestigingsnummer": "000036067636", "sub_sub_categorie": "Ingenieurs en overig technisch ontwerp en advies"},
+        {"hcat": "22278_12", "scat": "22278_12_22244_11", "sbi_code": "7740", "bedrijfsnaam": "Deckers Management B.V.",
+         "subcategorie": "verhuur van roerende goederen",
+         "hoofdcategorie": "financiële dienstverlening,verhuur van roerend en onroerend goed",
+         "vestigingsnummer": "000036067636", "sub_sub_categorie": "Lease van niet-financiële immateriële activa"}],
+     "kvk_nummer": "67539548", "betrokkenen": [
+        {"rol": "EIGENAAR", "naam": None, "mac_naam": "Deckers Management B.V.", "rechtsvorm": None,
+         "functietitel": None, "bevoegde_naam": None, "soortbevoegdheid": None}], "datum_einde": None,
+     "locatie_type": "B", "datum_aanvang": "2016-12-22", "hoofdvestiging": True, "vestigingsnummer": "000036067636",
+     "postadres_postcode": "1060PK", "postadres_correctie": "KVK", "postadres_huisletter": None,
+     "postadres_huisnummer": "84", "postadres_straatnaam": "Vätternkade", "bezoekadres_correctie": "KVK",
+     "postadres_afgeschermd": False, "bezoekadres_afgeschermd": False, "postadres_postbus_nummer": None,
+     "postadres_volledig_adres": "Vätternkade 84 1060PK Amsterdam", "postadres_toevoegingadres": None,
+     "bezoekadres_volledig_adres": "Vätternkade 84 1060PK Amsterdam", "postadres_straat_huisnummer": None,
+     "postadres_huisnummertoevoeging": None}
 ]

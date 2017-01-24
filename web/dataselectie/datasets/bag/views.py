@@ -5,9 +5,9 @@ from django.http import HttpResponse
 # Project
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.view_mixins import CSVExportView
-from datasets.generic.view_mixins import GeoLocationSearchView
-from datasets.generic.view_mixins import TableSearchView
+from datasets.generic.csvexportview import CSVExportView, _model_to_dict
+from datasets.generic.geolocationsearchview import GeoLocationSearchView
+from datasets.generic.tablesearchview import TableSearchView
 
 BAG_APIFIELDS = [
     'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
@@ -30,9 +30,6 @@ class BagBase(object):
     apifields = BAG_APIFIELDS
     keywords = BAG_APIFIELDS
     raw_fields = ['naam', '_openbare_ruimte_naam']
-    geo_fields = {
-        'shape': ['centroid', 'geo_polygon'],
-    }
 
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
              'huisnummer_toevoeging']
@@ -130,7 +127,7 @@ class BagCSV(BagBase, CSVExportView):
         """
         data = []
         for item in qs:
-            dict_item = self._model_to_dict(item)
+            dict_item = _model_to_dict(item)
             # BAG Specific updates.
             # ------------------------
             # Adding geometry

@@ -53,15 +53,15 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(len(res['object_list']), 4)
+        self.assertEqual(len(res['object_list']), 5)
         self.assertEqual(res['page_count'], 1)
         self.assertIn('aggs_list', res)
         self.assertIn('hoofdcategorie', res['aggs_list'])
         testcats = {'cultuur, sport, recreatie': 2,
-                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 1,
+                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 2,
                     'handel, vervoer, opslag': 1,
                     'overheid, onderwijs, zorg': 1,
-                    'zakelijke dienstverlening': 1}
+                    'zakelijke dienstverlening': 2}
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
         self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 5)
         hoofdcategorieen = [(k['key'], k['doc_count']) for k in res['aggs_list']['hoofdcategorie']['buckets']]
@@ -197,6 +197,46 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['id'], '000000000809')
         self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
         self.assertEqual(res['page_count'], 1)
+
+    def test_get_dataselectiehr_geolocation(self):
+        """
+        Test elastic for returning only geolocation
+        """
+        response = self.client.get('/dataselectie/hr/geolocation/')
+
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            res['object_count'], 4)
+        self.assertNotIn('aggs_list', res)
+
+    def test_get_dataselectie_hr_shape_limit(self):
+        """
+        Test querying on geolocation
+        """
+        q = {'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(res['object_count'], 1)
+
+    def test_get_dataselectiehr_geolocation2(self):
+        """
+        Test elastic for returning only geolocation
+        """
+        q = {'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+        response = self.client.get('/dataselectie/hr/geolocation/?{}'.format(urlencode(q)))
+
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+
+        res = loads(response.content.decode('utf-8'))
+        self.assertEqual(
+            res['object_count'], 1)
+        self.assertNotIn('aggs_list', res)
 
     def tearDown(self):
         pass
