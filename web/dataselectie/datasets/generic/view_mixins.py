@@ -9,6 +9,7 @@ import io
 # Packages
 from django.conf import settings
 from django.db.models.fields.related import ManyToManyField
+from django.db.models.expressions import RawSQL
 from django.db.models import QuerySet
 from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
 from django.views.generic import ListView, View
@@ -433,8 +434,10 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
-            if self.sorts:
+            if isinstance(self.sorts, list):
                 qs = self.model.objects.filter(id__in=ids).order_by(*self.sorts)
+            elif self.sorts:
+                qs = self.model.objects.filter(id__in=ids).order_by(self.sorts)
             else:
                 qs = self.model.objects.filter(id__in=ids)
             return qs.values()[:self.preview_size]

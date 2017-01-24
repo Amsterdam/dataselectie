@@ -1,6 +1,7 @@
 # Python
 # Packages
 from django.db.models import QuerySet
+from django.db.models.expressions import RawSQL
 from collections import OrderedDict
 from itertools import chain
 # Project
@@ -35,6 +36,7 @@ class HrBase(object):
     sbi_top_down_values = {}
     sbi_subcategorie_values = {}
     sbi_sub_subcategorie_values = {}
+    sorts = RawSQL("api_json->>%s", ['naam'])
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
         """
@@ -135,12 +137,9 @@ class HrBase(object):
         :return: toevoeging zonder huisnummer
         """
         if source['toevoeging']:
-            hnummer_len = 0
-            if source['huisnummer']:
-                hnummer_len = len(str(source['huisnummer']))
-                if str(source['huisnummer']) != source['toevoeging'][0:hnummer_len]:
-                    hnummer_len = 0
-            return source['toevoeging'][hnummer_len:].strip()
+            hnm = [h  for h in source['toevoeging'].split() if not h in (str(source['huisnummer']),
+                                                                             source['huisletter'])]
+            return ','.join(hnm)
 
     def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
         lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
@@ -305,10 +304,12 @@ class HrCSV(HrBase, CSVExportView):
         'kvk_nummer', 'handelsnaam', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
         'postcode', 'woonplaats', 'postadres_straatnaam', 'postadres_huisnummer', 'postadres_huisletter',
         'postadres_huisnummertoevoeging', 'postadres_postcode', 'woonplaats_postadres',
-        'hoofdcategorieen', 'subcategorieen', 'subsubcategorieen', 'sbicodes',
+        'hoofdcategorieen', 'subcategorieen', 'sbi_omschrijving', 'sbicodes',
         'datum_aanvang', 'datum_einde', 'betrokkenen']
 
-    headers_hr = ['kvk_nummer', 'handelsnaam', 'hoofdcategorieen', 'subsubcategorieen', 'subcategorieen', 'sbicodes',
+    headers_hr = ['kvk_nummer', 'handelsnaam', 'postadres_straatnaam', 'postadres_huisnummer', 'postadres_huisletter',
+                  'postadres_huisnummertoevoeging', 'postadres_postcode', 'woonplaats_postadres', 'hoofdcategorieen',
+                  'subsubcategorieen', 'subcategorieen', 'sbicodes',
                   'betrokkenen', 'rechtsvorm', 'datum_aanvang', 'datum_einde']
 
     name_conv = {'handelsnaam': 'naam'}

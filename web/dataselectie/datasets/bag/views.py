@@ -34,13 +34,13 @@ class BagBase(object):
         'shape': ['centroid', 'geo_polygon'],
     }
 
+    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
+             'huisnummer_toevoeging']
+
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, False, False)
-
-    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-             'huisnummer_toevoeging']
 
 
 class BagSearch(BagBase, TableSearchView):
