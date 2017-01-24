@@ -64,7 +64,8 @@ class DataselectieApiTest(ESTestCase):
                     'zakelijke dienstverlening': 2}
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
         self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 5)
-        hoofdcategorieen = [(k['key'], k['doc_count']) for k in res['aggs_list']['hoofdcategorie']['buckets']]
+        hoofdcategorieen = [(k['key'], k['doc_count'])
+                            for k in res['aggs_list']['hoofdcategorie']['buckets']]
         for cat, count in hoofdcategorieen:
             self.assertEqual(testcats[cat], count)
         self.assertIn('subcategorie', res['aggs_list'])

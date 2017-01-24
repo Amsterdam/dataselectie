@@ -68,41 +68,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
             response = HttpResponseBadRequest(content=str(e))
         return response
 
-    @staticmethod
-    def _stringify_item_value(value) -> str:
-        """
-        Makes sure that the dict contains only strings for easy jsoning of the dict
-        Following actions are taken:
-        - None is replace by empty string
-        - Boolean is converted to string
-        - Numbers are converted to string
-        - Datetime and Dates are converted to EU norm dates
-
-        Important!
-        If no conversion van be found the same value is returned
-        This may, or may not break the jsoning of the object list
-
-        @Parameter:
-        value - a value to convert to string
-
-        @Returns:
-        The string representation of the value
-        """
-        if isinstance(value, date) or isinstance(value, datetime):
-            return value.strftime('%d-%m-%Y')
-        elif value is None:
-            return ''
-        else:
-            # Trying repr, otherwise trying
-            try:
-                return repr(value)
-            except:
-                try:
-                    return str(value)
-                except:
-                    pass
-            return ''
-
     # Listview methods overloading
     def get_queryset(self) -> QuerySet:
         """
@@ -301,3 +266,37 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def define_total(self, response: dict):
         self.extra_context_data['total'] = response['hits']['total']
+
+def _stringify_item_value(value) -> str:
+    """
+    Makes sure that the dict contains only strings for easy jsoning of the dict
+    Following actions are taken:
+    - None is replace by empty string
+    - Boolean is converted to string
+    - Numbers are converted to string
+    - Datetime and Dates are converted to EU norm dates
+
+    Important!
+    If no conversion van be found the same value is returned
+    This may, or may not break the jsoning of the object list
+
+    @Parameter:
+    value - a value to convert to string
+
+    @Returns:
+    The string representation of the value
+    """
+    if isinstance(value, date) or isinstance(value, datetime):
+        return value.strftime('%d-%m-%Y')
+    elif value is None:
+        return ''
+    else:
+        # Trying repr, otherwise trying
+        try:
+            return repr(value)
+        except:
+            try:
+                return str(value)
+            except:
+                pass
+        return ''

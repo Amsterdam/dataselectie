@@ -8,6 +8,7 @@ from datasets.bag.queries import meta_q
 from datasets.generic.csvexportview import CSVExportView, _model_to_dict
 from datasets.generic.geolocationsearchview import GeoLocationSearchView
 from datasets.generic.tablesearchview import TableSearchView
+from datasets.generic.tablesearchview import _stringify_item_value
 
 BAG_APIFIELDS = [
     'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
@@ -49,12 +50,12 @@ class BagSearch(BagBase, TableSearchView):
         for i in range(len(context['object_list'])):
             # Making sure all the data is in string form
             context['object_list'][i].update(
-                {k: self._stringify_item_value(v) for k, v in
+                {k: _stringify_item_value(v) for k, v in
                  context['object_list'][i].items() if not isinstance(v, str)}
             )
             # Adding the extra context
-            context['object_list'][i].update(self.extra_context_data['items'][
-                                                 context['object_list'][i]['id']])
+            context['object_list'][i].update(self.extra_context_data['items']
+                                             [context['object_list'][i]['id']])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context

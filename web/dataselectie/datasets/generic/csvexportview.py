@@ -14,6 +14,7 @@ from pytz import timezone
 # Project
 from datasets.bag.models import Nummeraanduiding
 from .tablesearchview import TableSearchView
+from .tablesearchview import _stringify_item_value
 
 log = logging.getLogger(__name__)
 
@@ -119,7 +120,7 @@ class CSVExportView(TableSearchView):
         for item in data:
             # Making sure all the data is in string form
             item.update(
-                {k: self._stringify_item_value(v) for k, v in item.items() if
+                {k: _stringify_item_value(v) for k, v in item.items() if
                  not isinstance(v, str) or v is None}
             )
             # Adding the elastic context

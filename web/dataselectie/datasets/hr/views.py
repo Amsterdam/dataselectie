@@ -21,6 +21,26 @@ HR_KEYWORDS = ['subcategorie', 'hoofdcategorie', 'bedrijfsnaam',
                'sbi_code', 'sbi_omschrijving']
 
 
+def getwoonplaats(json):
+    ad_parts = json['postadres_volledig_adres'].split()
+    return ad_parts[-1]
+
+
+def postadres_gecorrigeerd(json):
+    return adres_gecorrigeerd(json['postadres_correctie'])
+
+
+def bezoekadres_gecorrigeerd(json):
+    return adres_gecorrigeerd(json['bezoekadres_correctie'])
+
+
+def adres_gecorrigeerd(correctie):
+    if correctie == 'BAG':
+        return 'ja'
+    else:
+        return 'nee'
+
+
 class HrBase(object):
     """
     Base class mixing for data settings
@@ -51,10 +71,14 @@ class HrBase(object):
 
         result = dict()
 
-        result['sbicodes'] = ' \\ '.join([str(sbi['sbi_code']) for sbi in new_json])
-        result['hoofdcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'hoofdcategorie'))
-        result['subcategorieen'] = ' \\ '.join(self.unique_value(new_json, 'subcategorie'))
-        result['sbi_omschrijving'] = ' \\ '.join(self.unique_value(new_json, 'sub_sub_categorie'))
+        result['sbicodes'] = ' \\ '.join(
+            [str(sbi['sbi_code']) for sbi in new_json])
+        result['hoofdcategorieen'] = ' \\ '.join(
+            self.unique_value(new_json, 'hoofdcategorie'))
+        result['subcategorieen'] = ' \\ '.join(
+            self.unique_value(new_json, 'subcategorie'))
+        result['sbi_omschrijving'] = ' \\ '.join(
+            self.unique_value(new_json, 'sub_sub_categorie'))
 
         return result
 
@@ -82,7 +106,9 @@ class HrBase(object):
         text_result = []
         for betrokken in betrokken_json:
             if betrokken:
-                text = (betrokken['bevoegde_naam'] or '') + (betrokken['naam'] or '')
+                bevoegde = betrokken['bevoegde_naam'] or ''
+                betrokkene = betrokken['naam'] or ''
+                text = (bevoegde + betrokkene)
                 if text:
                     text += ' ' + (betrokken['functietitel'] or '')
                     text_result.append(text)
@@ -93,7 +119,8 @@ class HrBase(object):
         return result
 
     @staticmethod
-    def build_el_query(filters: list, mapped_filters: list, query: dict) -> dict:
+    def build_el_query(
+            filters: list, mapped_filters: list, query: dict) -> dict:
         """
         Adds innerhits to the query and other selection criteria
 
@@ -139,12 +166,18 @@ class HrBase(object):
         :return: toevoeging zonder huisnummer
         """
         if source['toevoeging']:
-            hnm = [h  for h in source['toevoeging'].split() if not h in (str(source['huisnummer']),
-                                                                             source['huisletter'])]
+            hnm = [h for h in source['toevoeging'].split()
+                   if h not in (
+                       str(source['huisnummer']), source['huisletter'])]
             return ''.join(hnm)
 
-    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
-        lfilter = {self.default_search: self.get_term_and_value(filter_keyword, val)}
+    def proc_parameters(self, filter_keyword: str, val: str,
+                        child_filters: list, filters: list) -> (list, list):
+
+        lfilter = {
+            self.default_search: self.get_term_and_value(filter_keyword, val)
+        }
+
         if filter_keyword in HR_KEYWORDS:
             child_filters.append(lfilter)
         else:
@@ -167,6 +200,7 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
 
         return resp
 
+
 class HrSearch(HrBase, TableSearchView):
     selection = []
     sbi_sub_subcategorie_values = []
@@ -176,11 +210,17 @@ class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
-        res['aggs']['vestiging']['aggs'].update(add_aggregations(res['aggs']['vestiging']['aggs']))
+        res['aggs']['vestiging']['aggs'].update(
+            add_aggregations(res['aggs']['vestiging']['aggs']))
         return res
 
     def define_id(self, item: dict, elastic_data: dict) -> str:
-        return item['inner_hits']['vestiging']['hits']['hits'][0]['_source']['bag_vbid']
+        """
+        Get the fist bag_vbid of a vestiging
+        """
+        inner_ves_hits = item['inner_hits']['vestiging']['hits']['hits']
+        vb_id_first = inner_ves_hits[0]['_source']['bag_vbid']
+        return vb_id_first
 
     def define_total(self, response: dict):
         aggs = response.get('aggregations', {})
@@ -210,13 +250,15 @@ class HrSearch(HrBase, TableSearchView):
                 fk = self.mapfiltercats[filter_keyword]
             except KeyError:
                 fk = filter_keyword
-            ab = [[s['hoofdcategorie'], s['subcategorie'], s['sub_sub_categorie']]
-                  for s in self.sbi_sub_subcategorie_values if s[fk] == val]
+            ab = [[ssbi['hoofdcategorie'],
+                   ssbi['subcategorie'],
+                   ssbi['sub_sub_categorie']]
+                  for ssbi in self.sbi_sub_subcategorie_values
+                  if ssbi[fk] == val]
+
             self.selection += chain.from_iterable(ab)
 
         self.selection = list(set(self.selection))
-
-        return
 
     def includeagg(self, aggs: dict) -> dict:
         """
@@ -228,7 +270,10 @@ class HrSearch(HrBase, TableSearchView):
 
         if len(self.selection):
             for fieldkey in self.filtercategories:
-                delete_row = [idx for idx, b in enumerate(aggs[fieldkey]['buckets']) if not b['key'] in self.selection]
+                delete_row = [
+                    idx for idx, b in enumerate(aggs[fieldkey]['buckets'])
+                    if not b['key'] in self.selection]
+
                 delete_row.reverse()
                 for idx in delete_row:
                     del aggs[fieldkey]['buckets'][idx]
@@ -263,17 +308,22 @@ class HrSearch(HrBase, TableSearchView):
         super().save_context_data(response, elastic_data=elastic_data)
 
     def update_context_data(self, context: dict) -> dict:
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result,
-        # moving the jsonapi info one level down
+        """
+        Adding the buurtcombinatie, ggw, stadsdeel info to the result,
+        moving the jsonapi info one level down
+        """
         ignore_list = ('geometrie',)
+
         for i in range(len(context['object_list'])):
-            for json_key, values in context['object_list'][i]['api_json'].items():
+            api_json_data = context['object_list'][i]['api_json']
+            for json_key, values in api_json_data.items():
                 if json_key not in ignore_list:
                     try:
                         nwfield = self.fieldname_mapping[json_key]
                     except KeyError:
                         nwfield = json_key
-                    context['object_list'][i][nwfield] = context['object_list'][i]['api_json'][json_key]
+                    context['object_list'][i][nwfield] = \
+                        context['object_list'][i]['api_json'][json_key]
 
             del context['object_list'][i]['api_json']
 
@@ -282,7 +332,8 @@ class HrSearch(HrBase, TableSearchView):
             # Adding the extra context
             bagvbid = context['object_list'][i]['bag_vbid']
             if bagvbid in self.extra_context_data['items']:
-                context['object_list'][i].update(self.extra_context_data['items'][bagvbid])
+                context['object_list'][i].update(
+                    self.extra_context_data['items'][bagvbid])
             else:
                 print('bag_vbid %s not found' % bagvbid)
 
@@ -293,7 +344,8 @@ class HrSearch(HrBase, TableSearchView):
     def flatten(self, context_data: dict):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
         del context_data['sbi_codes']
-        context_data['betrokkenen'] = self.process_betrokkenen(context_data['betrokkenen'])
+        context_data['betrokkenen'] = \
+            self.process_betrokkenen(context_data['betrokkenen'])
 
     def fill_ids(self, response: dict, elastic_data: dict) -> dict:
         # Primary key from inner_Hits
@@ -315,28 +367,45 @@ class HrCSV(HrBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    defaultvalues = {'woonplaats_postadres': 'Amsterdam'}
-
-    headers = [
-        'kvk_nummer', 'handelsnaam', '_openbare_ruimte_naam', 'huisnummer', 'huisletter', 'huisnummer_toevoeging',
-        'postcode', 'woonplaats', 'postadres_straatnaam', 'postadres_huisnummer', 'postadres_huisletter',
-        'postadres_huisnummertoevoeging', 'postadres_postcode', 'woonplaats_postadres',
-        'hoofdcategorieen', 'subcategorieen', 'sbi_omschrijving', 'sbicodes',
-        'datum_aanvang', 'datum_einde', 'betrokkenen']
-
-    headers_hr = ['kvk_nummer', 'handelsnaam', 'postadres_straatnaam', 'postadres_huisnummer', 'postadres_huisletter',
-                  'postadres_huisnummertoevoeging', 'postadres_postcode', 'woonplaats_postadres', 'hoofdcategorieen',
-                  'subsubcategorieen', 'subcategorieen', 'sbicodes',
-                  'betrokkenen', 'rechtsvorm', 'datum_aanvang', 'datum_einde']
+    convertvalues = {'woonplaats_postadres': getwoonplaats,
+                     'postadres_correctie': postadres_gecorrigeerd,
+                     'bezoekadres_correctie': bezoekadres_gecorrigeerd
+                     }
 
     name_conv = {'handelsnaam': 'naam'}
 
+    headers = [
+        'kvk_nummer', 'handelsnaam', 'bezoekadres_volledig_adres',
+        'bezoekadres_correctie', '_openbare_ruimte_naam', 'huisnummer',
+        'huisletter', 'huisnummer_toevoeging', 'postcode', 'woonplaats',
+        'postadres_volledig_adres', 'postadres_correctie',
+        'postadres_straatnaam', 'postadres_huisnummer',
+        'postadres_huisletter', 'postadres_huisnummertoevoeging',
+        'postadres_postcode', 'woonplaats_postadres', 'hoofdcategorieen',
+        'subcategorieen', 'sbi_omschrijving', 'sbicodes', 'datum_aanvang',
+        'datum_einde', 'betrokkenen']
+
+    headers_hr = [
+        'kvk_nummer', 'handelsnaam', 'postadres_straatnaam',
+        'postadres_huisnummer', 'postadres_huisletter',
+        'postadres_huisnummertoevoeging', 'postadres_postcode',
+        'woonplaats_postadres', 'hoofdcategorieen',
+        'subsubcategorieen', 'subcategorieen', 'sbicodes',
+        'betrokkenen', 'rechtsvorm', 'datum_aanvang', 'datum_einde',
+        'bezoekadres_volledig_adres', 'postadres_volledig_adres',
+        'bezoekadres_correctie', 'postadres_correctie']
+
     pretty_headers = (
-        'KvK-nummer', 'Handelsnaam', 'Openbare ruimte bezoekadres', 'Huisnummer bezoekadres',
-        'Huisletter bezoekadres', 'Huisnummertoevoeging bezoekadres', 'Postcode bezoekadres',
-        'Woonplaats bezoekadres', 'Openbare ruimte postadres', 'Huisnummer postadres',
-        'Huisletter postadres', 'Huisnummertoevoeging postadres', 'Postcode postadres',
-        'Woonplaats postadres', 'Hoofdcategorie', 'Subcategorie', 'SBI-omschrijving', 'SBI-code',
+        'KvK-nummer', 'Handelsnaam', 'Bezoekadres (KvK HR)',
+        'Indicatie afwijkend bezoekadres BAG',
+        'Openbare ruimte bezoekadres (BAG)', 'Huisnummer bezoekadres (BAG)',
+        'Huisletter bezoekadres (BAG)', 'Huisnummertoevoeging bezoekadres (BAG)',
+        'Postcode bezoekadres (BAG)', 'Woonplaats bezoekadres (BAG)',
+        'Postadres (Kvk HR)', 'Indicatie afwijkend postadres BAG',
+        'Openbare ruimte postadres (BAG)', 'Huisnummer postadres (BAG)',
+        'Huisletter postadres (BAG)', 'Huisnummertoevoeging postadres (BAG)',
+        'Postcode postadres (BAG)', 'Woonplaats postadres (BAG)',
+        'Hoofdcategorie', 'Subcategorie', 'SBI-omschrijving', 'SBI-code',
         'Datum aanvang', 'Datum einde', 'Naam eigenaar(en)')
 
     def elastic_query(self, query):
@@ -352,7 +421,8 @@ class HrCSV(HrBase, CSVExportView):
             r_dict = self._process_flatfields(row.api_json)
             r_dict['id'] = row.id
             r_dict.update(self.process_sbi_codes(row.api_json['sbi_codes']))
-            r_dict['betrokkenen'] = self.process_betrokkenen(row.api_json['betrokkenen'])
+            r_dict['betrokkenen'] = self.process_betrokkenen(
+                row.api_json['betrokkenen'])
             result.append(r_dict)
 
         return result
@@ -364,12 +434,13 @@ class HrCSV(HrBase, CSVExportView):
             hdr_from = hdr
             if hdr in self.name_conv:
                 hdr_from = self.name_conv[hdr]
-            try:
-                result[hdr] = json[hdr_from]
-            except KeyError:
-                if hdr in self.defaultvalues:
-                    result[hdr] = getwoonplaats(json['postadres_volledig_adres'], 'woonplaats')
-                pass
+            if hdr in self.convertvalues:
+                result[hdr] = self.convertvalues[hdr](json)
+            else:
+                try:
+                    result[hdr] = json[hdr_from]
+                except KeyError:
+                    pass
         return result
 
     def paginate(self, offset, q: dict) -> dict:
@@ -390,8 +461,3 @@ class HrCSV(HrBase, CSVExportView):
             items[ihit['_id'][2:]] = item
 
         return items
-
-def getwoonplaats(volledig_adres, part):
-    ad_parts = volledig_adres.split()
-    if part == 'woonplaats':
-        return ad_parts[-1]
