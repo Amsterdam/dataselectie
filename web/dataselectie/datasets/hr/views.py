@@ -156,6 +156,16 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, False, False)
 
+    def bldresponse(self, response: dict) -> dict:
+
+        resp = {
+            'object_count': sum([h['inner_hits']['vestiging']['hits']['total'] for h in response['hits']['hits']]),
+            'object_list': response['hits']['hits']
+        }
+        for idx in range(len(resp['object_list'])):
+            del resp['object_list'][idx]['inner_hits']
+
+        return resp
 
 class HrSearch(HrBase, TableSearchView):
     selection = []

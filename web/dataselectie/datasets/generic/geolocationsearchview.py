@@ -63,12 +63,17 @@ class GeoLocationSearchView(ElasticSearchMixin, View):
             body=query,
             _source_include=['centroid']
         )
-        resp = {
-            'object_count': response['hits']['total'],
-            'object_list': response['hits']['hits']
-        }
+        resp = self.bldresponse(response)
+
         log.info('response count %s', resp['object_count'])
         return HttpResponse(
             rapidjson.dumps(resp),
             content_type='application/json'
         )
+
+    def bldresponse(self, response):
+        resp = {
+            'object_count': response['hits']['total'],
+            'object_list': response['hits']['hits']
+        }
+        return resp

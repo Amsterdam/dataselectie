@@ -209,7 +209,7 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(
-            res['object_count'], 4)
+            res['object_count'], 5)
         self.assertNotIn('aggs_list', res)
 
     def test_get_dataselectie_hr_shape_limit(self):
