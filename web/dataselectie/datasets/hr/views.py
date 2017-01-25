@@ -150,9 +150,11 @@ class HrBase(object):
                         "has_child": {
                             "type": "vestiging",
                             "query": mapped_filters,
-                            "inner_hits": {}
+                            "inner_hits": {
+                                "size": 1000
                         }
-                    }]
+                    }
+                }]
             }
         }
 
