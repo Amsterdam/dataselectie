@@ -379,6 +379,7 @@ class HrSearch(HrBase, TableSearchView):
 
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['aggs_list']['total']
+        del context['aggs_list']['total']
         return context
 
     def flatten(self, context_data: dict):
