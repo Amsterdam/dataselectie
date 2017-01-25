@@ -9,7 +9,7 @@ from datasets.hr import models
 from datasets.bag.views import BAG_APIFIELDS
 from datasets.hr.queries import meta_q
 from datasets.generic.queries import add_aggregations
-from datasets.generic.tablesearchview import TableSearchView
+from datasets.generic.tablesearchview import TableSearchView, process_aggs
 from datasets.generic.csvexportview import CSVExportView
 from datasets.generic.geolocationsearchview import GeoLocationSearchView
 
@@ -59,6 +59,10 @@ class HrBase(object):
     sbi_subcategorie_values = {}
     sbi_sub_subcategorie_values = {}
     sorts = RawSQL("api_json->>%s", ['naam'])
+    child_filters = []
+    filtercategories = ('sbi_omschrijving', 'subcategorie', 'hoofdcategorie')
+    extra_context_data = {}
+    selection = []
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
         """
@@ -118,9 +122,8 @@ class HrBase(object):
 
         return result
 
-    @staticmethod
-    def build_el_query(
-            filters: list, mapped_filters: list, query: dict) -> dict:
+    def build_el_query(self,
+            filters: list, query: dict) -> dict:
         """
         Adds innerhits to the query and other selection criteria
 
@@ -130,7 +133,9 @@ class HrBase(object):
         :return:
         """
 
-        if not mapped_filters:
+        if self.child_filters:
+            mapped_filters = self.child_filters
+        else:
             mapped_filters = {"match_all": {}}
 
         filterquery = {
@@ -172,27 +177,82 @@ class HrBase(object):
             return ''.join(hnm)
 
     def proc_parameters(self, filter_keyword: str, val: str,
-                        child_filters: list, filters: list) -> (list, list):
+                        filters: list) -> (list, list):
 
         lfilter = {
             self.default_search: self.get_term_and_value(filter_keyword, val)
         }
 
         if filter_keyword in HR_KEYWORDS:
-            child_filters.append(lfilter)
+            self.child_filters.append(lfilter)
         else:
             filters.append(lfilter)
-        return filters, child_filters
+        return filters
+
+    def calc_total_count(self, aggs: dict) -> int:
+        result = aggs['doc_count']
+        if len(self.child_filters):
+            selection_field = None
+            for fc in self.filtercategories:
+                h = [cf['term'][fc] for idx, cf in enumerate(self.child_filters) if fc in cf['term']]
+                if len(h):
+                    selection_field = fc
+                    selection_field_val = h[0]
+                    break
+            if selection_field:
+                f = [b for b in aggs[selection_field]['buckets'] if b['key'] == selection_field_val][0]
+                result = f['doc_count']
+        return result
+
+    def add_hraggs(self, response: dict):
+        aggs = response.get('aggregations', {})
+        self.extra_context_data['aggs_list'] = process_aggs(aggs)
+        self.extra_context_data['aggs_list']['total'] = response['hits']['total']
+
+    def add_aggregates(self, response: dict):
+        self.add_hraggs(response)
+        aggs = response.get('aggregations', {})
+        if 'nummeraanduiding_sub' in aggs and len(aggs['nummeraanduiding_sub']['buckets']):
+            self.extra_context_data['aggs_list'].update(self.add_nummeraanduiding_sub(aggs))
+        del self.extra_context_data['aggs_list']['nummeraanduiding_sub']
+
+    def add_nummeraanduiding_sub(self, aggs):
+        aggs = process_aggs(aggs['nummeraanduiding_sub']['buckets'][0]['vestiging'])
+        aggs = self.includeagg(aggs)
+        if 'doc_count' in aggs:
+            aggs['total'] = self.calc_total_count(aggs)
+            del aggs['doc_count']
+            return aggs
+
+    def includeagg(self, aggs: dict) -> dict:
+        """
+        Correct results returned from elastic.
+
+        :param aggs:
+        :return: aggs
+        """
+
+        if len(self.selection):
+            for fieldkey in self.filtercategories:
+                delete_row = [
+                    idx for idx, b in enumerate(aggs[fieldkey]['buckets'])
+                    if not b['key'] in self.selection]
+
+                delete_row.reverse()
+                for idx in delete_row:
+                    del aggs[fieldkey]['buckets'][idx]
+
+        return aggs
 
 
 class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
-        return meta_q(query, False, False)
+        return meta_q(query, True)
 
     def bldresponse(self, response: dict) -> dict:
 
         resp = {
-            'object_count': sum([h['inner_hits']['vestiging']['hits']['total'] for h in response['hits']['hits']]),
+            'object_count': self.calc_total_from_aggs(response),
             'object_list': response['hits']['hits']
         }
         for idx in range(len(resp['object_list'])):
@@ -200,18 +260,20 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
 
         return resp
 
+    def calc_total_from_aggs(self, response):
+        aggs = response.get('aggregations', {})
+        return self.add_nummeraanduiding_sub(aggs)['total']
+
 
 class HrSearch(HrBase, TableSearchView):
-    selection = []
     sbi_sub_subcategorie_values = []
-    filtercategories = ('hoofdcategorie', 'subcategorie', 'sbi_omschrijving')
     mapfiltercats = {'sbi_omschrijving': 'sub_sub_categorie'}
 
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
-        res['aggs']['vestiging']['aggs'].update(
-            add_aggregations(res['aggs']['vestiging']['aggs']))
+        vestigingaggs = res['aggs']['nummeraanduiding_sub']['aggs']['vestiging']['aggs']
+        vestigingaggs.update(add_aggregations(vestigingaggs))
         return res
 
     def define_id(self, item: dict, elastic_data: dict) -> str:
@@ -221,16 +283,6 @@ class HrSearch(HrBase, TableSearchView):
         inner_ves_hits = item['inner_hits']['vestiging']['hits']['hits']
         vb_id_first = inner_ves_hits[0]['_source']['bag_vbid']
         return vb_id_first
-
-    def define_total(self, response: dict):
-        aggs = response.get('aggregations', {})
-        if 'vestiging' in aggs:
-            aggs = super().process_aggs(aggs['vestiging'])
-            aggs = self.includeagg(aggs)
-            if 'doc_count' in aggs:
-                del aggs['doc_count']
-            self.extra_context_data['aggs_list'].update(aggs)
-            del self.extra_context_data['aggs_list']['vestiging']
 
     def filterkeys(self, filter_keyword: str, val: str):
         """
@@ -259,26 +311,6 @@ class HrSearch(HrBase, TableSearchView):
             self.selection += chain.from_iterable(ab)
 
         self.selection = list(set(self.selection))
-
-    def includeagg(self, aggs: dict) -> dict:
-        """
-        Correct results returned from elastic.
-
-        :param aggs:
-        :return: aggs
-        """
-
-        if len(self.selection):
-            for fieldkey in self.filtercategories:
-                delete_row = [
-                    idx for idx, b in enumerate(aggs[fieldkey]['buckets'])
-                    if not b['key'] in self.selection]
-
-                delete_row.reverse()
-                for idx in delete_row:
-                    del aggs[fieldkey]['buckets'][idx]
-
-        return aggs
 
     def build_sbi_filterkeys(self):
         """
@@ -337,8 +369,8 @@ class HrSearch(HrBase, TableSearchView):
             else:
                 print('bag_vbid %s not found' % bagvbid)
 
-        context['total'] = self.extra_context_data['total']
         context['aggs_list'] = self.extra_context_data['aggs_list']
+        context['total'] = self.extra_context_data['aggs_list']['total']
         return context
 
     def flatten(self, context_data: dict):

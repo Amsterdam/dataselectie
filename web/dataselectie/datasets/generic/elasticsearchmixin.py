@@ -67,22 +67,28 @@ class ElasticSearchMixin(object):
                     ]
                 }
             },
-            "aggs": {
-                "postcode": {
-                    "terms": {"field": "postcode"},
-                    "vestiging": {
-                        "children": {
-                            "type": "vestiging"
-                        },
-                        "aggs": {
-                            "sbi_code":{
-                                "terms": { "field":"sbi_code"}
-                            }
+             "aggs": {
+                  "nummeraanduiding": {
+                     "terms": {
+                        "field": "_type"
+                     },
+                     "aggs": {
+                        "vestiging": {
+                           "children": {
+                              "type": "vestiging"
+                           },
+                           "aggs": {
+                              "bedrijf": {
+                                 "term": {
+                                    "field": "bedrijfsnaam"
+                                 }
+                              }
+                           }
                         }
-                    }
-                }
-            }
-        }
+                     }
+                  }
+              }
+          }
         The "match_all" can be replaced with selections on the
         parent. i.e. buurtnaam:
         {
@@ -103,13 +109,13 @@ class ElasticSearchMixin(object):
 
         entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
 
-        child_filters = []
+        self.child_filters = []
         self.selection = []         # cash bashing!
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
             if val is not None:     # parameter is entered
                 del entered_parms[entered_parms.index(filter_keyword)]
-                filters, child_filters = self.proc_parameters(filter_keyword, val, child_filters, filters)
+                filters = self.proc_parameters(filter_keyword, val, filters)
                 self.filterkeys(filter_keyword, val)
 
         if len(entered_parms):
@@ -131,28 +137,26 @@ class ElasticSearchMixin(object):
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
 
-        query = self.build_el_query(filters, child_filters, query)
+        query = self.build_el_query(filters, query)
 
         return self.handle_query_size_offset(query)
 
     def filterkeys(self, filter_keyword: str, val: str):
         pass
 
-    def proc_parameters(self, filter_keyword: str, val: str, child_filters: list, filters: list) -> (list, list):
+    def proc_parameters(self, filter_keyword: str, val: str, filters: list) -> (list, list):
         filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
-        return filters, child_filters
+        return filters
 
-    @staticmethod
-    def build_el_query(filters: list, child_filters: list, query: dict) -> dict:
+    def build_el_query(self, filters: list, query: dict) -> dict:
         """
         Allows for addition of extra conditions if keyword mapping
         found, default it creates a bool query
         :param filters: Filters for the primary (parent) selection
-        :param child_filters: Filters for the secundary (child) selection
         :param query: query to start with
         :return: query
         """
-        filters += child_filters
+        filters += self.child_filters
         query['query'] = {
             'bool': {
                 'must': [query['query']],

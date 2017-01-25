@@ -20,6 +20,22 @@ log = logging.getLogger(__name__)
 BAG_APIFIELDS = []
 
 
+def process_aggs(aggs: dict) -> dict:
+    """
+    Merging count with regular aggregation for a single level result
+
+    :param aggs:
+    :return:
+    """
+
+    count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
+    for key in count_keys:
+        aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+        # Removing the individual count aggregation
+        del aggs[key]
+    return aggs
+
+
 class TableSearchView(ElasticSearchMixin, ListView):
     """
     A base class to generate tables from search results
@@ -90,11 +106,12 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # If there is a total count, adding it as well
         try:
             resp['object_count'] = context['total']
+        except KeyError:
+            pass
+        else:
             resp['page_count'] = int(int(context['total']) / self.preview_size)
             if int(context['total']) % self.preview_size:
                 resp['page_count'] += 1
-        except KeyError:
-            pass
 
         return self.Send_Response(resp, response_kwargs)
 
@@ -139,7 +156,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = self.fill_ids(response, elastic_data)
         # add aggregations
-        self.add_aggs(response)
+        self.add_aggregates(response)
         # Enrich result data with neede info
         self.save_context_data(response, elastic_data=elastic_data)
 
@@ -189,9 +206,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
         context = self.update_context_data(context)
         return context
 
-    def add_aggs(self, response: dict):
+    def add_aggregates(self, response: dict):
         aggs = response.get('aggregations', {})
-        self.extra_context_data['aggs_list'] = self.process_aggs(aggs)
+        self.extra_context_data['aggs_list'] = process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
 
     def includeagg(self, aggs: dict) -> dict:
@@ -211,22 +228,6 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 else:
                     self.extra_context_data['items'][id_value][field] = getfield(item['_source'])
 
-    @staticmethod
-    def process_aggs(aggs: dict) -> dict:
-        """
-        Merging count with regular aggregation for a single level result
-
-        :param aggs:
-        :return:
-        """
-
-        count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
-        for key in count_keys:
-            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
-            # Removing the individual count aggregation
-            del aggs[key]
-        return aggs
-
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
@@ -240,14 +241,12 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
 
         if 'items' not in self.extra_context_data:
-            self.extra_context_data = {'items': {}}
+            self.extra_context_data['items'] = {}
 
         for item in response['hits']['hits']:
             el_id = self.define_id(item, elastic_data)
             self.extra_context_data['items'][el_id] = {}
             self.add_api_fields(item, el_id)
-
-        self.define_total(response)
 
     def update_context_data(self, context):
         """

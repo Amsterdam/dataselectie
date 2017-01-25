@@ -53,15 +53,16 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(len(res['object_list']), 5)
+        self.assertEqual(len(res['object_list']), 6)
         self.assertEqual(res['page_count'], 1)
         self.assertIn('aggs_list', res)
+        self.assertEqual(res['aggs_list']['total'], 6)
         self.assertIn('hoofdcategorie', res['aggs_list'])
         testcats = {'cultuur, sport, recreatie': 2,
-                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 2,
+                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 3,
                     'handel, vervoer, opslag': 1,
                     'overheid, onderwijs, zorg': 1,
-                    'zakelijke dienstverlening': 2}
+                    'zakelijke dienstverlening': 3}
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
         self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 5)
         hoofdcategorieen = [(k['key'], k['doc_count'])
@@ -117,6 +118,8 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertIn(res['object_list'][0]['sbicodes'], '85314')
+
+#        self.assertEqual(res['aggs_list']['total'], 1) sbi_code has no own aggregation -> no reliable count!
         for fieldnm in velden_in_api:
             self.assertIn(fieldnm, res['object_list'][0])
         self.assertEqual(res['page_count'], 1)
@@ -157,6 +160,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['id'], '000000000809')
         self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
         self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['aggs_list']['total'], 1)
 
     def test_get_dataselectie_hoofd_categorie(self):
         q = {'page': 1, 'hoofdcategorie': 'cultuur, sport, recreatie'}
@@ -166,6 +170,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(len(res['object_list']), 2)
         self.check_in(res['object_list'], 'id', ('000000002216', '000000000086'))
         self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['aggs_list']['total'], 2)
 
     def test_get_dataselectie_sbi_omschrijving(self):
         q = {'page': 1, 'sbi_omschrijving': 'Brede scholengemeenschappen voor voortgezet onderwijs'}
@@ -175,6 +180,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['aggs_list']['total'], 1)
 
     def test_get_dataselectie_parent(self):
         """
@@ -198,6 +204,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['id'], '000000000809')
         self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
         self.assertEqual(res['page_count'], 1)
+        self.assertEqual(res['aggs_list']['total'], 1)
 
     def test_get_dataselectiehr_geolocation(self):
         """
@@ -210,7 +217,7 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(
-            res['object_count'], 5)
+            res['object_count'], 6)
         self.assertNotIn('aggs_list', res)
 
     def test_get_dataselectie_hr_shape_limit(self):
@@ -222,7 +229,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 1)
+        self.assertEqual(res['object_count'], 2)
 
     def test_get_dataselectiehr_geolocation2(self):
         """
@@ -236,7 +243,7 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(
-            res['object_count'], 1)
+            res['object_count'], 2)
         self.assertNotIn('aggs_list', res)
 
     def tearDown(self):
