@@ -255,9 +255,17 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
             'object_count': self.calc_total_from_aggs(response),
             'object_list': response['hits']['hits']
         }
-        for idx in range(len(resp['object_list'])):
-            del resp['object_list'][idx]['inner_hits']
+        resp = self.add_missing_point(resp)
 
+        return resp
+
+    def add_missing_point(self, resp):
+        for idx in range(len(resp['object_list'])):
+            point = resp['object_list'][idx]
+            vestigingen = point['inner_hits']['vestiging']['hits']['hits']
+            for extra in range(len(vestigingen)-1):
+                resp['object_list'].append(point)
+            del point['inner_hits']
         return resp
 
     def calc_total_from_aggs(self, response):
