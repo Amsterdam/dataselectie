@@ -114,7 +114,10 @@ class TableSearchView(ElasticSearchMixin, ListView):
         except KeyError:
             pass
         else:
-            resp['page_count'] = int(int(context['total']) / self.preview_size)
+            total_nr_of_entries = int(context['total'])
+            if total_nr_of_entries > settings.MAX_SEARCH_ITEMS:
+                total_nr_of_entries = settings.MAX_SEARCH_ITEMS - 1
+            resp['page_count'] = int(total_nr_of_entries / self.preview_size)
             if int(context['total']) % self.preview_size:
                 resp['page_count'] += 1
 
@@ -197,9 +200,15 @@ class TableSearchView(ElasticSearchMixin, ListView):
         offset = self.request_parameters.get('page', None)
         if offset:
             try:
-                offset = (int(offset) - 1) * settings.SEARCH_PREVIEW_SIZE
+                int_offset = int(offset)
+            except ValueError:
+                int_offset = 1
+            if int_offset > 100:
+                int_offset = 100
+            try:
+                offset = (int_offset - 1) * settings.SEARCH_PREVIEW_SIZE
                 if offset > 1:
-                    query['from'] = offset
+                    query['from'] = int_offset
             except ValueError:
                 # offset is not an int
                 pass
