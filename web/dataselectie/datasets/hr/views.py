@@ -63,6 +63,7 @@ class HrBase(object):
     filtercategories = ('sbi_omschrijving', 'subcategorie', 'hoofdcategorie')
     extra_context_data = {}
     selection = []
+    mapped_elastic_fieldname = {'toevoeging': 'huisnummer_toevoeging'}
 
     def process_sbi_codes(self, sbi_json: list) -> dict:
         """
@@ -165,8 +166,7 @@ class HrBase(object):
 
         return query
 
-    @staticmethod
-    def process_huisnummer_toevoeging(source):
+    def process_huisnummer_toevoeging(self, source):
         """
         Sloop huisnummer en huisletter uit de toevoeging
         :param source:
@@ -360,10 +360,7 @@ class HrSearch(HrBase, TableSearchView):
             api_json_data = context['object_list'][i]['api_json']
             for json_key, values in api_json_data.items():
                 if json_key not in ignore_list:
-                    try:
-                        nwfield = self.fieldname_mapping[json_key]
-                    except KeyError:
-                        nwfield = json_key
+                    nwfield = self.get_mapped_fieldname(json_key)
                     context['object_list'][i][nwfield] = \
                         context['object_list'][i]['api_json'][json_key]
 
@@ -383,6 +380,13 @@ class HrSearch(HrBase, TableSearchView):
         context['total'] = self.extra_context_data['aggs_list']['total']
         del context['aggs_list']['total']
         return context
+
+    def get_mapped_fieldname(self, fieldname: str) -> str:
+        try:
+            nwfield = self.fieldname_mapping[fieldname]
+        except KeyError:
+            nwfield = fieldname
+        return nwfield
 
     def flatten(self, context_data: dict):
         context_data.update(self.process_sbi_codes(context_data['sbi_codes']))
@@ -420,7 +424,7 @@ class HrCSV(HrBase, CSVExportView):
     headers = [
         'kvk_nummer', 'handelsnaam', 'bezoekadres_volledig_adres',
         'bezoekadres_correctie', '_openbare_ruimte_naam', 'huisnummer',
-        'huisletter', 'huisnummer_toevoeging', 'postcode', 'woonplaats',
+        'huisletter', 'toevoeging', 'postcode', 'woonplaats',
         'postadres_volledig_adres', 'postadres_correctie',
         'postadres_straatnaam', 'postadres_huisnummer',
         'postadres_huisletter', 'postadres_huisnummertoevoeging',

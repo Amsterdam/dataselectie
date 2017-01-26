@@ -124,8 +124,9 @@ class CSVExportView(TableSearchView):
                  not isinstance(v, str) or v is None}
             )
             # Adding the elastic context
-            for key, value in es[item['id']]['_source'].items():
-                item[key] = value
+            for key in es[item['id']]['_source'].keys():
+                item[key] = self.get_field_value_from_elastic(es[item['id']], key)
+
         return data
 
     def _fill_item(self, items, item):

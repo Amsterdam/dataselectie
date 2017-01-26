@@ -1,14 +1,14 @@
 # Python
 import logging
+import rapidjson
 from datetime import date, datetime
-# Packages
+
 from django.conf import settings
 from django.db.models import QuerySet
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.views.generic import ListView
 from elasticsearch import Elasticsearch
-import rapidjson
-# Project
+
 from .elasticsearchmixin import ElasticSearchMixin, BadReq
 
 log = logging.getLogger(__name__)
@@ -28,7 +28,8 @@ def process_aggs(aggs: dict) -> dict:
     :return:
     """
 
-    count_keys = [key for key in aggs.keys() if key.endswith('_count') and key[0:-6] in aggs]
+    count_keys = [key for key in aggs.keys() if
+                  key.endswith('_count') and key[0:-6] in aggs]
     for key in count_keys:
         aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
         # Removing the individual count aggregation
@@ -62,6 +63,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     apifields = []
     # request parameters
     request_parameters = None
+    # rename fields from elastic
+    mapped_elastic_fieldname = {}
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
@@ -79,7 +82,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     def dispatch(self, request, *args, **kwargs):
         self.request_parameters = getattr(request, request.method)
         try:
-            response = super(TableSearchView, self).dispatch(request, *args, **kwargs)
+            response = super(TableSearchView, self).dispatch(request, *args,
+                                                             **kwargs)
         except BadReq as e:
             response = HttpResponseBadRequest(content=str(e))
         return response
@@ -95,7 +99,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
         qs = self.create_queryset(elastic_data)
         return qs
 
-    def render_to_response(self, context: dict, **response_kwargs) -> HttpResponse:
+    def render_to_response(self, context: dict,
+                           **response_kwargs) -> HttpResponse:
         # Checking if pretty and debug
         resp = {'object_list': list(context['object_list'])}
         # Cleaning all but the objects and aggregations
@@ -120,6 +125,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         return HttpResponse(rapidjson.dumps(resp),
                             content_type='application/json',
                             **response_kwargs)
+
     # Tableview methods
 
     def paginate(self, offset: int, q: dict) -> dict:
@@ -153,7 +159,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
         # Performing the search
-        response = self.elastic.search(index=settings.ELASTIC_INDICES[self.index], body=query)
+        response = self.elastic.search(
+            index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = self.fill_ids(response, elastic_data)
         # add aggregations
         self.add_aggregates(response)
@@ -216,22 +223,35 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def add_api_fields(self, item: dict, id_value: str):
         for field in self.apifields:
-            try:
-                self.extra_context_data['items'][id_value][field] = \
-                    item['_source'][field]
-            except:
-                self.extra_context_data['items'][id_value][field] = None
-                try:
-                    getfield = getattr(self, 'process_' + field)
-                except AttributeError:
-                    pass
-                else:
-                    self.extra_context_data['items'][id_value][field] = getfield(item['_source'])
+            self.extra_context_data['items'][id_value][
+                field] = self.get_field_value_from_elastic(item, field)
+
+    def get_field_value_from_elastic(self, item: dict, field: str):
+        field = self.get_mapped_fieldname(field)
+        try:
+            value = item['_source'][field]
+        except KeyError:
+            value = self.get_data_from_function(item, field)
+
+        return value
+
+    def get_mapped_fieldname(self, fieldnm):
+        if fieldnm in self.mapped_elastic_fieldname:
+            fieldnm = self.mapped_elastic_fieldname[fieldnm]
+        return fieldnm
+
+    def get_data_from_function(self, item: dict, field: str):
+        try:
+            getfield = getattr(self, 'process_' + field)
+        except AttributeError:
+            pass
+        else:
+            return getfield(item['_source'])
 
     # ===============================================
     # Context altering functions to be overwritten
     # ===============================================
-    def save_context_data(self, response: dict, elastic_data: dict=None):
+    def save_context_data(self, response: dict, elastic_data: dict = None):
         """
         Can be used by the subclass to save extra data to be used
         later to correct context data
@@ -265,6 +285,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
 
     def define_total(self, response: dict):
         self.extra_context_data['total'] = response['hits']['total']
+
 
 def _stringify_item_value(value) -> str:
     """
