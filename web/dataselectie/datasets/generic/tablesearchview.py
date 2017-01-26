@@ -205,13 +205,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
                 int_offset = 1
             if int_offset > 100:
                 int_offset = 100
-            try:
-                offset = (int_offset - 1) * settings.SEARCH_PREVIEW_SIZE
-                if offset > 1:
-                    query['from'] = int_offset
-            except ValueError:
-                # offset is not an int
-                pass
+            offset = (int_offset - 1) * settings.SEARCH_PREVIEW_SIZE
+            if offset > 1:
+                query['from'] = offset
         return self.paginate(offset, query)
 
     def get_context_data(self, **kwargs) -> dict:
