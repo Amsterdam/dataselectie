@@ -109,16 +109,17 @@ class TableSearchView(ElasticSearchMixin, ListView):
         except KeyError:
             pass
         # If there is a total count, adding it as well
+
         try:
             resp['object_count'] = context['total']
         except KeyError:
             pass
         else:
-            total_nr_of_entries = int(context['total'])
+            total_nr_of_entries = self.total_elastic
             if total_nr_of_entries > settings.MAX_SEARCH_ITEMS:
                 total_nr_of_entries = settings.MAX_SEARCH_ITEMS - 1
             resp['page_count'] = int(total_nr_of_entries / self.preview_size)
-            if int(context['total']) % self.preview_size:
+            if self.total_elastic % self.preview_size:
                 resp['page_count'] += 1
 
         return self.Send_Response(resp, response_kwargs)
@@ -222,6 +223,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         aggs = response.get('aggregations', {})
         self.extra_context_data['aggs_list'] = process_aggs(aggs)
         self.extra_context_data['total'] = response['hits']['total']
+        self.total_elastic = int(response['hits']['total'])
 
     def includeagg(self, aggs: dict) -> dict:
         return aggs
@@ -287,9 +289,9 @@ class TableSearchView(ElasticSearchMixin, ListView):
         :return: id
         """
         return item['_id']
-
-    def define_total(self, response: dict):
-        self.extra_context_data['total'] = response['hits']['total']
+    #
+    # def define_total(self, response: dict):
+    #     self.extra_context_data['total'] = response['hits']['total']
 
 
 def _stringify_item_value(value) -> str:
