@@ -56,7 +56,7 @@ INSTALLED_APPS = [
     'api',
     # Datasets
     'datasets.hr',
-    'datasets.bag',
+    'datasets.bag'
 
 ]
 

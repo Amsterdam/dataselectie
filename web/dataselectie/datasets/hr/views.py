@@ -444,11 +444,11 @@ class HrCSV(HrBase, CSVExportView):
 
     pretty_headers = (
         'KvK-nummer', 'Handelsnaam', 'Bezoekadres (KvK HR)',
-        'Indicatie afwijkend bezoekadres BAG',
+        'Indicatie bezoekadres geschat o.b.v. BAG',
         'Openbare ruimte bezoekadres (BAG)', 'Huisnummer bezoekadres (BAG)',
         'Huisletter bezoekadres (BAG)', 'Huisnummertoevoeging bezoekadres (BAG)',
         'Postcode bezoekadres (BAG)', 'Woonplaats bezoekadres (BAG)',
-        'Postadres (Kvk HR)', 'Indicatie afwijkend postadres BAG',
+        'Postadres (Kvk HR)', 'Indicatie postadres geschat o.b.v. BAG',
         'Openbare ruimte postadres (BAG)', 'Huisnummer postadres (BAG)',
         'Huisletter postadres (BAG)', 'Huisnummertoevoeging postadres (BAG)',
         'Postcode postadres (BAG)', 'Woonplaats postadres (BAG)',

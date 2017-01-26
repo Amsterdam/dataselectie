@@ -2,10 +2,10 @@ import logging
 
 from django.conf import settings
 
-
+from dataselectie import build_ds_data
+from . import documents
 from . import models
 from ..generic import index
-from . import documents
 
 log = logging.getLogger(__name__)
 
@@ -24,9 +24,26 @@ class IndexHrTask(index.ImportIndexTask):
         return documents.meta_from_hrdataselectie(obj)
 
 
+class ImportHrTask(index.ImportIndexTask):
+    name = "import hr data"
+
+    queryset = models.DataSelectie.objects
+
+    def convert(self, obj):
+        return build_ds_data._build_joined_ds_table()
+
+
 class BuildIndexHrJob(object):
     name = "Create new search-index for all HR data from database"
 
     @staticmethod
     def tasks():
         return [IndexHrTask()]
+
+
+class ImportHr(object):
+    name = "Import HR data"
+
+    @staticmethod
+    def tasks():
+        return [ImportHrTask()]
