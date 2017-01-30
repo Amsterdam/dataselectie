@@ -427,7 +427,7 @@ class HrCSV(HrBase, CSVExportView):
             ('handelsnaam', True, 'Handelsnaam', True),
             ('bezoekadres_volledig_adres', True, 'Bezoekadres (KvK HR)', True),
             ('bezoekadres_correctie', True,
-             'Indicatie afwijkend bezoekadres BAG', True),
+             'Indicatie bezoekadres geschat o.b.v BAG', True),
             ('_openbare_ruimte_naam', True,
              'Openbare ruimte bezoekadres (BAG)', True),
             ('huisnummer', False, 'Huisnummer bezoekadres (BAG)', True),
