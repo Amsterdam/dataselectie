@@ -1,18 +1,16 @@
-
 import logging
-
-from itertools import groupby
-from datetime import datetime, date
-from django import db
-from decimal import Decimal
 import time
+from datetime import datetime, date
+from decimal import Decimal
+from itertools import groupby
+
+from django import db
 from django.contrib.gis.geos.point import Point
 
-from datasets.hr.models import DataSelectie
-from datasets.hr.models import GeoVestigingen
-from datasets.hr.models import CBS_sbi_hoofdcat
+from data.models import DataSelectie
 from datasets.hr.models import BetrokkenPersonen
-
+from datasets.hr.models import CBS_sbi_hoofdcat
+from datasets.hr.models import GeoVestigingen
 
 log = logging.getLogger(__name__)
 
@@ -220,13 +218,24 @@ def add_adressen_dict(vestiging_dict: dict, sbi_repeat) -> dict:
     vestiging_dict['postadres_correctie'] = \
         correctie_address(sbi_repeat.postadres)
 
+    if vestiging_dict['postadres_correctie'] == 'BAG':
+        vestiging_dict.update(
+            get_bag(
+                sbi_repeat.postadres,
+                LOCATIE_POSTADRES_FIELDS, 'postadres'))
+
     return vestiging_dict
 
+def get_bag(postadres, pa_fields, prefix):
+    return {}
 
 def correctie_address(address):
     if address and address.correctie:
         return 'BAG'
-    return 'KVK'
+    elif address.correctie is False:
+        return 'ERR'
+    else:
+        return 'KVK'
 
 
 def add_betrokkenen_to_vestigingen(

@@ -1,17 +1,19 @@
 # Python
 # Packages
-from django.db.models import QuerySet
-from django.db.models.expressions import RawSQL
 from collections import OrderedDict
 from itertools import chain
-# Project
-from datasets.hr import models
+
+from django.db.models import QuerySet
+from django.db.models.expressions import RawSQL
+
+from data import models
 from datasets.bag.views import BAG_APIFIELDS
-from datasets.hr.queries import meta_q
-from datasets.generic.queries import add_aggregations
-from datasets.generic.tablesearchview import TableSearchView, process_aggs
 from datasets.generic.csvexportview import CSVExportView
 from datasets.generic.geolocationsearchview import GeoLocationSearchView
+from datasets.generic.queries import add_aggregations
+from datasets.generic.tablesearchview import TableSearchView, process_aggs
+from datasets.hr import models as hrmodels
+from datasets.hr.queries import meta_q
 
 HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
                 'huisletter', 'huisnummer_toevoeging', 'woonplaats',
@@ -330,7 +332,7 @@ class HrSearch(HrBase, TableSearchView):
         :return:
         """
         self.sbi_sub_subcategorie_values = []
-        for hoofdcat in models.CBS_sbi_hoofdcat.objects.select_related():
+        for hoofdcat in hrmodels.CBS_sbi_hoofdcat.objects.select_related():
             for subcat in hoofdcat.cbs_sbi_subcat_set.all():
                 for sbi in subcat.cbs_sbicodes_set.all():
                     self.sbi_sub_subcategorie_values.append(

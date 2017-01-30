@@ -2,9 +2,8 @@ import logging
 
 from django.conf import settings
 
-from dataselectie import build_ds_data
+from data import models, build_ds_data
 from . import documents
-from . import models
 from ..generic import index
 
 log = logging.getLogger(__name__)

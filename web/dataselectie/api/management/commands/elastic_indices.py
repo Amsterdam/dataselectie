@@ -1,22 +1,22 @@
-from django.core.management import BaseCommand
+import time
 
 from django.conf import settings
+from django.core.management import BaseCommand
 
-import datasets.generic.batch as genbatch
 import datasets.bag.batch as bagbatch
+import datasets.generic.batch as genbatch
 import datasets.hr.batch as hrbatch
 from batch import batch
-import time
 
 
 class Command(BaseCommand):
-
     datasetcommands = {
         'bag': (bagbatch.BuildIndexDsBagJob,),
+        'hr_import': (hrbatch.ImportHr,),
         'hr': (hrbatch.BuildIndexHrJob,)
     }
 
-    ordered = ['bag', 'hr']
+    ordered = ['bag', 'hr_import', 'hr']
 
     recreate_indexes = {
         'bag': (genbatch.ReBuildIndexDsJob,)
@@ -51,22 +51,6 @@ class Command(BaseCommand):
             default=0,
             help='Build X/Y parts 1/3, 2/3, 3/3')
 
-    @staticmethod
-    def set_partial_config(options):
-        """
-        Do partial configuration
-        """
-        if options['partial_index']:
-            numerator, denominator = options['partial_index'].split('/')
-
-            numerator = int(numerator) - 1
-            denominator = int(denominator)
-
-            assert(numerator < denominator)
-
-            settings.PARTIAL_IMPORT['numerator'] = numerator
-            settings.PARTIAL_IMPORT['denominator'] = denominator
-
     def handle(self, *args, **options):
 
         dataset = options['dataset']
@@ -78,17 +62,17 @@ class Command(BaseCommand):
                 self.stderr.write("Unkown dataset: {}".format(ds))
                 return
 
-        sets = [ds for ds in self.ordered if ds in dataset]     # enforce order
+        sets = [ds for ds in self.ordered if ds in dataset]  # enforce order
 
         self.stdout.write("Working on {}".format(", ".join(sets)))
 
-        self.set_partial_config(options)
+        set_partial_config(options)
 
         for ds in sets:
             if options['recreate_indexes']:
                 if ds in self.recreate_indexes:
                     for job_class in self.recreate_indexes[ds]:
-                            batch.execute(job_class())
+                        batch.execute(job_class())
                 # we do not run the other tasks
                 continue  # to next dataset please..
 
@@ -98,3 +82,19 @@ class Command(BaseCommand):
 
         self.stdout.write(
             "Total Duration: %.2f seconds" % (time.time() - start))
+
+
+def set_partial_config(options):
+    """
+    Do partial configuration
+    """
+    if options['partial_index']:
+        numerator, denominator = options['partial_index'].split('/')
+
+        numerator = int(numerator) - 1
+        denominator = int(denominator)
+
+        assert (numerator < denominator)
+
+        settings.PARTIAL_IMPORT['numerator'] = numerator
+        settings.PARTIAL_IMPORT['denominator'] = denominator

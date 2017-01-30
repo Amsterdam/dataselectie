@@ -1,24 +1,4 @@
 from django.contrib.gis.db import models
-from django.contrib.postgres.fields import JSONField
-
-
-class DataSelectie(models.Model):
-    id = models.CharField(
-        max_length=20, primary_key=True)
-
-    bag_numid = models.CharField(
-        max_length=16, blank=True, null=True, db_index=True)
-
-    bag_vbid = models.CharField(
-        max_length=16, blank=True, null=True)
-
-    api_json = JSONField()
-
-    class Meta(object):
-        managed = True
-        verbose_name = "Handelsregister dataselectie"
-        verbose_name_plural = "Handelsregister dataselecties"
-        ordering = ('id',)
 
 
 class CBS_sbi_hoofdcat(models.Model):
@@ -216,14 +196,11 @@ class BetrokkenPersonen(models.Model):
         help_text="Kvk nummer"
     )
 
-    vestiging = models.ForeignKey(
-        DataSelectie,
-        to_field="id",
-        db_column="vestiging_id",
+    vestiging_id = models.CharField(
+        max_length=20,
         blank=True,
         null=True,
-        help_text="Vestiging id",
-        on_delete=models.DO_NOTHING
+        help_text="Vestiging id"
     )
 
     vestigingsnummer = models.CharField(

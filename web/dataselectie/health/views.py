@@ -7,8 +7,8 @@ from django.http import HttpResponse
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
+from data.models import DataSelectie
 from datasets.bag.models import Nummeraanduiding
-from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
 

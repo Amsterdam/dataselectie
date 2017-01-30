@@ -1,13 +1,13 @@
 # Python
 import logging
-# Packages
+
 import elasticsearch_dsl as es
 from django.conf import settings
 from django.db.models import Q
-# Project
-from ..bag.models import Nummeraanduiding
-from ..hr.models import DataSelectie
+
 from batch import batch
+from data.models import DataSelectie
+from ..bag.models import Nummeraanduiding
 
 log = logging.getLogger(__name__)
 
