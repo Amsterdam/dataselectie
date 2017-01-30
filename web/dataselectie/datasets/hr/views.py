@@ -213,6 +213,7 @@ class HrBase(object):
 
     def add_aggregates(self, response: dict):
         self.add_hraggs(response)
+        self.total_elastic = int(response['hits']['total'])
         aggs = response.get('aggregations', {})
         if 'nummeraanduiding_sub' in aggs and len(aggs['nummeraanduiding_sub']['buckets']):
             self.extra_context_data['aggs_list'].update(self.add_nummeraanduiding_sub(aggs))
