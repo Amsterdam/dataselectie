@@ -115,10 +115,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
         except KeyError:
             pass
         else:
-            total_nr_of_entries = self.total_elastic
-            if total_nr_of_entries > settings.MAX_SEARCH_ITEMS:
-                total_nr_of_entries = settings.MAX_SEARCH_ITEMS - 1
-            resp['page_count'] = int(total_nr_of_entries / self.preview_size)
+            resp['page_count'] = int(self.total_elastic / self.preview_size)
             if self.total_elastic % self.preview_size:
                 resp['page_count'] += 1
 
