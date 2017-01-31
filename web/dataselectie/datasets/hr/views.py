@@ -1,19 +1,18 @@
 # Python
 # Packages
-from collections import OrderedDict
-from itertools import chain
-
 from django.db.models import QuerySet
 from django.db.models.expressions import RawSQL
-
+from collections import OrderedDict
+from itertools import chain
+# Project
 from data import models
 from datasets.bag.views import BAG_APIFIELDS
-from datasets.generic.csvexportview import CSVExportView
-from datasets.generic.geolocationsearchview import GeoLocationSearchView
+from datasets.hr.queries import meta_q
+from datasets.hr import models as hrmodels
 from datasets.generic.queries import add_aggregations
 from datasets.generic.tablesearchview import TableSearchView, process_aggs
-from datasets.hr import models as hrmodels
-from datasets.hr.queries import meta_q
+from datasets.generic.csvexportview import CSVExportView
+from datasets.generic.geolocationsearchview import GeoLocationSearchView
 
 HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
                 'huisletter', 'huisnummer_toevoeging', 'woonplaats',
@@ -424,39 +423,41 @@ class HrCSV(HrBase, CSVExportView):
 
     name_conv = {'handelsnaam': 'naam'}
 
-    headers = [
-        'kvk_nummer', 'handelsnaam', 'bezoekadres_volledig_adres',
-        'bezoekadres_correctie', '_openbare_ruimte_naam', 'huisnummer',
-        'huisletter', 'toevoeging', 'postcode', 'woonplaats',
-        'postadres_volledig_adres', 'postadres_correctie',
-        'postadres_straatnaam', 'postadres_huisnummer',
-        'postadres_huisletter', 'postadres_huisnummertoevoeging',
-        'postadres_postcode', 'woonplaats_postadres', 'hoofdcategorieen',
-        'subcategorieen', 'sbi_omschrijving', 'sbicodes', 'datum_aanvang',
-        'datum_einde', 'betrokkenen']
+    hdrs = (('kvk_nummer', True, 'KvK-nummer', True),
+            ('handelsnaam', True, 'Handelsnaam', True),
+            ('bezoekadres_volledig_adres', True, 'Bezoekadres (KvK HR)', True),
+            ('bezoekadres_correctie', True,
+             'Indicatie bezoekadres geschat o.b.v BAG', True),
+            ('_openbare_ruimte_naam', True,
+             'Openbare ruimte bezoekadres (BAG)', True),
+            ('huisnummer', False, 'Huisnummer bezoekadres (BAG)', True),
+            ('huisletter', False, 'Huisletter bezoekadres (BAG)', True),
+            ('toevoeging', False, 'Huisnummertoevoeging bezoekadres (BAG)',
+             True),
+            ('postcode', False, 'Postcode bezoekadres (BAG)', True),
+            ('woonplaats', False, 'Woonplaats bezoekadres (BAG)', True),
+            ('postadres_volledig_adres', True, 'Postadres (Kvk HR)', True),
+            ('postadres_correctie', True, 'Indicatie afwijkend postadres BAG',
+             False),
+            ('postadres_straatnaam', True, 'Openbare ruimte postadres (BAG)',
+             False),
+            ('postadres_huisnummer', True, 'Huisnummer postadres (BAG)', False),
+            ('postadres_huisletter', True, 'Huisletter postadres (BAG)', False),
+            ('postadres_huisnummertoevoeging', True,
+             'Huisnummertoevoeging postadres (BAG)', False),
+            ('postadres_postcode', True, 'Postcode postadres (BAG)', False),
+            ('woonplaats_postadres', True, 'Woonplaats postadres (BAG)', False),
+            ('hoofdcategorieen', True, 'Hoofdcategorie', True),
+            ('subcategorieen', True, 'Subcategorie', True),
+            ('sbi_omschrijving', True, 'SBI-omschrijving', True),
+            ('sbicodes', True, 'SBI-code', True),
+            ('datum_aanvang', True, 'Datum aanvang', True),
+            ('datum_einde', True, 'Datum einde', True),
+            ('betrokkenen', True, 'Naam eigenaar(en)', True))
 
-    headers_hr = [
-        'kvk_nummer', 'handelsnaam', 'postadres_straatnaam',
-        'postadres_huisnummer', 'postadres_huisletter',
-        'postadres_huisnummertoevoeging', 'postadres_postcode',
-        'woonplaats_postadres', 'hoofdcategorieen',
-        'subsubcategorieen', 'subcategorieen', 'sbicodes',
-        'betrokkenen', 'rechtsvorm', 'datum_aanvang', 'datum_einde',
-        'bezoekadres_volledig_adres', 'postadres_volledig_adres',
-        'bezoekadres_correctie', 'postadres_correctie']
-
-    pretty_headers = (
-        'KvK-nummer', 'Handelsnaam', 'Bezoekadres (KvK HR)',
-        'Indicatie bezoekadres geschat o.b.v. BAG',
-        'Openbare ruimte bezoekadres (BAG)', 'Huisnummer bezoekadres (BAG)',
-        'Huisletter bezoekadres (BAG)', 'Huisnummertoevoeging bezoekadres (BAG)',
-        'Postcode bezoekadres (BAG)', 'Woonplaats bezoekadres (BAG)',
-        'Postadres (Kvk HR)', 'Indicatie postadres geschat o.b.v. BAG',
-        'Openbare ruimte postadres (BAG)', 'Huisnummer postadres (BAG)',
-        'Huisletter postadres (BAG)', 'Huisnummertoevoeging postadres (BAG)',
-        'Postcode postadres (BAG)', 'Woonplaats postadres (BAG)',
-        'Hoofdcategorie', 'Subcategorie', 'SBI-omschrijving', 'SBI-code',
-        'Datum aanvang', 'Datum einde', 'Naam eigenaar(en)')
+    headers = [h[0] for h in hdrs if h[3]]
+    pretty_headers = [h[2] for h in hdrs if h[3]]
+    headers_hr = [h[0] for h in hdrs if h[3] and h[1]]
 
     def elastic_query(self, query):
         return meta_q(query, add_aggs=False)
