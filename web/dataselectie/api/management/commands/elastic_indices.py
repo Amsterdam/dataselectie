@@ -12,11 +12,10 @@ from batch import batch
 class Command(BaseCommand):
     datasetcommands = {
         'bag': (bagbatch.BuildIndexDsBagJob,),
-        'hr_import': (hrbatch.ImportHr,),
         'hr': (hrbatch.BuildIndexHrJob,)
     }
 
-    ordered = ['bag', 'hr_import', 'hr']
+    ordered = ['bag', 'hr']
 
     recreate_indexes = {
         'bag': (genbatch.ReBuildIndexDsJob,)

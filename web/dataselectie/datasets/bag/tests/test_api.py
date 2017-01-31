@@ -2,12 +2,12 @@
 from rapidjson import loads
 from unittest import skip
 from urllib.parse import urlencode
-# Packages
+
 from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
-# Project
+
 from datasets.bag import models, views
 from datasets.bag.tests import fixture_utils
 
@@ -16,21 +16,23 @@ class ESTestCase(TestCase):
     """
     TestCase for using with elastic search to reset the elastic index
     """
+
     @classmethod
     def rebuild_elastic_index(cls):
         """
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--recreate', verbosity=0, interactive=False)
-        call_command('elastic_indices', '--build', verbosity=0, interactive=False)
+        call_command('elastic_indices', '--recreate', verbosity=0,
+                     interactive=False)
+        call_command('elastic_indices', '--build', verbosity=0,
+                     interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
                           timeout="320s")
 
 
 class DataselectieApiTest(ESTestCase):
-
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
@@ -70,8 +72,10 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
         previous = ''
         for olist in res['object_list']:
-            sortcriterium = olist['_openbare_ruimte_naam'].strip() + olist['huisnummer'].strip().zfill(5) + olist[
-                'huisletter'].strip() + olist['huisnummer_toevoeging'].strip()
+            sortcriterium = olist['_openbare_ruimte_naam'].strip() + olist[
+                'huisnummer'].strip().zfill(5) + olist[
+                                'huisletter'].strip() + olist[
+                                'huisnummer_toevoeging'].strip()
             self.assertGreaterEqual(sortcriterium, previous)
             previous = sortcriterium
 
@@ -87,7 +91,8 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(
             models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 10)
-        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(res['page_count'],
+                         int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_stadsdeel_code(self):
         """
@@ -100,7 +105,8 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
         _ = models.Nummeraanduiding.objects.count()
         self.assertEqual(res['object_count'], 10)
-        self.assertEqual(res['page_count'], int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(res['page_count'],
+                         int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
 
     @skip('Needs to add geo matching for this test to work')
     def test_get_dataselectie_bag_ggw_naam(self):
@@ -163,9 +169,11 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        postcode_count = models.Nummeraanduiding.objects.filter(postcode=q['postcode']).count()
+        postcode_count = models.Nummeraanduiding.objects.filter(
+            postcode=q['postcode']).count()
         self.assertEqual(res['object_count'], postcode_count)
-        self.assertEqual(res['page_count'], int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(res['page_count'],
+                         int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_shape_all(self):
         """
@@ -183,7 +191,8 @@ class DataselectieApiTest(ESTestCase):
         """
         Test querying on geolocation
         """
-        q = {'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+        q = {
+            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 

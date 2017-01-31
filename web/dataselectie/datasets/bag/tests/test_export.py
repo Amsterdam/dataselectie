@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
-# Project
+
 from datasets.bag.tests import fixture_utils
 
 
@@ -11,21 +11,23 @@ class ESTestCase(TestCase):
     """
     TestCase for using with elastic search to reset the elastic index
     """
+
     @classmethod
     def rebuild_elastic_index(cls):
         """
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--recreate', verbosity=0, interactive=False)
-        call_command('elastic_indices', '--build', verbosity=0, interactive=False)
+        call_command('elastic_indices', '--recreate', verbosity=0,
+                     interactive=False)
+        call_command('elastic_indices', '--build', verbosity=0,
+                     interactive=False)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
                           timeout="320s")
 
 
 class DataselectieExportTest(ESTestCase):
-
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()

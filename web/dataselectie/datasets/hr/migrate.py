@@ -34,12 +34,14 @@ class ManageView(Operation):
         return history[-1]
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        schema_editor.execute("DROP VIEW IF EXISTS {}".format(self.view_name))
-        schema_editor.execute("CREATE VIEW {} AS {}".format(self.view_name, self.sql))
+        if app_label == schema_editor.connection.alias == 'hr':
+            schema_editor.execute("DROP VIEW IF EXISTS {}".format(self.view_name))
+            schema_editor.execute("CREATE VIEW {} AS {}".format(self.view_name, self.sql))
 
     def database_backwards(self, app_label, schema_editor, from_state, to_state):
-        print('deleting views')
-        schema_editor.execute("DROP VIEW IF EXISTS {}".format(self.view_name))
+        if app_label == 'hr':
+            print('deleting views')
+            schema_editor.execute("DROP VIEW IF EXISTS {}".format(self.view_name))
 
     def state_forwards(self, app_label, state):
         self.push_history(app_label)

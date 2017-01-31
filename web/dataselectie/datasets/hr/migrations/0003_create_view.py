@@ -11,7 +11,7 @@ from datasets.hr import migrate
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('hr', '0004_auto_20170130_1553'),
+        ('hr', '0002_auto_20170126_1354'),
     ]
 
     operations = [

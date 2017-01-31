@@ -1,13 +1,13 @@
 # Python
-from django.conf import settings
+import logging
+import time
+
 import elasticsearch_dsl as es
-# Project
+from django.conf import settings
+
+from batch import batch
 from datasets.bag import models
 from datasets.generic import analyzers
-from batch import batch
-
-import time
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def update_doc_with_adresseerbaar_object(doc, item):
     try:
         doc.centroid = (
             adresseerbaar_object
-            .geometrie.centroid.transform('wgs84', clone=True).coords)
+                .geometrie.centroid.transform('wgs84', clone=True).coords)
     except AttributeError:
         batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
@@ -177,7 +177,7 @@ def meta_from_nummeraanduiding(
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
         ('buurtcombinatie_naam',
-            'adresseerbaar_object.buurt.buurtcombinatie.naam'),
+         'adresseerbaar_object.buurt.buurtcombinatie.naam'),
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),

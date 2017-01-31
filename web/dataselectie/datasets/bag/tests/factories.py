@@ -13,7 +13,6 @@ faker_instance = faker.Factory.create(locale='nl_NL')
 
 # Creating a Point
 class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
-
     def fuzz(self):
         return Point(
             random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))

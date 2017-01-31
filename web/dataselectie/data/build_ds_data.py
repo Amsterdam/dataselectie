@@ -88,7 +88,7 @@ def _build_joined_ds_table():
     """
 
     with db.connection.cursor() as cursor:
-        cursor.execute("TRUNCATE TABLE hr_dataselectie")
+        cursor.execute("TRUNCATE TABLE data_dataselectie")
 
     sbi_values = flatten_sbi()
 
