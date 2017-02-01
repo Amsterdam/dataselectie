@@ -94,25 +94,25 @@ importer_el3:
     bash -c "/app/docker-wait.sh \
             && python manage.py elastic_indices --partial=3/3 --build"
 
-  db-backup:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    links:
-      - database_dataselectie
-    environment:
-      PGPASSWORD: insecure
-    volumes:
-      - ./backups:/tmp/backups
-    command: >
-      bash -c "echo database_dataselectie:5432:dataselectie:dataselectie:insecure > ~/.pgpass \
-              && chmod 600 ~/.pgpass \
-              && pg_dump --clean \
-                          -Fc \
-                          -t data* \
-                          -t django_migrations  \
-                          -T auth*    \
-                          -U dataselectie \
-                          -h database -p 5432 \
-                          database_dataselectie > /tmp/backups/database.dump"
+db-backup:
+  image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+  links:
+    - database_dataselectie
+  environment:
+    PGPASSWORD: insecure
+  volumes:
+    - ./backups:/tmp/backups
+  command: >
+    bash -c "echo database_dataselectie:5432:dataselectie:dataselectie:insecure > ~/.pgpass \
+            && chmod 600 ~/.pgpass \
+            && pg_dump --clean \
+                        -Fc \
+                        -t data* \
+                        -t django_migrations  \
+                        -T auth*    \
+                        -U dataselectie \
+                        -h database -p 5432 \
+                        database_dataselectie > /tmp/backups/database.dump"
 
 el-backup:
   image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch
