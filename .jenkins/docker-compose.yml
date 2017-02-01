@@ -52,8 +52,8 @@ importer:
   command: >
     bash -c "/app/docker-wait.sh \
             && python manage.py migrate \
+            && python manage.py elastic_indices --recreate \
             && python manage.py run_import"
-            && python manage.py elastic_indices --recreate"
 
 importer_el1:
   image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
