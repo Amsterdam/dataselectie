@@ -31,8 +31,8 @@ def add_aggregations(aggs):
     return aggs
 
 
-def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None, qtype=None):
-
+def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None,
+                 qtype=None):
     if default_query:
         if query:
             query += default_query
