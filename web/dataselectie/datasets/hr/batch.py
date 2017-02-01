@@ -2,7 +2,8 @@ import logging
 
 from django.conf import settings
 
-from data import models, build_ds_data
+from data import models
+from datasets.hr import build_ds_data
 from . import documents
 from ..generic import index
 
@@ -23,12 +24,10 @@ class IndexHrTask(index.ImportIndexTask):
         return documents.meta_from_hrdataselectie(obj)
 
 
-class ImportHrTask(index.ImportIndexTask):
+class ImportHrTask():
     name = "import hr data"
 
-    queryset = models.DataSelectie.objects
-
-    def convert(self, obj):
+    def execute(self):
         return build_ds_data._build_joined_ds_table()
 
 

@@ -4,9 +4,37 @@ from __future__ import unicode_literals
 
 import django.contrib.gis.db.models.fields
 import django.db.models.deletion
+from django.conf import settings
+from django.contrib.sites.models import Site
 from django.db import migrations, models
+from django.db import connections
 
-from datasets.hr import migrate
+
+# def create_site(apps, *args, **kwargs):
+    # with connections['hr'].cursor() as cursor:
+    #     cursor.execute(
+    #     """
+    #     CREATE SEQUENCE public.django_site_id_seq
+    #       INCREMENT 1
+    #       MINVALUE 1
+    #       MAXVALUE 9223372036854775807
+    #       START 1
+    #       CACHE 1;
+    #     ALTER TABLE public.django_site_id_seq
+    #       OWNER TO handelsregister;
+    #     """)
+    # with connections['hr'].cursor() as cursor:
+    #     cursor.execute("Create table django_site ("
+    #                    "id integer not null default nextval('django_site_id_seq'::regclass), "
+    #                    "domain character varying(100) NOT NULL, "
+    #                    "name character varying(50) NOT NULL); ")
+    # with connections['hr'].cursor() as cursor:
+    #     cursor.execute("Insert into django_site (domain, name) Values ('{}', 'API Domain');".format(settings.DATAPUNT_API_URL))
+
+
+# def delete_site(apps, *args, **kwargs):
+#     with connections['hr'].cursor() as cursor:
+#         cursor.execute("Delete from django_site where name = 'API Domain'")
 
 
 class Migration(migrations.Migration):
@@ -15,6 +43,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # migrations.RunPython(code=create_site, reverse_code=delete_site),
+
         migrations.CreateModel(
             name='GeoVestigingen',
             fields=[
@@ -424,5 +454,218 @@ class Migration(migrations.Migration):
                                     on_delete=django.db.models.deletion.CASCADE,
                                     related_name='is_aansprakelijke',
                                     to='hr.Persoon'),
+        ),
+
+        migrations.CreateModel(
+            name='Activiteit',
+            fields=[
+                ('id', models.CharField(max_length=21, primary_key=True,
+                                        serialize=False)),
+                ('activiteitsomschrijving', models.TextField(blank=True,
+                                                             help_text='\n            De omschrijving van de activiteiten die de\n            Vestiging of Rechtspersoon uitoefent',
+                                                             null=True)),
+                ('sbi_code', models.CharField(
+                    help_text='De codering van de activiteit conform de SBI2008',
+                    max_length=6)),
+                ('sbi_omschrijving', models.CharField(
+                    help_text='Omschrijving van de activiteit conform de SBI2008',
+                    max_length=300)),
+                ('hoofdactiviteit', models.BooleanField(
+                    help_text='\n            Indicatie die aangeeft welke van de activiteiten de\n            hoofdactiviteit is')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='CommercieleVestiging',
+            fields=[
+                ('id', models.CharField(max_length=20, primary_key=True,
+                                        serialize=False)),
+                ('totaal_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('fulltime_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('parttime_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('import_activiteit', models.NullBooleanField()),
+                ('export_activiteit', models.NullBooleanField()),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Communicatiegegevens',
+            fields=[
+                ('id', models.CharField(max_length=21, primary_key=True,
+                                        serialize=False)),
+                ('domeinnaam', models.URLField(blank=True,
+                                               help_text='Het internetadres (URL)',
+                                               max_length=300, null=True)),
+                ('emailadres', models.EmailField(blank=True,
+                                                 help_text='Het e-mailadres waar op de onderneming gemaild kan worden',
+                                                 max_length=200, null=True)),
+                ('toegangscode', models.CharField(blank=True,
+                                                  help_text='\n            De internationale toegangscode van het land waarop het nummer\n            (telefoon of fax) betrekking heeft',
+                                                  max_length=10, null=True)),
+                ('communicatie_nummer', models.CharField(blank=True,
+                                                         help_text='Nummer is het telefoon- of faxnummer zonder opmaak',
+                                                         max_length=15,
+                                                         null=True)),
+                ('soort_communicatie_nummer', models.CharField(blank=True,
+                                                               choices=[(
+                                                                        'Telefoon',
+                                                                        'Telefoon'),
+                                                                        ('Fax',
+                                                                         'Fax')],
+                                                               max_length=10,
+                                                               null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='GeoVBO',
+            fields=[
+                ('id', models.CharField(max_length=14, primary_key=True,
+                                        serialize=False)),
+                ('bag_numid',
+                 models.CharField(blank=True, db_index=True, max_length=16,
+                                  null=True)),
+                ('bag_vbid',
+                 models.CharField(blank=True, db_index=True, max_length=16,
+                                  null=True)),
+                ('geometrie',
+                 django.contrib.gis.db.models.fields.PointField(blank=True,
+                                                                null=True,
+                                                                srid=28992)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Handelsnaam',
+            fields=[
+                ('id', models.CharField(max_length=20, primary_key=True,
+                                        serialize=False)),
+                ('handelsnaam',
+                 models.CharField(blank=True, max_length=500, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Kapitaal',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True,
+                                        serialize=False, verbose_name='ID')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='NietCommercieleVestiging',
+            fields=[
+                ('id', models.CharField(max_length=20, primary_key=True,
+                                        serialize=False)),
+                ('ook_genoemd',
+                 models.CharField(blank=True, max_length=200, null=True)),
+                ('verkorte_naam',
+                 models.CharField(blank=True, max_length=60, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='NietNatuurlijkPersoon',
+            fields=[
+                ('id', models.CharField(max_length=20, primary_key=True,
+                                        serialize=False)),
+                ('rsin',
+                 models.CharField(blank=True, db_index=True, max_length=9,
+                                  null=True)),
+                ('verkorte_naam',
+                 models.CharField(blank=True, max_length=60, null=True)),
+                ('ook_genoemd',
+                 models.CharField(blank=True, max_length=600, null=True)),
+            ],
+        ),
+        migrations.CreateModel(
+            name='Onderneming',
+            fields=[
+                ('id', models.CharField(max_length=20, primary_key=True,
+                                        serialize=False)),
+                ('totaal_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('fulltime_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('parttime_werkzame_personen',
+                 models.IntegerField(blank=True, null=True)),
+                ('handelsnamen', models.ManyToManyField(to='hr.Handelsnaam')),
+            ],
+        ),
+        migrations.CreateModel(
+            name='RechterlijkeUitspraak',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True,
+                                        serialize=False, verbose_name='ID')),
+            ],
+        ),
+        migrations.RemoveField(
+            model_name='locatie',
+            name='verkorte_naam',
+        ),
+        migrations.AddField(
+            model_name='maatschappelijkeactiviteit',
+            name='hoofdvestiging',
+            field=models.ForeignKey(blank=True, null=True,
+                                    on_delete=django.db.models.deletion.SET_NULL,
+                                    to='hr.Vestiging'),
+        ),
+        migrations.AddField(
+            model_name='maatschappelijkeactiviteit',
+            name='activiteiten',
+            field=models.ManyToManyField(
+                help_text='\n            De SBI-activiteiten van de MaatschappelijkeActiviteit is het totaal\n            van alle SBI-activiteiten die voorkomen bij de\n            MaatschappelijkeActiviteit behorende " NietCommercieleVestigingen\n            en bij de Rechtspersoon',
+                to='hr.Activiteit'),
+        ),
+        migrations.AddField(
+            model_name='maatschappelijkeactiviteit',
+            name='communicatiegegevens',
+            field=models.ManyToManyField(
+                help_text='Afgeleid van communicatiegegevens van inschrijving',
+                to='hr.Communicatiegegevens'),
+        ),
+        migrations.AddField(
+            model_name='maatschappelijkeactiviteit',
+            name='onderneming',
+            field=models.OneToOneField(blank=True, null=True,
+                                       on_delete=django.db.models.deletion.CASCADE,
+                                       to='hr.Onderneming'),
+        ),
+        migrations.AddField(
+            model_name='persoon',
+            name='niet_natuurlijkpersoon',
+            field=models.OneToOneField(blank=True,
+                                       help_text='niet null bij niet-natuurlijkpersoon',
+                                       null=True,
+                                       on_delete=django.db.models.deletion.CASCADE,
+                                       to='hr.NietNatuurlijkPersoon'),
+        ),
+        migrations.AddField(
+            model_name='vestiging',
+            name='activiteiten',
+            field=models.ManyToManyField(to='hr.Activiteit'),
+        ),
+        migrations.AddField(
+            model_name='vestiging',
+            name='commerciele_vestiging',
+            field=models.OneToOneField(blank=True, null=True,
+                                       on_delete=django.db.models.deletion.CASCADE,
+                                       to='hr.CommercieleVestiging'),
+        ),
+        migrations.AddField(
+            model_name='vestiging',
+            name='communicatiegegevens',
+            field=models.ManyToManyField(
+                help_text='Afgeleid van communicatiegegevens van inschrijving',
+                to='hr.Communicatiegegevens'),
+        ),
+        migrations.AddField(
+            model_name='vestiging',
+            name='handelsnamen',
+            field=models.ManyToManyField(to='hr.Handelsnaam'),
+        ),
+        migrations.AddField(
+            model_name='vestiging',
+            name='niet_commerciele_vestiging',
+            field=models.OneToOneField(blank=True, null=True,
+                                       on_delete=django.db.models.deletion.CASCADE,
+                                       to='hr.NietCommercieleVestiging'),
         ),
     ]

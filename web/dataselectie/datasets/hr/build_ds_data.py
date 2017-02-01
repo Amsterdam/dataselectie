@@ -141,6 +141,7 @@ def per_vestiging(vestigingsnummer, vest_data, sbi_values):
     vst_sbi = []
     vestiging_dict = {}
     sbi_repeat = None
+    sbi_double_check = []
 
     for sbi_repeat in vest_data:
 
@@ -150,11 +151,13 @@ def per_vestiging(vestigingsnummer, vest_data, sbi_values):
             vestiging_dict['sbi_codes'] = vst_sbi = []
             first = False
 
-        sbi = sbi_values[sbi_repeat.sbi_code]
-        sbi['vestigingsnummer'] = vestigingsnummer
-        sbi['bedrijfsnaam'] = sbi_repeat.naam
+        if not sbi_repeat.sbi_code in sbi_double_check:
+            sbi = sbi_values[sbi_repeat.sbi_code]
+            sbi['vestigingsnummer'] = vestigingsnummer
+            sbi['bedrijfsnaam'] = sbi_repeat.naam
+            sbi_double_check.append(sbi_repeat.sbi_code)
 
-        vst_sbi.append(sbi)
+            vst_sbi.append(sbi)
 
     return (
         vst_sbi, vestiging_dict, sbi_repeat.naam,

@@ -255,3 +255,5 @@ if TESTING:
     MIN_HR_NR = 0
     for k, v in ELASTIC_INDICES.items():
         ELASTIC_INDICES[k] = 'test_{}'.format(v)
+
+DATAPUNT_API_URL = 'https://api.datapunt.amsterdam.nl/'
