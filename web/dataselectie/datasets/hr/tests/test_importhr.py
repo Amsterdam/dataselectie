@@ -1,9 +1,11 @@
 # Packages
+from django.conf import settings
 from django.core.management import call_command
+from django.db import connections
 from django.test import TestCase
 
-from data.models import DataSelectie
 from datasets.bag.tests.fixture_utils import create_nummeraanduiding_fixtures
+from datasets.data.models import DataSelectie
 from datasets.hr.tests.factorieshr import create_dataselectie_set
 from django.db import connections
 from django.conf import settings
