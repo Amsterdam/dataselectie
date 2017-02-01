@@ -6,8 +6,8 @@ from django.conf import settings
 from django.db.models import Q
 
 from batch import batch
-from data.models import DataSelectie
-from ..bag.models import Nummeraanduiding
+from datasets.data.models import DataSelectie
+from datasets.bag.models import Nummeraanduiding
 
 log = logging.getLogger(__name__)
 

@@ -1,18 +1,19 @@
 # Python
 # Packages
-from django.db.models import QuerySet
-from django.db.models.expressions import RawSQL
 from collections import OrderedDict
 from itertools import chain
-# Project
-from data import models
+
+from django.db.models import QuerySet
+from django.db.models.expressions import RawSQL
+
 from datasets.bag.views import BAG_APIFIELDS
-from datasets.hr.queries import meta_q
-from datasets.hr import models as hrmodels
-from datasets.generic.queries import add_aggregations
-from datasets.generic.tablesearchview import TableSearchView, process_aggs
+from datasets.data import models
 from datasets.generic.csvexportview import CSVExportView
 from datasets.generic.geolocationsearchview import GeoLocationSearchView
+from datasets.generic.queries import add_aggregations
+from datasets.generic.tablesearchview import TableSearchView, process_aggs
+from datasets.hr import models as hrmodels
+from datasets.hr.queries import meta_q
 
 HR_APIFIELDS = ['_openbare_ruimte_naam', 'huisnummer',
                 'huisletter', 'huisnummer_toevoeging', 'woonplaats',

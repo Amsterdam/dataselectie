@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     # Datasets
     'datasets.hr',
     'datasets.bag',
-    'data'
+    'datasets.data'
 ]
 
 MIDDLEWARE_CLASSES = [

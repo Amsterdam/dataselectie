@@ -1,4 +1,4 @@
-from data.models import DataSelectie
+from datasets.data.models import DataSelectie
 from . import fixture_utils
 from .. import models
 

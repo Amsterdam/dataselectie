@@ -7,7 +7,7 @@ from itertools import groupby
 from django import db
 from django.contrib.gis.geos.point import Point
 
-from data.models import DataSelectie
+from datasets.data.models import DataSelectie
 from datasets.hr.models import BetrokkenPersonen
 from datasets.hr.models import CBS_sbi_hoofdcat
 from datasets.hr.models import GeoVestigingen
