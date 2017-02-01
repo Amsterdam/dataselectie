@@ -53,7 +53,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     raw_fields = None
     # Fixed filters that are always applied
     fixed_filters = []
-    # Sorting of the queryset
+    # Sorting of the result
     sorts = []
     # mapping keywords
     keyword_mapping = {}

@@ -32,8 +32,8 @@ class BagBase(object):
     keywords = BAG_APIFIELDS
     raw_fields = ['naam', '_openbare_ruimte_naam']
 
-    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter',
-             'huisnummer_toevoeging']
+    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter']
+    el_sorts = sorts
 
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):

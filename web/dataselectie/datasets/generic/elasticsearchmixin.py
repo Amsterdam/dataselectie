@@ -34,6 +34,7 @@ class ElasticSearchMixin(object):
     allowed_parms = ('page', 'shape')
     request = None
     selection = []
+    el_sorts = []
 
     def build_elastic_query(self, query):
         """
@@ -163,6 +164,14 @@ class ElasticSearchMixin(object):
                 'filter': filters,
             }
         }
+
+        return self.add_sorting(query)
+
+    def add_sorting(self, query):
+        sort = {}
+        for s_field in self.el_sorts:
+            sort[s_field] = {"order": "asc"}
+        query['sort'] = sort
         return query
 
     def fill_ids(self, response: dict, elastic_data: dict) -> dict:

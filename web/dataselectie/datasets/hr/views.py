@@ -61,6 +61,7 @@ class HrBase(object):
     sbi_subcategorie_values = {}
     sbi_sub_subcategorie_values = {}
     sorts = RawSQL("api_json->>%s", ['naam'])
+    el_sorts = []
     child_filters = []
     filtercategories = ('sbi_omschrijving', 'subcategorie', 'hoofdcategorie')
     extra_context_data = {}
@@ -126,12 +127,11 @@ class HrBase(object):
         return result
 
     def build_el_query(self,
-            filters: list, query: dict) -> dict:
+                       filters: list, query: dict) -> dict:
         """
         Adds innerhits to the query and other selection criteria
 
         :param filters:
-        :param mapped_filters: Filters that are mapped to the child
         :param query: The query to be executed
         :return:
         """
@@ -155,9 +155,9 @@ class HrBase(object):
                             "query": mapped_filters,
                             "inner_hits": {
                                 "size": 1000
+                            }
                         }
-                    }
-                }]
+                    }]
             }
         }
 
@@ -181,7 +181,7 @@ class HrBase(object):
             return ''.join(hnm)
 
     def proc_parameters(self, filter_keyword: str, val: str,
-                        filters: list) -> (list, list):
+                        filters: list) -> list:
 
         lfilter = {
             self.default_search: self.get_term_and_value(filter_keyword, val)
@@ -198,31 +198,37 @@ class HrBase(object):
         if len(self.child_filters):
             selection_field = None
             for fc in self.filtercategories:
-                h = [cf['term'][fc] for idx, cf in enumerate(self.child_filters) if fc in cf['term']]
+                h = [cf['term'][fc] for idx, cf in enumerate(self.child_filters)
+                     if fc in cf['term']]
                 if len(h):
                     selection_field = fc
                     selection_field_val = h[0]
                     break
             if selection_field:
-                f = [b for b in aggs[selection_field]['buckets'] if b['key'] == selection_field_val][0]
+                f = [b for b in aggs[selection_field]['buckets'] if
+                     b['key'] == selection_field_val][0]
                 result = f['doc_count']
         return result
 
     def add_hraggs(self, response: dict):
         aggs = response.get('aggregations', {})
         self.extra_context_data['aggs_list'] = process_aggs(aggs)
-        self.extra_context_data['aggs_list']['total'] = response['hits']['total']
+        self.extra_context_data['aggs_list']['total'] = response['hits'][
+            'total']
 
     def add_aggregates(self, response: dict):
         self.add_hraggs(response)
         self.total_elastic = int(response['hits']['total'])
         aggs = response.get('aggregations', {})
-        if 'nummeraanduiding_sub' in aggs and len(aggs['nummeraanduiding_sub']['buckets']):
-            self.extra_context_data['aggs_list'].update(self.add_nummeraanduiding_sub(aggs))
+        if 'nummeraanduiding_sub' in aggs and len(
+                aggs['nummeraanduiding_sub']['buckets']):
+            self.extra_context_data['aggs_list'].update(
+                self.add_nummeraanduiding_sub(aggs))
         del self.extra_context_data['aggs_list']['nummeraanduiding_sub']
 
-    def add_nummeraanduiding_sub(self, aggs):
-        aggs = process_aggs(aggs['nummeraanduiding_sub']['buckets'][0]['vestiging'])
+    def add_nummeraanduiding_sub(self, aggs: dict) -> dict:
+        aggs = process_aggs(
+            aggs['nummeraanduiding_sub']['buckets'][0]['vestiging'])
         aggs = self.includeagg(aggs)
         if 'doc_count' in aggs:
             aggs['total'] = self.calc_total_count(aggs)
@@ -260,15 +266,13 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
             'object_count': self.calc_total_from_aggs(response),
             'object_list': response['hits']['hits']
         }
-        resp = self.add_missing_point(resp)
-
-        return resp
+        return self.add_missing_point(resp)
 
     def add_missing_point(self, resp):
         for idx in range(len(resp['object_list'])):
             point = resp['object_list'][idx]
             vestigingen = point['inner_hits']['vestiging']['hits']['hits']
-            for extra in range(len(vestigingen)-1):
+            for extra in range(len(vestigingen) - 1):
                 resp['object_list'].append(point)
             del point['inner_hits']
         return resp
@@ -285,7 +289,8 @@ class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
         res['aggs'].update(add_aggregations(res['aggs']))
-        vestigingaggs = res['aggs']['nummeraanduiding_sub']['aggs']['vestiging']['aggs']
+        vestigingaggs = \
+        res['aggs']['nummeraanduiding_sub']['aggs']['vestiging']['aggs']
         vestigingaggs.update(add_aggregations(vestigingaggs))
         return res
 
@@ -438,7 +443,8 @@ class HrCSV(HrBase, CSVExportView):
             ('postcode', False, 'Postcode bezoekadres (BAG)', True),
             ('woonplaats', False, 'Woonplaats bezoekadres (BAG)', True),
             ('postadres_volledig_adres', True, 'Postadres (Kvk HR)', True),
-            ('postadres_correctie', True, 'Indicatie postadres geschat o.b.v BAG',
+            ('postadres_correctie', True,
+             'Indicatie postadres geschat o.b.v BAG',
              True),
             ('postadres_straatnaam', True, 'Openbare ruimte postadres (BAG)',
              True),
@@ -497,7 +503,7 @@ class HrCSV(HrBase, CSVExportView):
 
     def paginate(self, offset, q: dict) -> dict:
         if 'size' in q:
-            del(q['size'])
+            del (q['size'])
         return q
 
     def _fill_item(self, items: dict, item: dict) -> dict:
