@@ -39,5 +39,6 @@ then
     exit 1
 fi
 
+dc run --rm db-backup
 dc run --rm el-backup
 dc down
