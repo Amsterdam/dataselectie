@@ -1,9 +1,11 @@
-import factory
 import random
 from datetime import datetime
+
+import factory
 import pytz
 from django.contrib.gis.geos import Point
-
+from django.db import connections
+from django.conf import settings
 from factory import fuzzy
 
 from datasets.hr import models
@@ -191,7 +193,10 @@ def create_dataselectie_set():
         row.save()
         x += 1
 
-
+    with connections['hr'].cursor() as cursor:
+        cursor.execute(
+            "Insert into django_site (domain, name) Values ('{}', 'API Domain');".format(
+                settings.DATAPUNT_API_URL))
 
 
 def create_search_test_locaties():

@@ -14,7 +14,7 @@ from pytz import timezone
 # Project
 from datasets.bag.models import Nummeraanduiding
 from .tablesearchview import TableSearchView
-from .tablesearchview import _stringify_item_value
+from .tablesearchview import stringify_item_value
 
 log = logging.getLogger(__name__)
 
@@ -110,7 +110,7 @@ class CSVExportView(TableSearchView):
         Overwrite this fnction for custom fields, or following
         relations
         """
-        return [_model_to_dict(d) for d in qs]
+        return [model_to_dict(d) for d in qs]
 
     def _combine_data(self, data: list, es: dict) -> list:
         """
@@ -120,7 +120,7 @@ class CSVExportView(TableSearchView):
         for item in data:
             # Making sure all the data is in string form
             item.update(
-                {k: _stringify_item_value(v) for k, v in item.items() if
+                {k: stringify_item_value(v) for k, v in item.items() if
                  not isinstance(v, str) or v is None}
             )
             # Adding the elastic context
@@ -154,7 +154,7 @@ class CSVExportView(TableSearchView):
         return response
 
 
-def _model_to_dict(item: Nummeraanduiding) -> dict:
+def model_to_dict(item: Nummeraanduiding) -> dict:
     """
     Converts a django model to a dict.
     It does not do a deep conversion
