@@ -65,6 +65,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     request_parameters = None
     # rename fields from elastic
     mapped_elastic_fieldname = {}
+    # Total count
+    total_elastic = 0
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
@@ -291,7 +293,7 @@ class TableSearchView(ElasticSearchMixin, ListView):
     #     self.extra_context_data['total'] = response['hits']['total']
 
 
-def _stringify_item_value(value) -> str:
+def stringify_item_value(value) -> str:
     """
     Makes sure that the dict contains only strings for easy jsoning of the dict
     Following actions are taken:
@@ -315,7 +317,7 @@ def _stringify_item_value(value) -> str:
     elif value is None:
         return ''
     else:
-        # Trying repr, otherwise trying
+        # Trying repr, otherwise trying str
         try:
             return repr(value)
         except:

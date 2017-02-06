@@ -1,14 +1,15 @@
-import factory
 import random
 from datetime import datetime
+
+import factory
 import pytz
 from django.contrib.gis.geos import Point
-
+from django.db import connections
+from django.conf import settings
 from factory import fuzzy
 
 from datasets.hr import models
-
-from .build_cbs_sbi import restore_cbs_sbi
+from datasets.hr.factories.build_cbs_sbi import restore_cbs_sbi
 
 
 class NatuurlijkePersoonFactory(factory.DjangoModelFactory):
@@ -195,6 +196,11 @@ def create_dataselectie_set():
         if idx < len(sbicodes):
             ac.sbi_code = sbicodes[idx].sbi_code
             ac.save()
+
+    with connections['hr'].cursor() as cursor:
+        cursor.execute(
+            "Insert into django_site (domain, name) Values ('{}', 'API Domain');".format(
+                settings.DATAPUNT_API_URL))
 
 
 def create_search_test_locaties():

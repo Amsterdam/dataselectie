@@ -1,13 +1,11 @@
 # Packages
-from django.conf import settings
 from django.core.management import call_command
-from django.db import connections
 from django.test import TestCase
 
 from datasets.bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 from datasets.data.models import DataSelectie
-from datasets.hr.tests.factorieshr import create_dataselectie_set
-from .build_hr_data import fill_geo_table
+from datasets.hr.factories.build_hr_data import fill_geo_table
+from datasets.hr.factories.factorieshr import create_dataselectie_set
 
 
 class DataselectieHrImportTest(TestCase):
@@ -16,10 +14,6 @@ class DataselectieHrImportTest(TestCase):
 
         create_nummeraanduiding_fixtures()
         create_dataselectie_set()
-        with connections['hr'].cursor() as cursor:
-            cursor.execute(
-                "Insert into django_site (domain, name) Values ('{}', 'API Domain');".format(
-                    settings.DATAPUNT_API_URL))
 
         fill_geo_table()
         call_command('run_import', verbosity=0, interactive=False)
