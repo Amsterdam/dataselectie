@@ -8,8 +8,6 @@ from factory import fuzzy
 
 from datasets.hr import models
 
-from .build_cbs_sbi import restore_cbs_sbi
-
 
 class NatuurlijkePersoonFactory(factory.DjangoModelFactory):
     class Meta:
@@ -36,6 +34,7 @@ class MaatschappelijkeActiviteitFactory(factory.DjangoModelFactory):
     kvk_nummer = fuzzy.FuzzyInteger(low=1, high=99999999)
     datum_aanvang = fuzzy.FuzzyDateTime(datetime(1987, 2, 4, tzinfo=pytz.utc))
     eigenaar = factory.SubFactory(PersoonFactory)
+    naam = fuzzy.FuzzyText(prefix='macnm')
 
 
 class VestigingFactory(factory.DjangoModelFactory):
@@ -89,7 +88,7 @@ class Activiteit(factory.DjangoModelFactory):
         model = models.Activiteit
 
     id = fuzzy.FuzzyInteger(low=100000000000000000, high=190000000000000099)
-    sbi_code = '1073'
+    sbi_code = '45111'
 
     hoofdactiviteit = fuzzy.FuzzyChoice(choices=[True, False])
 
@@ -103,31 +102,6 @@ class FunctievervullingFactory(factory.DjangoModelFactory):
     heeft_aansprakelijke = factory.SubFactory(PersoonFactory)
 
 
-class SBIHoofdcatFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = models.CBS_sbi_hoofdcat
-    hcat = fuzzy.FuzzyInteger(low=100, high=109)
-    hoofdcategorie = fuzzy.FuzzyText(prefix='hfdcat')
-
-
-class SBISubcatFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = models.CBS_sbi_subcat
-
-    scat = fuzzy.FuzzyInteger(low=1000, high=1009)
-    hcat = factory.SubFactory(SBIHoofdcatFactory)
-    subcategorie = fuzzy.FuzzyText(prefix='subcat')
-
-
-class SBIcatFactory(factory.DjangoModelFactory):
-    class Meta:
-        model = models.CBS_sbicodes
-
-    sbi_code = fuzzy.FuzzyInteger(low=10000, high=10009)
-    sub_sub_categorie = fuzzy.FuzzyText(prefix='sbi')
-    scat = factory.SubFactory(SBISubcatFactory)
-
-
 def create_x_vestigingen(x=5):
     """
     Create some valid vestigingen with geo-location and sbi_codes
@@ -137,7 +111,6 @@ def create_x_vestigingen(x=5):
 
     vestigingen = []
 
-    restore_cbs_sbi()           # required to allow for build of geo_vestiging
     mac = MaatschappelijkeActiviteitFactory.create()
     a1 = Activiteit.create()
 
@@ -189,12 +162,36 @@ def create_dataselectie_set():
             m.eigenaar = fv[idx]
             m.save()
 
-    sbicodes = models.CBS_sbicodes.objects.all()
+    sbicodes = models.CBS_sbicode.objects.all()
     acnrs = models.Activiteit.objects.count() - 1
     for idx, ac in enumerate(models.Activiteit.objects.all()[:acnrs]):
         if idx < len(sbicodes):
             ac.sbi_code = sbicodes[idx].sbi_code
             ac.save()
+
+    x = 0
+    locaties = models.Locatie.objects.all()
+    vestigingen = models.Vestiging.objects.all()
+    while x < len(locaties):
+        y = random.randrange(0, len(locaties))
+        sbi_code = sbicodes[random.randrange(0, len(sbicodes))].sbi_code
+        row = models.GeoVestigingen(
+            vestigingsnummer = vestigingen[random.randrange(0, len(vestigingen))].vestigingsnummer,
+            sbi_code = sbi_code,
+            sbi_code_int = int(sbi_code),
+            bezoekadres=locaties[x],
+            postadres=locaties[y],
+            hoofdvestiging=True,
+            activiteitsomschrijving='act' + str(x),
+            naam='naam' + str(y),
+            locatie_type=random.choice(('P', 'B')),
+            sbi_detail_group='sbidet' + str(x),
+            bag_vbid=locaties[x].bag_vbid
+        )
+        row.save()
+        x += 1
+
+
 
 
 def create_search_test_locaties():

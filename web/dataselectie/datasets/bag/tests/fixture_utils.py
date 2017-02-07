@@ -569,6 +569,7 @@ def create_nummeraanduiding_fixtures():
                                                       verblijfsobject_id='03630000543298',
                                                       _openbare_ruimte_naam='Delflandplein')]
 
+    hr_factories.build_sbi_codes()
     hr_factories.dataselectiehrfactory(nummeraanduidingen[1][0], 0, 2)
     hr_factories.dataselectiehrfactory(nummeraanduidingen[3][0], 2, 3)
     hr_factories.dataselectiehrfactory(nummeraanduidingen[4][0], 3, 4)

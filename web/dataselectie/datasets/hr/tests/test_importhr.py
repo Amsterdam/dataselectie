@@ -5,7 +5,6 @@ from django.test import TestCase
 from data.models import DataSelectie
 from datasets.bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 from datasets.hr.tests.factorieshr import create_dataselectie_set
-from .build_hr_data import fill_geo_table
 from django.db import connections
 from django.conf import settings
 
@@ -20,7 +19,6 @@ class DataselectieHrImportTest(TestCase):
                 "Insert into django_site (domain, name) Values ('{}', 'API Domain');".format(
                     settings.DATAPUNT_API_URL))
 
-        fill_geo_table()
         call_command('run_import', verbosity=0, interactive=False)
 
         # this one is always there
@@ -49,8 +47,7 @@ class DataselectieHrImportTest(TestCase):
 
         self.assertGreaterEqual(len(row.api_json), 1)
         self.assertIsInstance(row.api_json['sbi_codes'], list)
-        self.assertEqual(len(row.api_json['sbi_codes']), 1)
-        self.assertEqual(len(row.api_json['betrokkenen']), 1)
-        self.assertIsInstance(row.api_json['geometrie'], list)
+        self.assertGreater(len(row.api_json['sbi_codes']), 0)
+        self.assertGreater(len(row.api_json['betrokkenen']), 0)
         self.assertEqual(row.api_json['postadres_volledig_adres'][:9],
                          'vol_adres')

@@ -42,6 +42,28 @@ def adres_gecorrigeerd(correctie):
         return 'nee'
 
 
+def build_sbi_filterkeys():
+    """
+    One time build of sbi codes to enable rapid check against
+    parameters (aggs)
+    :return:
+    """
+    sbi_flat_values = {}
+    for hoofdcat in hrmodels.CBS_sbi_section.objects.select_related():
+        for subcat in hoofdcat.cbs_sbi_rootnode_set.all():
+            for sbi in subcat.cbs_sbicode_set.all():
+                sbi_flat_values[sbi.sbi_code] = \
+                    {
+                        'sbi_code': sbi.sbi_code,
+                        'hoofdcategorie': hoofdcat.title,
+                        'sub_sub_categorie': sbi.title,
+                        'subcategorie': subcat.title,
+                        'hcat': hoofdcat.code,
+                        'scat': subcat.code
+                    }
+    return sbi_flat_values
+
+
 class HrBase(object):
     """
     Base class mixing for data settings
@@ -307,7 +329,7 @@ class HrSearch(HrBase, TableSearchView):
         """
 
         if not self.sbi_sub_subcategorie_values:
-            self.build_sbi_filterkeys()
+            self.sbi_sub_subcategorie_values = build_sbi_filterkeys()
 
         if filter_keyword in self.filtercategories:
             try:
@@ -317,32 +339,12 @@ class HrSearch(HrBase, TableSearchView):
             ab = [[ssbi['hoofdcategorie'],
                    ssbi['subcategorie'],
                    ssbi['sub_sub_categorie']]
-                  for ssbi in self.sbi_sub_subcategorie_values
+                  for ssbi in self.sbi_sub_subcategorie_values.values()
                   if ssbi[fk] == val]
 
             self.selection += chain.from_iterable(ab)
 
         self.selection = list(set(self.selection))
-
-    def build_sbi_filterkeys(self):
-        """
-        One time build of sbi codes to enable rapid check against
-        parameters (aggs)
-        :return:
-        """
-        self.sbi_sub_subcategorie_values = []
-        for hoofdcat in hrmodels.CBS_sbi_hoofdcat.objects.select_related():
-            for subcat in hoofdcat.cbs_sbi_subcat_set.all():
-                for sbi in subcat.cbs_sbicodes_set.all():
-                    self.sbi_sub_subcategorie_values.append(
-                        {
-                            'sbi_code': sbi.sbi_code,
-                            'hoofdcategorie': hoofdcat.hoofdcategorie,
-                            'sub_sub_categorie': sbi.sub_sub_categorie,
-                            'subcategorie': subcat.subcategorie,
-                            'hcat': hoofdcat.hcat,
-                            'scat': subcat.scat
-                        })
 
     def save_context_data(self, response: dict, elastic_data: dict = None):
         """
@@ -512,3 +514,4 @@ class HrCSV(HrBase, CSVExportView):
             items[ihit['_id'][2:]] = item
 
         return items
+

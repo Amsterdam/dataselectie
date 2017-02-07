@@ -8,8 +8,9 @@ from django import db
 from django.contrib.gis.geos.point import Point
 
 from data.models import DataSelectie
+from datasets.hr.views import build_sbi_filterkeys
 from datasets.hr.models import BetrokkenPersonen
-from datasets.hr.models import CBS_sbi_hoofdcat
+from datasets.hr.models import CBS_sbi_section
 from datasets.hr.models import GeoVestigingen
 
 log = logging.getLogger(__name__)
@@ -64,17 +65,18 @@ def flatten_sbi():
     """
     log.info('Flatten sbicodes')
     sbi_values = {}
-    for hoofdcat in CBS_sbi_hoofdcat.objects.select_related():
-        for subcat in hoofdcat.cbs_sbi_subcat_set.all():
-            for sbi in subcat.cbs_sbicodes_set.all():
-                sbi_values[sbi.sbi_code] = {
-                    'sbi_code': sbi.sbi_code,
-                    'hoofdcategorie': hoofdcat.hoofdcategorie,
-                    'subcategorie': subcat.subcategorie,
-                    'sub_sub_categorie': sbi.sub_sub_categorie,
-                    'hcat': hoofdcat.hcat,
-                    'scat': subcat.scat}
-    return sbi_values
+    for hoofdcat in CBS_sbi_section.objects.select_related():
+        for subcat in hoofdcat.section_set.all():
+            for sbi in subcat.root_node_set.all():
+                self.sbi_sub_subcategorie_values.append(
+                    {
+                        'sbi_code': sbi.sbi_code,
+                        'hoofdcategorie': hoofdcat.titel,
+                        'sub_sub_categorie': sbi.title,
+                        'subcategorie': subcat.title,
+                        'hcat': hoofdcat.code,
+                        'scat': subcat.code
+                    })
 
 
 def _build_joined_ds_table():
@@ -90,7 +92,7 @@ def _build_joined_ds_table():
     with db.connection.cursor() as cursor:
         cursor.execute("TRUNCATE TABLE data_dataselectie")
 
-    sbi_values = flatten_sbi()
+    sbi_values = build_sbi_filterkeys()
 
     betrokken_per_vestiging = (
         BetrokkenPersonen.objects.order_by('vestigingsnummer').iterator())
