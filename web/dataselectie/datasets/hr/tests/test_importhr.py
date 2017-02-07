@@ -4,15 +4,10 @@ from django.test import TestCase
 
 from datasets.bag.tests.fixture_utils import create_nummeraanduiding_fixtures
 from datasets.data.models import DataSelectie
-from datasets.hr.factories.build_hr_data import fill_geo_table
 from datasets.hr.factories.factorieshr import create_dataselectie_set
 
-from datasets.hr.tests.factorieshr import create_dataselectie_set
-from django.db import connections
-from django.conf import settings
 
 class DataselectieHrImportTest(TestCase):
-
     def test_datasel_import(self):
 
         create_nummeraanduiding_fixtures()
@@ -36,7 +31,6 @@ class DataselectieHrImportTest(TestCase):
             'datum_einde', 'datum_aanvang', 'bezoekadres_volledig_adres',
             'bezoekadres_correctie', 'bezoekadres_afgeschermd',
             'betrokkenen')
-
 
         for row in rows:
             for f in fields_in_row:
