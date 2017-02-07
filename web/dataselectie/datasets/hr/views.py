@@ -250,6 +250,8 @@ class HrBase(object):
             if 'doc_count' in new_aggs:
                 new_aggs['total'] = self.calc_total_count(new_aggs)
                 del new_aggs['doc_count']
+        else:
+            new_aggs['total'] = 0
         return new_aggs
 
     def includeagg(self, aggs: dict) -> dict:
