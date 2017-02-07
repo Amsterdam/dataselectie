@@ -16,7 +16,7 @@ dataselectie is opgenomen. De koppeling is gerealiseerd door een tabel met als i
 vestiging_id en de api-json die gepresenteerd moet worden. In elastic is een 1 op n 
 opgenomen, waarbij er n vestigingen (hr) per locatie (bag) zijn opgenomen. 
 Omdat elastic alleen tellingen kan maken van parent naar child is de selectie in 
-elastic en wordt teruggewerkt naar vestigingen.
+elastic en wordt teruggewerkt naar vestigingen. 
 
 ### Project setup
 De dataselectie gebruikt data van de andere services en heeft geen eigen import process. 
