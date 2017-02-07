@@ -243,12 +243,14 @@ class HrBase(object):
         del self.extra_context_data['aggs_list']['nummeraanduiding_sub']
 
     def add_nummeraanduiding_sub(self, aggs):
-        aggs = process_aggs(aggs['nummeraanduiding_sub']['buckets'][0]['vestiging'])
-        aggs = self.includeagg(aggs)
-        if 'doc_count' in aggs:
-            aggs['total'] = self.calc_total_count(aggs)
-            del aggs['doc_count']
-            return aggs
+        new_aggs = aggs
+        if len(aggs['nummeraanduiding_sub']['buckets']):
+            new_aggs = process_aggs(aggs['nummeraanduiding_sub']['buckets'][0]['vestiging'])
+            new_aggs = self.includeagg(new_aggs)
+            if 'doc_count' in new_aggs:
+                new_aggs['total'] = self.calc_total_count(new_aggs)
+                del new_aggs['doc_count']
+        return new_aggs
 
     def includeagg(self, aggs: dict) -> dict:
         """

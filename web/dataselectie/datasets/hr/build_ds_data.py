@@ -59,26 +59,6 @@ def to_dict(data: object, fields: tuple, field_prefix=None) -> dict:
     return result_dict
 
 
-def flatten_sbi():
-    """
-    Flatten sbicodes
-    """
-    log.info('Flatten sbicodes')
-    sbi_values = {}
-    for hoofdcat in CBS_sbi_section.objects.select_related():
-        for subcat in hoofdcat.section_set.all():
-            for sbi in subcat.root_node_set.all():
-                self.sbi_sub_subcategorie_values.append(
-                    {
-                        'sbi_code': sbi.sbi_code,
-                        'hoofdcategorie': hoofdcat.titel,
-                        'sub_sub_categorie': sbi.title,
-                        'subcategorie': subcat.title,
-                        'hcat': hoofdcat.code,
-                        'scat': subcat.code
-                    })
-
-
 def _build_joined_ds_table():
     """
     De dataselectie wordt in 2 stappen geschreven. Eerst wordt de api data
