@@ -25,17 +25,17 @@ node {
 
     stage("Cleanup") {
         tryStep "cleanup", {
-            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml kill"
-            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml rm -f -a"
+            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml kill"
+            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml rm -f -a"
         }
     }
 
     stage('Test') {
         tryStep "test", {
-        sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml build"
-        sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml run -u root --rm tests"
+        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml build"
+        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml run -u root --rm tests"
     }, {
-            sh "docker-compose -p dataselectie -f .jenkins/docker-compose.yml down"
+            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml down"
         }
     }
 
