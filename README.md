@@ -11,12 +11,11 @@ is te vertonen in een tabel format i.p.v op een kaart.
 De dataselectie service is een indexeren en zoeken service boven op data van andere services. Het maakt gebruik van de 
 data in andere services om ze in een andere manier te bieden.
 
-Voor hr wordt gebruik gemaakt van brondata gegenereerd in hr, waarbij de index in 
-dataselectie is opgenomen. De koppeling is gerealiseerd door een tabel met als id 
-vestiging_id en de api-json die gepresenteerd moet worden. In elastic is een 1 op n 
-opgenomen, waarbij er n vestigingen (hr) per locatie (bag) zijn opgenomen. 
-Omdat elastic alleen tellingen kan maken van parent naar child is de selectie in 
-elastic en wordt teruggewerkt naar vestigingen. 
+Voor hr wordt gebruik gemaakt van brondata gegenereerd in hr, waarbij de index in dataselectie is opgenomen. 
+De koppeling is gerealiseerd door een tabel met als id vestiging_id en de api-json die gepresenteerd moet worden. 
+In elastic is een 1 op n opgenomen, waarbij er n vestigingen (hr) per locatie (bag) zijn opgenomen. 
+Omdat elastic alleen tellingen kan maken van parent naar child is de selectie in elastic en wordt teruggewerkt 
+naar vestigingen. 
 
 ### Project setup
 De dataselectie gebruikt data van de andere services en heeft geen eigen import process. 
@@ -40,7 +39,7 @@ $ docker-compose exec elasticsearch update-el.sh atlas bag brk nummeraanduiding
 $ docker-compose exec elasticsearch update-el.sh ds_index ds_index
 ```
 
-`Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim twee uur in beslag neemt`
+`Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim zes uur in beslag neemt`
 ```
 $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 ```
