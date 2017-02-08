@@ -41,11 +41,12 @@ def meta_from_hrdataselectie(obj: DataSelectie) -> VestigingenMeta:
     doc.bedrijfsnaam = obj.api_json['naam']
     doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid
-
-    nummeraanduiding = get_nummeraanduiding(obj, doc)
-
-    if nummeraanduiding:
-        doc._parent = nummeraanduiding.id                  # reference to the parent
+    doc._parent = obj.bag_vbid
+    #
+    # nummeraanduiding = get_nummeraanduiding(obj, doc)
+    #
+    # if nummeraanduiding:
+    #     doc._parent = nummeraanduiding.id                  # reference to the parent
 
     return doc
 

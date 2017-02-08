@@ -165,7 +165,7 @@ def meta_from_nummeraanduiding(
 
     start = time.time()
 
-    doc = NummeraanduidingMeta(_id=item.id)
+    doc = NummeraanduidingMeta(_id=item.landelijk_id)
     parameters = [
         ('nummeraanduiding_id', 'id'),
         ('naam', 'openbare_ruimte.naam'),

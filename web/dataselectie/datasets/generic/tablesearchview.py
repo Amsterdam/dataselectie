@@ -67,6 +67,8 @@ class TableSearchView(ElasticSearchMixin, ListView):
     mapped_elastic_fieldname = {}
     # Total count
     total_elastic = 0
+    # Standard fieldname
+    keyfieldname = 'id'
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
     http_method_names = ['get', 'post']
@@ -178,12 +180,13 @@ class TableSearchView(ElasticSearchMixin, ListView):
         """
         ids = elastic_data.get('ids', None)
         if ids:
+            filtervar = {self.keyfieldname + '__in': ids}
             if isinstance(self.sorts, list):
-                qs = self.model.objects.filter(id__in=ids).order_by(*self.sorts)
+                qs = self.model.objects.filter(**filtervar).order_by(*self.sorts)
             elif self.sorts:
-                qs = self.model.objects.filter(id__in=ids).order_by(self.sorts)
+                qs = self.model.objects.filter(**filtervar).order_by(self.sorts)
             else:
-                qs = self.model.objects.filter(id__in=ids)
+                qs = self.model.objects.filter(**filtervar)
             return qs.values()[:self.preview_size]
         else:
             # No ids where found

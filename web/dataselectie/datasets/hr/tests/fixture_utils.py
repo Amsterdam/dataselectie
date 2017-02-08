@@ -2,7 +2,7 @@
 JSON = [
     {
         "naam": "Mundus College",
-        "bag_vbid": "03630000000002",
+        "bag_vbid": "0363000000000002",
         "geometrie": [
             117099,
             487417
@@ -45,7 +45,7 @@ JSON = [
     },
     {
         "naam": "Monique Brouns",
-        "bag_vbid": "03630000000004",
+        "bag_vbid": "0363000000000004",
         "geometrie": [
             119764,
             486697
@@ -98,7 +98,7 @@ JSON = [
     },
     {
         "naam": "Golf 10 V.O.F.",
-        "bag_vbid": "03630000000002",
+        "bag_vbid": "0363000000000002",
         "geometrie": [
             119630,
             482200
@@ -149,7 +149,7 @@ JSON = [
     },
     {
         "naam": "AJ Holding B.V.",
-        "bag_vbid": "03630000000003",
+        "bag_vbid": "0363000000000003",
         "geometrie": [
             124203,
             487871

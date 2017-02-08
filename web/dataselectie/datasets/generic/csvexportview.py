@@ -86,8 +86,8 @@ class CSVExportView(TableSearchView):
                     break
 
             # Retrieving the database data
-
-            qs = self.model.objects.filter(id__in=list(items.keys()))
+            filtervar = {self.keyfieldname + '__in': list(items.keys())}
+            qs = self.model.objects.filter(**filtervar)
             qs = self._convert_to_dicts(qs)
 
             # Pairing the data
@@ -124,8 +124,8 @@ class CSVExportView(TableSearchView):
                  not isinstance(v, str) or v is None}
             )
             # Adding the elastic context
-            for key in es[item['id']]['_source'].keys():
-                item[key] = self.get_field_value_from_elastic(es[item['id']], key)
+            for key in es[item[self.keyfieldname]]['_source'].keys():
+                item[key] = self.get_field_value_from_elastic(es[item[self.keyfieldname]], key)
 
         return data
 

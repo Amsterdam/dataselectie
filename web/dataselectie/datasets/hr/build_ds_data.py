@@ -10,7 +10,6 @@ from django.contrib.gis.geos.point import Point
 from datasets.hr.views import build_sbi_filterkeys
 from datasets.data.models import DataSelectie
 from datasets.hr.models import BetrokkenPersonen
-from datasets.hr.models import CBS_sbi_section
 from datasets.hr.models import GeoVestigingen
 
 log = logging.getLogger(__name__)
@@ -101,8 +100,9 @@ def _build_joined_ds_table():
         count, lastreport = measure_progress(totalrowcount, count, lastreport)
 
         # verzamel gegevens per vestiging
-        vst_sbi, vestiging_dict, naam, bag_vbid, bag_numid = per_vestiging(
+        vst_sbi, vestiging_dict, naam, bag_vbid, bag_numid, countextra = per_vestiging(
             vestigingsnummer, vest_data, sbi_values)
+        count += countextra
 
         # save json in ds tabel
         betrokken = write_hr_dataselectie(
@@ -124,6 +124,7 @@ def per_vestiging(vestigingsnummer, vest_data, sbi_values):
     vestiging_dict = {}
     sbi_repeat = None
     sbi_double_check = []
+    count = 1
 
     for sbi_repeat in vest_data:
 
@@ -140,10 +141,11 @@ def per_vestiging(vestigingsnummer, vest_data, sbi_values):
             sbi_double_check.append(sbi_repeat.sbi_code)
 
             vst_sbi.append(sbi)
+        count += 1
 
     return (
         vst_sbi, vestiging_dict, sbi_repeat.naam,
-        sbi_repeat.bezoekadres.bag_vbid, sbi_repeat.bezoekadres.bag_numid)
+        sbi_repeat.bezoekadres.bag_vbid, sbi_repeat.bezoekadres.bag_numid, count)
 
 
 def write_hr_dataselectie(
@@ -168,7 +170,6 @@ def measure_progress(totalrowcount, count, lastreport):
     """
     Every PROGRESSREPORT timedelta print progres line
     """
-    count += 1
 
     if time.time() - lastreport > PROGRESSREPORT:
         lastreport = time.time()

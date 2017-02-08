@@ -60,6 +60,7 @@ class BagBase(object):
 
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter']
     el_sorts = sorts
+    keyfieldname = 'landelijk_id'
 
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
@@ -81,7 +82,7 @@ class BagSearch(BagBase, TableSearchView):
             )
             # Adding the extra context
             context['object_list'][i].update(self.extra_context_data['items']
-                                             [context['object_list'][i]['id']])
+                                             [context['object_list'][i][self.keyfieldname]])
         context['aggs_list'] = self.extra_context_data['aggs_list']
         context['total'] = self.extra_context_data['total']
         return context
