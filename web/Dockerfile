@@ -23,4 +23,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 USER datapunt
 COPY dataselectie /app/
+COPY .jenkins-import /.jenkins-import/
+
 CMD /app/docker-entrypoint.sh

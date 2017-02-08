@@ -26,20 +26,6 @@ database_HR:
         POSTGRES_DB: handelsregister
         POSTGRES_PASSWORD: insecure
 
-tests:
-  build: ../web
-  links:
-    - database_dataselectie:database_dataselectie
-    - elasticsearch:elasticsearch
-    - database_BAG:database_BAG
-    - database_HR:database_HR
-  environment:
-    DATABASE_NAME: dataselectie
-    DATABASE_USER: dataselectie
-    DATABASE_PASSWORD: insecure
-    DJANGO_SETTINGS_MODULE: dataselectie.settings
-  command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
-
 importer:
   image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
   links:
@@ -111,7 +97,7 @@ db-backup:
                         -t django_migrations  \
                         -T auth*    \
                         -U dataselectie \
-                        -h database -p 5432 \
+                        -h database_dataselectie -p 5432 \
                         database_dataselectie > /tmp/backups/database.dump"
 
 el-backup:
