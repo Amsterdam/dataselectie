@@ -42,45 +42,5 @@ def meta_from_hrdataselectie(obj: DataSelectie) -> VestigingenMeta:
     doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid
     doc._parent = obj.bag_vbid
-    #
-    # nummeraanduiding = get_nummeraanduiding(obj, doc)
-    #
-    # if nummeraanduiding:
-    #     doc._parent = nummeraanduiding.id                  # reference to the parent
 
     return doc
-
-
-def get_nummeraanduiding(obj: DataSelectie, doc: VestigingenMeta) -> Nummeraanduiding:
-    nummeraanduiding = Nummeraanduiding.objects.filter(hoofdadres=True,
-                                                       verblijfsobject__landelijk_id=obj.bag_vbid).first()
-    if nummeraanduiding:
-        batch.statistics.add('HR verblijfsobjecten')
-    else:
-
-        nummeraanduiding = Nummeraanduiding.objects.filter(Q(hoofdadres=True),
-                                                           Q(ligplaats__landelijk_id=obj.bag_vbid) |
-                                                           Q(standplaats__landelijk_id=obj.bag_vbid)).first()
-        if nummeraanduiding:
-            batch.statistics.add('HR ligplaatsen/standplaatsen')
-        else:
-            nummeraanduiding = Nummeraanduiding.objects.filter(landelijk_id=obj.bag_numid).first()
-            if nummeraanduiding:
-                batch.statistics.add('HR Nummeraanduiding via bag_numid')
-            else:
-                no_nummeraanduiding_found(obj, doc.bedrijfsnaam)
-
-    return nummeraanduiding
-
-
-def no_nummeraanduiding_found(obj: DataSelectie, bedrijfsnaam: es.String):
-    if 'amsterdam' in obj.api_json['bezoekadres_volledig_adres'].lower():
-        batch.statistics.add('HR bezoekadressen in Amsterdam niet gevonden',
-                             (obj.bag_numid, obj.id, bedrijfsnaam))
-
-    elif 'amsterdam' in obj.api_json['postadres_volledig_adres'].lower():
-        batch.statistics.add('HR postadressen in Amsterdam niet gevonden',
-                             (obj.bag_numid, obj.id, bedrijfsnaam))
-    else:
-        batch.statistics.add('HR adressen buiten Amsterdam niet gevonden',
-                             (obj.bag_numid, obj.id, bedrijfsnaam))
