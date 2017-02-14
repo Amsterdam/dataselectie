@@ -2,8 +2,7 @@ import logging
 
 from django.conf import settings
 
-from datasets.data import models
-from datasets.hr import build_ds_data
+from datasets.hr import models
 from . import documents
 from ..generic import index
 
@@ -24,13 +23,6 @@ class IndexHrTask(index.ImportIndexTask):
         return documents.meta_from_hrdataselectie(obj)
 
 
-class ImportHrTask():
-    name = "import hr data"
-
-    def execute(self):
-        return build_ds_data._build_joined_ds_table()
-
-
 class BuildIndexHrJob(object):
     name = "Create new search-index for all HR data from database"
 
@@ -38,10 +30,3 @@ class BuildIndexHrJob(object):
     def tasks():
         return [IndexHrTask()]
 
-
-class ImportHr(object):
-    name = "Import HR data"
-
-    @staticmethod
-    def tasks():
-        return [ImportHrTask()]

@@ -7,7 +7,6 @@ from django.db.models import QuerySet
 from django.db.models.expressions import RawSQL
 
 from datasets.bag.views import BAG_APIFIELDS
-from datasets.data import models
 from datasets.generic.csvexportview import CSVExportView
 from datasets.generic.geolocationsearchview import GeoLocationSearchView
 from datasets.generic.queries import add_aggregations
@@ -69,7 +68,7 @@ class HrBase(object):
     """
     Base class mixing for data settings
     """
-    model = models.DataSelectie
+    model = hrmodels.DataSelectie
     index = 'DS_INDEX'
     db = 'hr'
 

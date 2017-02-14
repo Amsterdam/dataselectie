@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
 from datasets.bag.models import Nummeraanduiding
-from datasets.data.models import DataSelectie
+from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
 

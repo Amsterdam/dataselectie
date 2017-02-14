@@ -6,7 +6,7 @@ from django.conf import settings
 from django.db.models import Q
 
 from batch import batch
-from datasets.data.models import DataSelectie
+from datasets.hr.models import DataSelectie
 from datasets.bag.models import Nummeraanduiding
 
 log = logging.getLogger(__name__)
