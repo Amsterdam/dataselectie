@@ -3,19 +3,19 @@ import logging
 
 import elasticsearch_dsl as es
 from django.conf import settings
-from django.db.models import Q
 
-from batch import batch
 from datasets.hr.models import DataSelectie
-from datasets.bag.models import Nummeraanduiding
 
 log = logging.getLogger(__name__)
+
+saved_existing_bag_vbid = None
 
 
 class VestigingenMeta(es.DocType):
     """
     Elastic data for vestigingen of handelsregister
     """
+
     def __init__(self, *args, **kwargs):
         super(VestigingenMeta, self).__init__(*args, **kwargs)
 
@@ -33,14 +33,25 @@ class VestigingenMeta(es.DocType):
 
 
 def meta_from_hrdataselectie(obj: DataSelectie) -> VestigingenMeta:
-    doc = VestigingenMeta(_id="HR" + obj.id)      # HR is added to prevent id collisions
-    doc.hoofdcategorie = [sbi['hoofdcategorie'] for sbi in obj.api_json['sbi_codes']]
-    doc.subcategorie = [sbi['subcategorie'] for sbi in obj.api_json['sbi_codes']]
+    global saved_existing_bag_vbid
+    doc = VestigingenMeta(
+        _id="HR" + obj.id)  # HR is added to prevent id collisions
+    doc.hoofdcategorie = [sbi['hoofdcategorie'] for sbi in
+                          obj.api_json['sbi_codes']]
+    doc.subcategorie = [sbi['subcategorie'] for sbi in
+                        obj.api_json['sbi_codes']]
     doc.sbi_code = [sbi['sbi_code'] for sbi in obj.api_json['sbi_codes']]
-    doc.sbi_omschrijving = [sbi['sub_sub_categorie'] for sbi in obj.api_json['sbi_codes']]
+    doc.sbi_omschrijving = [sbi['sub_sub_categorie'] for sbi in
+                            obj.api_json['sbi_codes']]
     doc.bedrijfsnaam = obj.api_json['naam']
-    doc._parent = obj.bag_vbid          # default value prevent crash if not found!
     doc.bag_vbid = obj.bag_vbid
-    doc._parent = obj.bag_vbid
+    if obj.bag_vbid:
+        doc._parent = obj.bag_vbid
+        saved_existing_bag_vbid = obj.bag_vbid
+    elif obj.bag_numid:
+        doc.__parent = obj.bag_numid
+    else:
+        doc._parent = saved_existing_bag_vbid  # default value prevent crash
+        log.error('No reference found to parent')
 
     return doc
