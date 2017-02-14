@@ -49,18 +49,23 @@ def build_sbi_filterkeys():
     :return:
     """
     sbi_flat_values = {}
-    for hoofdcat in hrmodels.CBS_sbi_section.objects.select_related():
-        for subcat in hoofdcat.cbs_sbi_rootnode_set.all():
-            for sbi in subcat.cbs_sbicode_set.all():
-                sbi_flat_values[sbi.sbi_code] = \
-                    {
-                        'sbi_code': sbi.sbi_code,
-                        'hoofdcategorie': hoofdcat.title,
-                        'sub_sub_categorie': sbi.title,
-                        'subcategorie': subcat.title,
-                        'hcat': hoofdcat.code,
-                        'scat': subcat.code
-                    }
+    for subcat in hrmodels.CBS_sbi_rootnode.objects.all():
+        sbi_desc = {}
+        for sbi in subcat.cbs_sbicode_set.all():
+            sbi_desc[sbi.sbi_code] = sbi.title
+
+        for sbi_code, title in sbi_desc.items():
+            higher_level_sbi_code = sbi_code[:len(sbi_code)-1]
+            higher_level_titles = [subcat.title, title]
+            while len(higher_level_sbi_code) >= 2:
+                try:
+                    higher_level_titles.append(sbi_desc[higher_level_sbi_code])
+                except KeyError:
+                    pass
+                higher_level_sbi_code = higher_level_sbi_code[:len(higher_level_sbi_code)-1]
+
+            sbi_flat_values[sbi_code] = higher_level_titles
+
     return sbi_flat_values
 
 
@@ -305,8 +310,7 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
 
 
 class HrSearch(HrBase, TableSearchView):
-    sbi_sub_subcategorie_values = []
-    mapfiltercats = {'sbi_omschrijving': 'sub_sub_categorie'}
+    mapfiltercats = {'sbi_omschrijving': 'categorieen', 'subcategorie': 'categorieen'}
 
     def elastic_query(self, query: dict) -> dict:
         res = meta_q(query, True, False)
@@ -338,15 +342,8 @@ class HrSearch(HrBase, TableSearchView):
             self.sbi_sub_subcategorie_values = build_sbi_filterkeys()
 
         if filter_keyword in self.filtercategories:
-            try:
-                fk = self.mapfiltercats[filter_keyword]
-            except KeyError:
-                fk = filter_keyword
-            ab = [[ssbi['hoofdcategorie'],
-                   ssbi['subcategorie'],
-                   ssbi['sub_sub_categorie']]
-                  for ssbi in self.sbi_sub_subcategorie_values.values()
-                  if ssbi[fk] == val]
+            ab = [ssbi for ssbi in self.sbi_sub_subcategorie_values
+                  if val in ssbi]
 
             self.selection += chain.from_iterable(ab)
 
