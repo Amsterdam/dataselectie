@@ -9,7 +9,7 @@ dc() {
 	docker-compose -p dataselectie -f ${DIR}/docker-compose.yml $*
 }
 
-#trap 'dc kill ; dc rm -f' EXIT
+trap 'dc kill ; dc rm -f' EXIT
 
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
@@ -23,8 +23,7 @@ sleep 14 # waiting for postgres to start
 dc exec -T database_BAG update-db.sh atlas
 dc exec -T database_HR update-db.sh handelsregister
 
-#dc run --rm importer
-dc run importer
+dc run --rm importer
 
 # create the new elastic indexes
 dc up importer_el1 importer_el2 importer_el3
@@ -40,6 +39,5 @@ then
     exit 1
 fi
 
-#dc run --rm el-backup
-dc run el-backup
+dc run --rm el-backup
 dc down
