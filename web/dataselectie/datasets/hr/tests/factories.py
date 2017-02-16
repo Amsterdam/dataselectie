@@ -3,13 +3,12 @@ from . import fixture_utils
 from .. import models
 
 
-def dataselectiehrfactory(vbobj, from_nr, to_nr):
-    hrs = []
+def dataselectiehrfactory(nummeraanduiding_obj, from_nr, to_nr):
     for json in fixture_utils.JSON[from_nr:to_nr]:
         id = json['vestigingsnummer']
-        hrdoc = DataSelectie.objects.get_or_create(
-            id=id, api_json=json, bag_numid=vbobj.openbare_ruimte_id, bag_vbid=vbobj.landelijk_id)
-        hrs.append(hrdoc)
+        DataSelectie.objects.get_or_create(
+            id=id, api_json=json, bag_numid=nummeraanduiding_obj.landelijk_id, bag_vbid=nummeraanduiding_obj.openbare_ruimte_id)
+
 
 def build_sbi_codes():
     hcat_rows = (

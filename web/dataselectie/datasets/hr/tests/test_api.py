@@ -144,8 +144,9 @@ class DataselectieApiTest(ESTestCase):
         """
         q = {'page': 1, 'bedrijfsnaam': 'Mundus College'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
+        self.assertEqual(response.status_code, 200)
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
@@ -156,6 +157,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000000809')
         self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
@@ -167,6 +169,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(res['object_list']), 2)
         self.check_in(res['object_list'], 'id', ('000000002216', '000000000086'))
         self.assertEqual(res['page_count'], 1)
@@ -177,6 +180,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertEqual(res['page_count'], 1)
@@ -190,6 +194,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000004383')
         self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
@@ -200,6 +205,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
+
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['object_list'][0]['id'], '000000000809')
         self.assertEqual(res['object_list'][0]['sbicodes'], '4639')

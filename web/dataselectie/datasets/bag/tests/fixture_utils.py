@@ -467,6 +467,7 @@ def create_nummeraanduiding_fixtures():
     create_ligplaats_fixtures()
     create_standplaats_fixtures()
 
+    # Dropping the creatd bool from the get_or_create
     nummeraanduidingen = [
         models.Nummeraanduiding.objects.get_or_create(huisnummer=1,
                                                       huisletter='A',
@@ -477,7 +478,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000001',
                                                       id='03630000000001',
                                                       verblijfsobject_id='03630000543293',
-                                                      _openbare_ruimte_naam='Kanaalstraat'),
+                                                      _openbare_ruimte_naam='Kanaalstraat')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=15,
                                                       huisletter='',
                                                       huisnummer_toevoeging='',
@@ -487,7 +488,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000002',
                                                       id='03630000000002',
                                                       verblijfsobject_id='03630000543294',
-                                                      _openbare_ruimte_naam='Leidsestraat'),
+                                                      _openbare_ruimte_naam='Leidsestraat')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=12,
                                                       huisletter='',
                                                       huisnummer_toevoeging=' ',
@@ -497,7 +498,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000003',
                                                       id='03630000000003',
                                                       verblijfsobject_id='03630000543295',
-                                                      _openbare_ruimte_naam='Hobbemakade'),
+                                                      _openbare_ruimte_naam='Hobbemakade')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=15,
                                                       huisletter='C',
                                                       huisnummer_toevoeging='2',
@@ -507,7 +508,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000004',
                                                       id='03630000000004',
                                                       ligplaats_id='03630000000111',
-                                                      _openbare_ruimte_naam='Delflandplein'),
+                                                      _openbare_ruimte_naam='Delflandplein')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=21,
                                                       huisletter='',
                                                       huisnummer_toevoeging='',
@@ -517,7 +518,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000005',
                                                       id='03630000000005',
                                                       verblijfsobject_id='03630000543296',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
+                                                      _openbare_ruimte_naam='Hoofddorplein')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=345,
                                                       huisletter='',
                                                       huisnummer_toevoeging='1',
@@ -527,7 +528,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000006',
                                                       id='03630000000006',
                                                       ligplaats_id='03630000000112',
-                                                      _openbare_ruimte_naam='Hoofddorplein'),
+                                                      _openbare_ruimte_naam='Hoofddorplein')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=76,
                                                       huisletter='F',
                                                       huisnummer_toevoeging='',
@@ -537,7 +538,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000007',
                                                       id='03630000000007',
                                                       verblijfsobject_id='03630000543297',
-                                                      _openbare_ruimte_naam='Prinsengracht'),
+                                                      _openbare_ruimte_naam='Prinsengracht')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=515,
                                                       huisletter='',
                                                       huisnummer_toevoeging='',
@@ -547,7 +548,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000008',
                                                       id='03630000000008',
                                                       standplaats_id='03630000000221',
-                                                      _openbare_ruimte_naam='Weteringschans'),
+                                                      _openbare_ruimte_naam='Weteringschans')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=45,
                                                       huisletter='',
                                                       huisnummer_toevoeging='',
@@ -557,7 +558,7 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000009',
                                                       id='03630000000009',
                                                       standplaats_id='03630000000222',
-                                                      _openbare_ruimte_naam='Delflandplein'),
+                                                      _openbare_ruimte_naam='Delflandplein')[0],
         models.Nummeraanduiding.objects.get_or_create(huisnummer=4,
                                                       huisletter='',
                                                       huisnummer_toevoeging='',
@@ -567,12 +568,14 @@ def create_nummeraanduiding_fixtures():
                                                       openbare_ruimte_id='03630000000009',
                                                       id='03630000000010',
                                                       verblijfsobject_id='03630000543298',
-                                                      _openbare_ruimte_naam='Delflandplein')]
+                                                      _openbare_ruimte_naam='Delflandplein')[0]
+    ]
 
     hr_factories.build_sbi_codes()
-    hr_factories.dataselectiehrfactory(nummeraanduidingen[1][0], 0, 2)
-    hr_factories.dataselectiehrfactory(nummeraanduidingen[3][0], 2, 3)
-    hr_factories.dataselectiehrfactory(nummeraanduidingen[4][0], 3, 4)
-    hr_factories.dataselectiehrfactory(nummeraanduidingen[2][0], 4, 6)
+
+    hr_factories.dataselectiehrfactory(nummeraanduidingen[1], 0, 2)
+    hr_factories.dataselectiehrfactory(nummeraanduidingen[3], 2, 3)
+    hr_factories.dataselectiehrfactory(nummeraanduidingen[4], 3, 4)
+    hr_factories.dataselectiehrfactory(nummeraanduidingen[2], 4, 6)
 
     return nummeraanduidingen
