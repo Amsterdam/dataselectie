@@ -163,9 +163,11 @@ class TableSearchView(ElasticSearchMixin, ListView):
         # Building the query
         q = self.elastic_query(query_string)
         query = self.build_elastic_query(q)
+
         # Performing the search
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
+
         elastic_data = self.fill_ids(response, elastic_data)
         # add aggregations
         self.add_aggregates(response)

@@ -17,7 +17,7 @@ class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_INDEX']
 
-    queryset = models.DataSelectie.objects.filter(bag_vbid__isnull=False)
+    queryset = models.DataSelectie.objects.filter(bag_numid__isnull=False)
 
     def convert(self, obj):
         return documents.meta_from_hrdataselectie(obj)

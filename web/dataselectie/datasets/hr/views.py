@@ -171,11 +171,6 @@ class HrBase(object):
             "bool": {
                 "must": [
                     {
-                        "term": {
-                            "_type": "bag_locatie"
-                        }
-                    },
-                    {
                         "has_child": {
                             "type": "vestiging",
                             "query": mapped_filters,
@@ -318,6 +313,7 @@ class HrSearch(HrBase, TableSearchView):
         vestigingaggs = \
         res['aggs']['nummeraanduiding_sub']['aggs']['vestiging']['aggs']
         vestigingaggs.update(add_aggregations(vestigingaggs))
+
         return res
 
     def define_id(self, item: dict, elastic_data: dict) -> str:
@@ -348,13 +344,6 @@ class HrSearch(HrBase, TableSearchView):
             self.selection += chain.from_iterable(ab)
 
         self.selection = list(set(self.selection))
-
-    def save_context_data(self, response: dict, elastic_data: dict = None):
-        """
-        Save the relevant buurtcombinatie, buurt, ggw and stadsdeel to be used
-        later to enrich the results
-        """
-        super().save_context_data(response, elastic_data=elastic_data)
 
     def update_context_data(self, context: dict) -> dict:
         """

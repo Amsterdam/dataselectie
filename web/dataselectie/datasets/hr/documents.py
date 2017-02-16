@@ -45,13 +45,8 @@ def meta_from_hrdataselectie(obj: DataSelectie) -> VestigingenMeta:
                             obj.api_json['sbi_codes']]
     doc.bedrijfsnaam = obj.api_json['naam']
     doc.bag_vbid = obj.bag_vbid
-    if obj.bag_vbid:
-        doc._parent = obj.bag_vbid
-        saved_existing_bag_vbid = obj.bag_vbid
-    elif obj.bag_numid:
-        doc.__parent = obj.bag_numid
+    if obj.bag_numid:
+        doc._parent = obj.bag_numid
     else:
-        doc._parent = saved_existing_bag_vbid  # default value prevent crash
-        log.error('No reference found to parent')
-
+        log.error(f'No nummeraanduiding found for {obj.id}')
     return doc
