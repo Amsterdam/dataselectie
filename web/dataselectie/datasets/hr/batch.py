@@ -9,7 +9,7 @@ from ..generic import index
 log = logging.getLogger(__name__)
 
 HR_DOC_TYPES = (
-    documents.VestigingenMeta,
+    documents.Vestiging,
 )
 
 
@@ -20,7 +20,7 @@ class IndexHrTask(index.ImportIndexTask):
     queryset = models.DataSelectie.objects.filter(bag_numid__isnull=False)
 
     def convert(self, obj):
-        return documents.meta_from_hrdataselectie(obj)
+        return documents.vestiging_from_hrdataselectie(obj)
 
 
 class BuildIndexHrJob(object):

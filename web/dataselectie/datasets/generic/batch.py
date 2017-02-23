@@ -10,7 +10,7 @@ log = logging.getLogger(__name__)
 
 DOC_TYPES = (
     bagdocuments.NummeraanduidingMeta,
-    hrdocuments.VestigingenMeta
+    hrdocuments.Vestiging
 )
 
 

@@ -154,8 +154,7 @@ def add_verblijfsobject_data(item, doc):
         pass
 
 
-def meta_from_nummeraanduiding(
-        item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+def meta_from_nummeraanduiding(item: models.Nummeraanduiding) -> NummeraanduidingMeta:
     """
     Van een Nummeraanduiding bak een dataselectie document
     met bag informatie en hr informatie
@@ -204,8 +203,6 @@ def meta_from_nummeraanduiding(
     if item.verblijfsobject:
         batch.statistics.add('BAG Verblijfs objecten', total=False)
         add_verblijfsobject_data(doc, item)
-
-    log.debug('doctime %s', (time.time() - start))
 
     # asserts?
     return doc
