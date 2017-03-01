@@ -117,8 +117,7 @@ class ImportIndexTask(object):
             end_part = (numerator + 1) * chunk_size
             total = end_part - start_index
 
-        log.info("START: %s END %s COUNT: %s CHUNK %s TOTAL_COUNT: %s" % (
-            start_index, end_part, chunk_size, batch_size, count))
+        log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')
         # total batches in this (partial) bacth job
         total_batches = int(chunk_size / batch_size)
         for i, start in enumerate(range(start_index, end_part, batch_size)):
@@ -154,8 +153,8 @@ class ImportIndexTask(object):
             log.info(progres_msg)
 
             helpers.bulk(
-                client, (self.convert(obj).to_dict(include_meta=True)
-                         for obj in qs),
+                client,
+                (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
                 refresh=True
             )

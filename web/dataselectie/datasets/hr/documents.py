@@ -4,6 +4,7 @@ import logging
 import elasticsearch_dsl as es
 from django.conf import settings
 
+from datasets.bag.models import Nummeraanduiding
 from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
@@ -31,10 +32,30 @@ class Vestiging(es.DocType):
     bezoekadres_huisletter = es.String(index='not_analyzed')
     bezoekadres_huisnummertoevoeging = es.String(index='not_analyzed')
     bezoekadres_postcode = es.String(index='not_analyzed')
-    bezoekadres_woonplaats = es.String(index='not_analyzed')
+    bezoekadres_plaats = es.String(index='not_analyzed')
+
+    bezoekadres_buurt_code = es.String(index='not_analyzed')
+    bezoekadres_buurt_naam = es.String(index='not_analyzed')
+    bezoekadres_buurtcombinatie_code = es.String(index='not_analyzed')
+    bezoekadres_buurtcombinatie_naam = es.String(index='not_analyzed')
+    bezoekadres_ggw_code = es.String(index='not_analyzed')
+    bezoekadres_ggw_naam = es.String(index='not_analyzed')
+    bezoekadres_gsg_naam = es.String(index='not_analyzed')
+    bezoekadres_stadsdeel_code = es.String(index='not_analyzed')
+    bezoekadres_stadsdeel_naam = es.String(index='not_analyzed')
+
     postadres_volledig_adres = es.String(index='not_analyzed')
+    postadres_correctie = es.Boolean()
+    postadres_openbare_ruimte = es.String(index='not_analyzed')
+    postadres_huisnummer = es.String(index='not_analyzed')
+    postadres_huisletter = es.String(index='not_analyzed')
+    postadres_huisnummertoevoeging = es.String(index='not_analyzed')
+    postadres_postcode = es.String(index='not_analyzed')
+    postadres_plaats = es.String(index='not_analyzed')
+
     # And the bag numid
     bag_numid = es.String(index='not_analyzed')
+    centroid = es.GeoPoint()
 
     # Categores
     hcat = es.String(index='not_analyzed', multi=True)
@@ -55,17 +76,66 @@ def flatten_sbi(activiteit):
     """
     This is a fill gap until HR will create flat sbi codes
     """
+    # Making sure sbi_code_link is a dict
+    sbi_code_link = activiteit.get('sbi_code_link', {})  # catching key does not exist
+    if not sbi_code_link:  # Catching value is None / empty string
+        sbi_code_link = {}
+
     return {
-        'sbi_code': activiteit['sbi_code'],
-        'sbi_omschrijving': activiteit['sbi_omschrijving'],
-        'title': activiteit['sbi_code_link']['title'],
-        'scat': (activiteit['sbi_code_link'].get('sub_cat', {})).get('scat', ''),
-        'subcategorie': (activiteit['sbi_code_link'].get('sub_cat', {})).get('subcategorie', ''),
-        'hcat': ((activiteit['sbi_code_link'].get('sub_cat', {})).get('hcat', {})).get('hcat', ''),
-        'hoofdcategorie': ((activiteit['sbi_code_link'].get('sub_cat', {})).get('hcat', {})).get('hoofdcategorie', ''),
+        'sbi_code': activiteit.get('sbi_code', ''),
+        'sbi_omschrijving': activiteit.get('sbi_omschrijving', ''),
+        'title': sbi_code_link.get('title', ''),
+        'scat': (sbi_code_link.get('sub_cat', {})).get('scat', ''),
+        'subcategorie': (sbi_code_link.get('sub_cat', {})).get('subcategorie', ''),
+        'hcat': ((sbi_code_link.get('sub_cat', {})).get('hcat', {})).get('hcat', ''),
+        'hoofdcategorie': ((sbi_code_link.get('sub_cat', {})).get('hcat', {})).get('hoofdcategorie', ''),
     }
 
-def vestiging_from_hrdataselectie(item: DataSelectie) -> Vestiging:
+def add_bag_info(doc, item):
+    """
+    Adding bag information
+    """
+    adresseerbaar_object = item.adresseerbaar_object
+    # If there is no adresseerbaar_object there is no
+    # point to continue
+    if not adresseerbaar_object:
+        return
+
+    # Adding geolocation
+    try:
+        doc.centroid = (
+            adresseerbaar_object
+                .geometrie.centroid.transform('wgs84', clone=True).coords)
+    except AttributeError:
+        log.error('Missing geometrie %s' % adresseerbaar_object)
+
+    # Adding the ggw data
+    ggw = adresseerbaar_object._gebiedsgerichtwerken
+    if ggw:
+        doc.bezoekadres_ggw_code = ggw.code
+        doc.bezoekadres_ggw_naam = ggw.naam
+
+    # Grootstedelijk ontbreekt nog
+    gsg = adresseerbaar_object._grootstedelijkgebied
+    if gsg:
+        doc.bezoekadres_gsg_naam = gsg.naam
+
+    buurt = adresseerbaar_object.buurt
+    if buurt:
+        doc.bezoekadres_buurt_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.code)
+        )
+        doc.bezoekadres_buurt_naam = buurt.naam
+
+        doc.bezoekadres_buurtcombinatie_code = '%s%s' % (
+            str(buurt.stadsdeel.code),
+            str(buurt.buurtcombinatie.code)
+        )
+        doc.bezoekadres_buurtcombinatie_naam = buurt.buurtcombinatie.naam
+
+
+def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
     doc = Vestiging(_id=item.id)  # HR is added to prevent id collisions
 
     doc.vestiging_id = item.id
@@ -84,11 +154,15 @@ def vestiging_from_hrdataselectie(item: DataSelectie) -> Vestiging:
     doc.handelsnaam = data.get('naam', mat.get('naam', ''))
 
     # Address
-    bezoekadres = data['bezoekadres']
-    for attrib in ('volledig_adres', 'correctie', 'openbare_ruimte', 'huisnummer',
-                   'huisletter', 'huisnummertoevoeging', 'postcode', 'woonplaats'):
-        setattr(doc, f'bezoekadres_{attrib}', bezoekadres.get(attrib, ''))
-    doc.postadres_volledig_adres = data['postadres']['volledig_adres']
+    for address_type in ('bezoekadres', 'postadres'):
+        adres = data[address_type]
+        for attrib in ('volledig_adres', 'correctie', 'huisnummer',
+                       'huisletter', 'huisnummertoevoeging', 'postcode', 'plaats'):
+            setattr(doc, f'{address_type}_{attrib}', adres.get(attrib, ''))
+        # In HR is the openbareruimte naam is called straatnaam
+        setattr(doc, f'{address_type}_openbare_ruimte', adres['straatnaam'])
+        correctie = True if adres['correctie'] else False
+        setattr(doc, f'{address_type}_correctie', correctie)
 
     # SBI codes, categories and subcategories
     # Creating lists of the values and then setting
@@ -96,11 +170,14 @@ def vestiging_from_hrdataselectie(item: DataSelectie) -> Vestiging:
     attributes = ('hcat', 'hoofdcategorie', 'scat', 'subcategorie', 'sbi_code', 'sbi_omschrijving')
     codes = {}  # @TODO named tuple
     for activiteit in data['activiteiten']:
+        # Flattening the sbi until HR does
         activiteit = flatten_sbi(activiteit)
-        print(activiteit)
         for attrib in attributes:
             codes[attrib] = codes.get(attrib, []) + [activiteit.get(attrib, '')]
     for attrib in attributes:
         setattr(doc, attrib, codes.get(attrib))
+
+    if bag_item:
+        add_bag_info(doc, bag_item)
 
     return doc

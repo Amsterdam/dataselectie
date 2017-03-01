@@ -24,17 +24,13 @@ class ElasticSearchMixin(object):
 
     # A set of optional keywords to filter the results further
     keywords = ()
-    raw_fields = []
     geo_fields = {
         'shape': ['centroid', 'geo_polygon'],
     }
+    raw_fields = []
     keyword_mapping = {}
-    fixed_filters = []
     default_search = 'term'
-    allowed_parms = ('page', 'shape')
     request = None
-    selection = []
-    el_sorts = []
 
     def build_elastic_query(self, query):
         """
@@ -101,27 +97,19 @@ class ElasticSearchMixin(object):
         }
         """
         # Adding filters
-        if self.fixed_filters:
-            filters = copy.copy(self.fixed_filters)
-        else:
-            filters = []
+        filters = []
         # Retrieving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 
-        entered_parms = [prm for prm in request_parameters.keys() if prm not in self.allowed_parms]
-
-        self.child_filters = []
         self.selection = []         # cash bashing!
+        # Checking for known keyword filters
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
+            # Since a parameter can be 0, which evalutes to False, a check
+            # is actually made that the value is not None
             if val is not None:     # parameter is entered
-                del entered_parms[entered_parms.index(filter_keyword)]
-                filters = self.proc_parameters(filter_keyword, val, filters)
+                filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
                 self.filterkeys(filter_keyword, val)
-
-        if len(entered_parms):
-            wrongparms = ','.join(entered_parms)
-            raise BadReq(entered_parms, "Parameter(s) {} not supported".format(wrongparms))
 
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
@@ -138,7 +126,14 @@ class ElasticSearchMixin(object):
                 if (len(val)) > 2:
                     filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
 
-        query = self.build_el_query(filters, query)
+        query = {
+            'query': {
+                'bool': {
+                    'must': [query['query']],
+                    'filter': filters,
+                }
+            }
+        }
 
         return self.handle_query_size_offset(query)
 
@@ -148,37 +143,6 @@ class ElasticSearchMixin(object):
     def proc_parameters(self, filter_keyword: str, val: str, filters: list) -> (list, list):
         filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
         return filters
-
-    def build_el_query(self, filters: list, query: dict) -> dict:
-        """
-        Allows for addition of extra conditions if keyword mapping
-        found, default it creates a bool query
-        :param filters: Filters for the primary (parent) selection
-        :param query: query to start with
-        :return: query
-        """
-        filters += self.child_filters
-        query['query'] = {
-            'bool': {
-                'must': [query['query']],
-                'filter': filters,
-            }
-        }
-
-        return self.add_sorting(query)
-
-    def add_sorting(self, query):
-        sort = {}
-        for s_field in self.el_sorts:
-            sort[s_field] = {"order": "asc"}
-        query['sort'] = sort
-        return query
-
-    def fill_ids(self, response: dict, elastic_data: dict) -> dict:
-        # Can be overridden in the view to allow for other primary keys
-        for hit in response['hits']['hits']:
-            elastic_data['ids'].append(hit['_id'])
-        return elastic_data
 
     def handle_query_size_offset(self, query: dict) -> dict:
         """
