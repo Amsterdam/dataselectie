@@ -1,24 +1,13 @@
-# Python
-import rapidjson
-
+# Packages
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import HttpResponse
-
+# Project
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.csvexportview import CSVExportView, model_to_dict
-from datasets.generic.geolocationsearchview import GeoLocationSearchView
-from datasets.generic.tablesearchview import TableSearchView
-from datasets.generic.tablesearchview import stringify_item_value
-
-# TODO naam moet eruit, maar wel als zoekcriteria aanwezig blijven!
-BAG_APIFIELDS = [
-    'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-    'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-    'stadsdeel_naam', 'stadsdeel_code', 'postcode',
-    'woonplaats', '_openbare_ruimte_naam', 'naam']
+from datasets.generic.views_mixins import CSVExportView, GeoLocationSearchView, TableSearchView
 
 
-def create_geometry_dict(db_item):
+def create_geometry_dict(item):
     """
     Creates a geometry dict that can be used to add
     geometry information to the result set
@@ -28,13 +17,13 @@ def create_geometry_dict(db_item):
     """
     res = {}
     try:
-        geom = db_item.adresseerbaar_object.geometrie.centroid
+        geom_wgs = GEOSGeometry(f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
     except AttributeError:
-        geom = None
-    if geom:
+        geom_wgs = None
+    if geom_wgs:
         # Convert to wgs
-        geom_wgs = geom.transform('wgs84', clone=True).coords
-        geom = geom.coords
+        geom = geom_wgs.transform(28992, clone=True).coords
+        geom_wgs = geom_wgs.coords
         res = {
             'geometrie_rd_x': int(geom[0]),
             'geometrie_rd_y': int(geom[1]),
@@ -43,7 +32,7 @@ def create_geometry_dict(db_item):
             'geometrie_wgs_lon': (
                 '{:.7f}'.format(round(geom_wgs[0], 7))).replace('.', ',')
         }
-    return res
+        item.update(res)
 
 
 class BagBase(object):
@@ -54,8 +43,10 @@ class BagBase(object):
     index = 'DS_INDEX'
     db = 'bag'
     q_func = meta_q
-    apifields = BAG_APIFIELDS
-    keywords = BAG_APIFIELDS
+    keywords = [
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats', '_openbare_ruimte_naam', 'naam'
+    ]
     raw_fields = ['naam', '_openbare_ruimte_naam']
 
     sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter']
@@ -65,34 +56,12 @@ class BagBase(object):
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
     def elastic_query(self, query):
-        return meta_q(query, False, False)
+        return meta_q(query, False)
 
 
 class BagSearch(BagBase, TableSearchView):
     def elastic_query(self, query):
         return meta_q(query)
-
-    def update_context_data(self, context):
-        # Adding the buurtcombinatie, ggw, stadsdeel info to the result
-        for i in range(len(context['object_list'])):
-            # Making sure all the data is in string form
-            context['object_list'][i].update(
-                {k: stringify_item_value(v) for k, v in
-                 context['object_list'][i].items() if not isinstance(v, str)}
-            )
-            # Adding the extra context
-            context['object_list'][i].update(self.extra_context_data['items']
-                                             [context['object_list'][i][self.keyfieldname]])
-        context['aggs_list'] = self.extra_context_data['aggs_list']
-        context['total'] = self.extra_context_data['total']
-        return context
-
-    def Send_Response(self, resp, response_kwargs):
-        return HttpResponse(
-            rapidjson.dumps(resp),
-            content_type='application/json',
-            **response_kwargs
-        )
 
 
 class BagCSV(BagBase, CSVExportView):
@@ -137,43 +106,10 @@ class BagCSV(BagBase, CSVExportView):
     pretty_headers = [h[2] for h in hdrs if h[3]]
 
     def elastic_query(self, query):
-        return meta_q(query, add_aggs=False)
+        return meta_q(query, False, False)
 
-    def _convert_to_dicts(self, qs):
-        """
-        Overwriting the default conversion so that location data
-        can be retrieved through the adresseerbaar_object
-        and convert to wgs84
-        """
-        data = []
-        for item in qs:
-
-            dict_item = model_to_dict(item)
-
-            # BAG Specific updates.
-            # ------------------------
-            # Adding geometry
-
-            dict_item['oppervlakte'] = None
-            dict_item['gebruiksdoel_omschrijving'] = None
-            dict_item['gebruik'] = None
-            if item.verblijfsobject_id:
-                dict_item['oppervlakte'] = item.verblijfsobject.oppervlakte
-                dict_item['gebruiksdoel_omschrijving'] = \
-                    item.verblijfsobject.gebruiksdoel_omschrijving
-                dict_item['gebruik'] = item.verblijfsobject.gebruik
-                dict_item['verblijfsobject'] = item.verblijfsobject.landelijk_id
-            elif item.ligplaats_id:
-                dict_item['ligplaats'] = item.ligplaats.landelijk_id
-            elif item.standplaats_id:
-                dict_item['standplaats'] = item.standplaats.landelijk_id
-            dict_item.update(create_geometry_dict(item))
-            if 'hoofdadres' in dict_item:
-                dict_item['hoofdadres'] = 'Ja' if dict_item[
-                    'hoofdadres'] else 'Nee'
-            # Saving the dict
-            data.append(dict_item)
-        return data
+    def item_data_update(self, item):
+        create_geometry_dict(item)
 
     def paginate(self, offset, q):
         if 'size' in q:

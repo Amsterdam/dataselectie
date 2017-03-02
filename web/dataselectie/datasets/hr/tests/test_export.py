@@ -1,13 +1,12 @@
-# Packages
+# Python
 from urllib.parse import urlencode
-
+# Packages
 from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
-
-from datasets.bag.tests import fixture_utils
-
+# Project
+from .factories import create_hr_data
 
 class ESTestCase(TestCase):
     """
@@ -33,7 +32,7 @@ class DataselectieExportTest(ESTestCase):
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
-        fixture_utils.create_nummeraanduiding_fixtures()
+        create_hr_data()
         cls.rebuild_elastic_index()
 
     def setUp(self):
@@ -44,29 +43,15 @@ class DataselectieExportTest(ESTestCase):
 
     def test_complete_export_hr(self):
         response = self.client.get('/dataselectie/hr/export/')
-        # assert that response st.values()[:self.preview_size]atus is 200
         self.assertEqual(response.status_code, 200)
 
         res = (b''.join(response.streaming_content)).decode('utf-8').strip()
         res = res.split('\r\n')
-        # 6 lines: headers + 6 items
-        self.assertEqual(len(res), 7)
+        # 6 lines: headers + 5 items
+        self.assertEqual(len(res), 6)
         row2 = res[2].split(';')
 
-        checkvalues = ('50324763', 'Monique Brouns',
-                       'Hannie Dankbaarpassage 2 1053RT Amsterdam',
-                       'nee', 'Leidsestraat', '15', '', '', '1012AA',
-                       'Amsterdam', 'Hannie Dankbaarpassage 2 1053RT Amsterdam',
-                       'nee', 'Hannie Dankbaarpassage', '2', '', '',
-                       '1053RT', 'Amsterdam',
-                       'cultuur, sport, recreatie \\ zakelijke dienstverlening',
-                       'kunst \\ design', 'Schrijven en overige scheppende kunsten \\ Interieur- en ruimtelijk ontwerp',
-                       '9003 \\ 74103', '2010-07-01', '', 'Onbekend')
-
-        self.assertEqual(len(row2), len(checkvalues))
-
-        for idx, val in enumerate(row2):
-            self.assertEqual(row2[idx], checkvalues[idx])
+        self.assertEqual(len(row2), 26)
 
     def test_export_hr_subcategorie(self):
         q = {'page': 1,

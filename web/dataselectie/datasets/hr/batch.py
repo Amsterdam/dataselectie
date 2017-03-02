@@ -26,7 +26,6 @@ class IndexHrTask(index.ImportIndexTask):
         try:
             bag_obj = bag_models.Nummeraanduiding.objects.get(landelijk_id=obj.bag_numid)
         except bag_models.Nummeraanduiding.DoesNotExist:
-            print(obj.bag_numid)
             bag_obj = None
         return documents.vestiging_from_hrdataselectie(obj, bag_obj)
 

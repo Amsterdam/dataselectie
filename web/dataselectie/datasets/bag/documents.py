@@ -126,13 +126,27 @@ def update_doc_with_adresseerbaar_object(doc, item):
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
 
 
-def add_verblijfsobject_data(item, doc):
+def update_doc_from_param_list(target: Nummeraanduiding, source: object, mapping: list) -> None:
+    """
+    Given a list of parameters (target_field, source_field)
+    try to add it to the given document
+    from the source object
+    """
+    for (attr, obj_link) in mapping:
+        value = source
+        obj_link = obj_link.split('.')
+        try:
+            for link in obj_link:
+                value = getattr(value, link, None)
+            setattr(target, attr, value)
+        except Exception as e:
+            pass
+
+
+def add_verblijfsobject_data(doc, obj):
     """
     vbo gerelateerde data
     """
-
-    obj = item.verblijfsobject
-
     verblijfsobject_extra = [
         ('verblijfsobject', 'landelijk_id'),
         ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
@@ -140,6 +154,7 @@ def add_verblijfsobject_data(item, doc):
         ('bouwblok', 'bouwblok.code'),
         ('gebruik', 'gebruik.omschrijving')
     ]
+    update_doc_from_param_list(doc, obj, verblijfsobject_extra)
 
     try:
         doc.panden = [i.landelijk_id for i in obj.panden.all()]
@@ -164,7 +179,7 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
         ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
         ('huisnummer', 'huisnummer'),
         ('huisletter', 'huisletter'),
-        ('toevoeging', 'toevoeging'),
+        ('huisnummer_toevoeging', 'toevoeging'),
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
@@ -178,10 +193,9 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
         ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
-
     ]
     # Adding the attributes
-    #update_doc_from_param_list(doc, item, parameters)
+    update_doc_from_param_list(doc, item, parameters)
 
     # defaults
     doc.centroid = None
@@ -195,25 +209,7 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
     # Verblijfsobject specific
     if item.verblijfsobject:
         batch.statistics.add('BAG Verblijfs objecten', total=False)
-        add_verblijfsobject_data(doc, item)
+        add_verblijfsobject_data(doc, item.verblijfsobject)
 
     # asserts?
     return doc
-
-
-# def update_doc_from_param_list(
-#         target: dict, source: object, mapping: list) -> None:
-#     """
-#     Given a list of parameters (target_field, source_field)
-#     try to add it to the given document
-#     from the source object
-#     """
-#     for (attr, obj_link) in mapping:
-#         value = source
-#         obj_link = obj_link.split('.')
-#         try:
-#             for link in obj_link:
-#                 value = getattr(value, link, None)
-#             setattr(target, attr, value)
-#         except Exception as e:
-#             pass

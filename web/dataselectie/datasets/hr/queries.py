@@ -13,11 +13,20 @@ from django.conf import settings
 from ..generic.queries import create_query
 
 
-def meta_q(query, add_aggs=False, add_count_aggs=True):
-    # @TODO change to setting
-    print('Loading query')
-    aggs = create_aggs()
-    return create_query(query, add_aggs, add_count_aggs, aggs, qtype='vestiging')
+def meta_q(query, add_aggs=False, sort=True):
+    if add_aggs:
+        aggs = create_aggs()
+    else:
+        aggs = None
+    sort = {
+        'sort': {
+            'bezoekadres_openbare_ruimte': { "order": "asc" },
+            'bezoekadres_huisnummer': { "order": "asc" },
+            'bezoekadres_huisletter': { "order": "asc" },
+            'bezoekadres_huisnummertoevoeging': { "order": "asc" }
+        }
+    }
+    return create_query(query, aggs, sort, qtype='vestiging')
 
 
 def create_aggs() -> dict:
@@ -73,58 +82,58 @@ def create_aggs() -> dict:
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurtcombinatie_naam': {
+            'bezoekadres_buurtcombinatie_naam': {
                 'terms': {
-                    'field': 'buurtcombinatie_naam',
+                    'field': 'bezoekadres_buurtcombinatie_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurtcombinatie_code': {
+            'bezoekadres_buurtcombinatie_code': {
                 'terms': {
-                    'field': 'buurtcombinatie_code',
+                    'field': 'bezoekadres_buurtcombinatie_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurt_code': {
+            'bezoekadres_buurt_code': {
                 'terms': {
-                    'field': 'buurt_code',
+                    'field': 'bezoekadres_buurt_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'buurt_naam': {
+            'bezoekadres_buurt_naam': {
                 'terms': {
-                    'field': 'buurt_naam',
+                    'field': 'bezoekadres_buurt_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'ggw_naam': {
+            'bezoekadres_ggw_naam': {
                 'terms': {
-                    'field': 'ggw_naam',
+                    'field': 'bezoekadres_ggw_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
-            'ggw_code': {
+            'bezoekadres_ggw_code': {
                 'terms': {
-                    'field': 'ggw_code',
+                    'field': 'bezoekadres_ggw_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
-            'stadsdeel_naam': {
+            'bezoekadres_stadsdeel_naam': {
                 'terms': {
-                    'field': 'stadsdeel_naam',
+                    'field': 'bezoekadres_stadsdeel_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
-            'stadsdeel_code': {
+            'bezoekadres_stadsdeel_code': {
                 'terms': {
-                    'field': 'stadsdeel_code',
+                    'field': 'bezoekadres_stadsdeel_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }

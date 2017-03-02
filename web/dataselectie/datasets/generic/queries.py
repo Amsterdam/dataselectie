@@ -16,8 +16,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None,
-                 qtype=None):
+def create_query(query, aggs=None, sort=None, default_query=None, qtype=None):
     if default_query:
         if query:
             query += default_query
@@ -37,9 +36,8 @@ def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None,
             'query': {'match_all': {}}
         }
 
-    if add_aggs:
+    if aggs:
         q.update(aggs)
-        if add_count_aggs:
-            q['aggs'].update(add_aggregations(aggs['aggs']))
-
+    if sort:
+        q.update(sort)
     return q

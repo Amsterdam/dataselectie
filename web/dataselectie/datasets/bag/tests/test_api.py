@@ -72,10 +72,10 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
         previous = ''
         for olist in res['object_list']:
-            sortcriterium = olist['_openbare_ruimte_naam'].strip() + olist[
-                'huisnummer'].strip().zfill(5) + olist[
-                                'huisletter'].strip() + olist[
-                                'huisnummer_toevoeging'].strip()
+            sortcriterium = olist['_openbare_ruimte_naam'].strip() + \
+                            str(olist['huisnummer']).zfill(5) + \
+                            olist['huisletter'].strip() + \
+                            olist['huisnummer_toevoeging'].strip()
             self.assertGreaterEqual(sortcriterium, previous)
             previous = sortcriterium
 

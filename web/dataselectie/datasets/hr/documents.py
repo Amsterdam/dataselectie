@@ -9,8 +9,6 @@ from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
 
-saved_existing_bag_vbid = None
-
 
 class Vestiging(es.DocType):
     """
@@ -23,6 +21,7 @@ class Vestiging(es.DocType):
     datum_einde = es.Date()
     eigenaar_naam = es.String(index='not_analyzed')
     eigenaar_id = es.String(index='not_analyzed')
+    non_mail = es.Boolean()
 
     # Address information
     bezoekadres_volledig_adres = es.String(index='not_analyzed')
@@ -145,7 +144,8 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
     data = item.api_json
     # Maatschapelijke activiteit
     mat = data['maatschappelijke_activiteit']
-    for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam', 'eigenaar_id'):
+    for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam',
+                   'eigenaar_id', 'non_mail'):
         setattr(doc, attrib, mat.get(attrib, ''))
     doc.eigenaar_naam = mat['eigenaar'].get('volledig_naam', '')
     doc.eigenaar_id = mat['eigenaar'].get('id', '')
@@ -156,13 +156,14 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
     # Address
     for address_type in ('bezoekadres', 'postadres'):
         adres = data[address_type]
-        for attrib in ('volledig_adres', 'correctie', 'huisnummer',
-                       'huisletter', 'huisnummertoevoeging', 'postcode', 'plaats'):
-            setattr(doc, f'{address_type}_{attrib}', adres.get(attrib, ''))
-        # In HR is the openbareruimte naam is called straatnaam
-        setattr(doc, f'{address_type}_openbare_ruimte', adres['straatnaam'])
-        correctie = True if adres['correctie'] else False
-        setattr(doc, f'{address_type}_correctie', correctie)
+        if isinstance(adres, dict):
+            for attrib in ('volledig_adres', 'correctie', 'huisnummer',
+                           'huisletter', 'huisnummertoevoeging', 'postcode', 'plaats'):
+                setattr(doc, f'{address_type}_{attrib}', adres.get(attrib, ''))
+            # In HR is the openbareruimte naam is called straatnaam
+            setattr(doc, f'{address_type}_openbare_ruimte', adres.get('straatnaam'))
+            correctie = True if adres.get('correctie') else False
+            setattr(doc, f'{address_type}_correctie', correctie)
 
     # SBI codes, categories and subcategories
     # Creating lists of the values and then setting

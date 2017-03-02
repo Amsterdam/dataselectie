@@ -114,7 +114,7 @@ class ElasticSearchMixin(object):
 
     def add_page_counters(self, object_count: int) -> dict:
         count = {
-            'page_count': object_count / self.preview_size
+            'page_count': object_count // self.preview_size
         }
         if object_count % self.preview_size:
             count['page_count'] += 1
@@ -140,7 +140,6 @@ class ElasticSearchMixin(object):
             # is actually made that the value is not None
             if val is not None:
                 filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
-                #self.filterkeys(filter_keyword, val)
 
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
@@ -182,15 +181,12 @@ class ElasticSearchMixin(object):
         # Building the query
         q = self.elastic_query(query_string)
         query = self.add_elastic_filters(q)
-        print(query)
         # Performing the search
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
-        print(response['hits'].keys())
-
         elastic_data = {
             'aggs_list':  response.get('aggregations', {}),
-            'object_list': response['hits']['hits'],
+            'object_list': [item['_source'] for item in response['hits']['hits']],
         }
         # Add counters
         elastic_data['object_count'] = response['hits']['total']
@@ -358,10 +354,7 @@ class GeoLocationSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
         resp = self.bldresponse(response)
 
         log.info('response count %s', resp['object_count'])
-        return HttpResponse(
-            json.dumps(resp),
-            content_type='application/json'
-        )
+        return resp
 
     def bldresponse(self, response):
         resp = {
@@ -382,6 +375,13 @@ class CSVExportView(TableSearchView):
     # The pretty version of the headers
     pretty_headers = []
 
+    def item_data_update(self, item):
+        """
+        Allow for subclasses to add custom fields to the item before it is
+        strigified for export
+        """
+        pass
+
     def load_from_elastic(self) -> Generator:
         """
         Instead of normal results
@@ -394,7 +394,6 @@ class CSVExportView(TableSearchView):
         # Making sure there is no pagination
         if query is not None and 'from' in query:
             del (query['from'])
-
         # Returning the elastic generator
         return scan(self.elastic, query=query, index=settings.ELASTIC_INDICES[self.index])
 
@@ -426,13 +425,14 @@ class CSVExportView(TableSearchView):
 
         # Yielding results in batches of batch_size
         item_count = 0
-        while item_count < batch_size:
+        while more:
             item_count = 0
             # Collecting items for batch
             for item_hit in es_generator:
                 item = item_hit['_source']
-                print(item)
                 item_count += 1
+                # Allowing for custom updates
+                self.item_data_update(item)
                 # Making sure all the data is in string form
                 item.update(
                     {k: stringify_item_value(v) for k, v in item.items() if
@@ -448,19 +448,6 @@ class CSVExportView(TableSearchView):
             yield read_and_empty_buffer()
             # Stop the run, if end is reached
             more = item_count >= batch_size
-
-    def _fill_item(self, items, item):
-        """
-        Function can be overwritten in the using class to allow for
-        specific output (hr has multi outputs
-
-        :param items:   Resulting dictionary containing the
-        :param item:    Item from elastic
-        :return: items
-        """
-        items[item['_id']] = item
-
-        return items
 
     def render_to_response(self, data, **response_kwargs):
         # Returning a CSV
