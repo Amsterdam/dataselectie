@@ -9,7 +9,7 @@ from . import documents
 log = logging.getLogger(__name__)
 
 BAG_DOC_TYPES = (
-    documents.NummeraanduidingMeta,
+    documents.Nummeraanduiding,
 )
 
 
@@ -24,7 +24,7 @@ class IndexDsBagTask(index.ImportIndexTask):
         prefetch_related('openbare_ruimte')
 
     def convert(self, obj):
-        return documents.meta_from_nummeraanduiding(obj)
+        return documents.doc_from_nummeraanduiding(obj)
 
 
 class BuildIndexDsBagJob(object):

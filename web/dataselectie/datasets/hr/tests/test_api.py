@@ -7,7 +7,7 @@ from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
 # Project
-from ...bag.tests.fixture_utils import create_nummeraanduiding_fixtures
+from .factories import create_hr_data
 
 
 class ESTestCase(TestCase):
@@ -32,7 +32,7 @@ class DataselectieApiTest(ESTestCase):
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
-        create_nummeraanduiding_fixtures()
+        create_hr_data()
         cls.rebuild_elastic_index()
 
     def setUp(self):
@@ -53,16 +53,16 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(len(res['object_list']), 6)
+        self.assertEqual(len(res['object_list']), 5)
         self.assertEqual(res['page_count'], 1)
         self.assertIn('aggs_list', res)
-        self.assertEqual(res['object_count'], 6)
+        self.assertEqual(res['object_count'], 5)
         self.assertIn('hoofdcategorie', res['aggs_list'])
         testcats = {'cultuur, sport, recreatie': 2,
-                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 3,
+                    'financiële dienstverlening,verhuur van roerend en onroerend goed': 2,
                     'handel, vervoer, opslag': 1,
                     'overheid, onderwijs, zorg': 1,
-                    'zakelijke dienstverlening': 3}
+                    'zakelijke dienstverlening': 2}
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
         self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 5)
         hoofdcategorieen = [(k['key'], k['doc_count'])
@@ -70,58 +70,33 @@ class DataselectieApiTest(ESTestCase):
         for cat, count in hoofdcategorieen:
             self.assertEqual(testcats[cat], count)
         self.assertIn('subcategorie', res['aggs_list'])
-        self.assertIn('buurt_naam', res['aggs_list'])
-        self.assertIn('buckets', res['aggs_list']['buurt_naam'])
-        self.assertIn('buurtcombinatie_code', res['aggs_list'])
-        self.assertIn('buckets', res['aggs_list']['buurtcombinatie_code'])
-        self.assertIn('buckets', res['aggs_list']['sbi_omschrijving'])
+        self.assertIn('bezoekadres_buurt_naam', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['bezoekadres_buurt_naam'])
+        self.assertIn('bezoekadres_buurtcombinatie_code', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['bezoekadres_buurtcombinatie_code'])
 
     def test_get_dataselectie_invalidparm(self):
         """
         Test elastic querying on field `sbi_code` top-down
         """
-        q = {'page': 1, 'invalid_parm': '8539914'}
-        response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
-        self.assertEqual(response.status_code, 400)
-
         q = {'page': 1, 'sbi_code': 'notfound'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(len(res['object_list']), 0)
 
-    def test_get_dataselectie_hr_sbi_code1(self):
+    def test_get_dataselectie_hr_sbi_code(self):
         """
         Test elastic querying on field `sbi_code` top-down
         """
-        velden_in_api = ('bag_numid', 'bag_vbid', 'bedrijfsnaam', 'betrokkenen',
-                         'bezoekadres_afgeschermd', 'bezoekadres_correctie',
-                         'bezoekadres_volledig_adres', 'datum_aanvang',
-                         'datum_einde', 'hoofdcategorieen',
-                         'hoofdvestiging', 'id', 'kvk_nummer', 'locatie_type',
-                         'postadres_afgeschermd', 'postadres_correctie',
-                         'postadres_huisletter', 'postadres_huisnummer',
-                         'postadres_huisnummertoevoeging', 'postadres_postbus_nummer',
-                         'postadres_postcode', 'postadres_straat_huisnummer',
-                         'postadres_straatnaam', 'postadres_toevoegingadres',
-                         'postadres_volledig_adres', 'sbicodes', 'subcategorieen',
-                         'vestigingsnummer', 'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-                         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-                         'stadsdeel_naam', 'stadsdeel_code', 'woonplaats',
-                         '_openbare_ruimte_naam', 'huisnummer',
-                         'huisletter', 'huisnummer_toevoeging', 'postcode', 'sbi_omschrijving')
         q = {'page': 1, 'sbi_code': '85314'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
-        self.assertIn(res['object_list'][0]['sbicodes'], '85314')
-
-#        self.assertEqual(res['aggs_list']['total'], 1) sbi_code has no own aggregation -> no reliable count!
-        for fieldnm in velden_in_api:
-            self.assertIn(fieldnm, res['object_list'][0])
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000004383')
+        self.assertIn('85314', res['object_list'][0]['sbi_code'])
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_hr_sbi_code2(self):
@@ -134,22 +109,21 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(len(res['object_list']), 2)
-        self.check_in(res['object_list'], 'id', ('000000000086', '000000002216'))
-        self.assertEqual(res['object_list'][0]['sbicodes'], '6420 \\ 9003')
+        self.check_in(res['object_list'], 'vestiging_id', ('000000000086', '000000002216'))
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['74103', '9003'])
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_bedrijfsnaam(self):
         """
         Test elastic querying on field `sbi_code` top-down
         """
-        q = {'page': 1, 'bedrijfsnaam': 'Mundus College'}
+        q = {'page': 1, 'handelsnaam': 'Mundus College'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         res = loads(response.content.decode('utf-8'))
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
-        self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['85314'])
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_subcategorie(self):
@@ -159,8 +133,8 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000000809')
-        self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000000809')
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['4639'])
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 1)
 
@@ -171,7 +145,7 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 2)
-        self.check_in(res['object_list'], 'id', ('000000002216', '000000000086'))
+        self.check_in(res['object_list'], 'vestiging_id', ('000000002216', '000000000086'))
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 2)
 
@@ -182,7 +156,7 @@ class DataselectieApiTest(ESTestCase):
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000004383')
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 1)
 
@@ -190,25 +164,24 @@ class DataselectieApiTest(ESTestCase):
         """
         Test elastic querying on field in parent
         """
-        q = {'page': 1, 'stadsdeel_naam': 'Centrum', 'bedrijfsnaam': 'Mundus College'}
+        q = {'page': 1, 'stadsdeel_naam': 'Centrum', 'handelsnaam': 'Mundus College'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000004383')
-        self.assertEqual(res['object_list'][0]['sbicodes'], '85314')
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000004383')
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['85314'])
         self.assertEqual(res['page_count'], 1)
 
-        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, '
-                                        'niet zelf vervaardigd)', 'postcode': '1012AB'}
+        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)', 'postcode': '1012AB'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['id'], '000000000809')
-        self.assertEqual(res['object_list'][0]['sbicodes'], '4639')
+        self.assertEqual(res['object_list'][0]['vestiging_id'], '000000000809')
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['4639'])
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 1)
 
@@ -223,7 +196,7 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(
-            res['object_count'], 6)
+            res['object_count'], 5)
         self.assertNotIn('aggs_list', res)
 
     def test_get_dataselectie_hr_shape_limit(self):
@@ -235,7 +208,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(response.status_code, 200)
 
         res = loads(response.content.decode('utf-8'))
-        self.assertEqual(res['object_count'], 2)
+        self.assertEqual(res['object_count'], 1)
 
     def test_get_dataselectiehr_geolocation2(self):
         """
@@ -249,7 +222,7 @@ class DataselectieApiTest(ESTestCase):
 
         res = loads(response.content.decode('utf-8'))
         self.assertEqual(
-            res['object_count'], 2)
+            res['object_count'], 1)
         self.assertNotIn('aggs_list', res)
 
     def tearDown(self):
