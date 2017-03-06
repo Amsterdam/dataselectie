@@ -60,7 +60,7 @@ class Nummeraanduiding(es.DocType):
     type_desc = es.String(index='not_analyzed')
     hoofdadres = es.String(index='not_analyzed')  # Is there a choice option?
     # Landelijke codes
-    openabre_ruimte_landelijk_id = es.String(index='not_analyzed')
+    openbare_ruimte_landelijk_id = es.String(index='not_analyzed')
     verblijfsobject = es.String(index='not_analyzed')
     ligplaats = es.String(index='not_analyzed')
     standplaats = es.String(index='not_analyzed')
@@ -190,9 +190,10 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
         ('stadsdeel_naam', 'stadsdeel.naam'),
 
         # Landelijke IDs
-        ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
+        ('openbare_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
+        ('landelijk_id', 'landelijk_id')
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
