@@ -70,10 +70,10 @@ class DataselectieApiTest(ESTestCase):
         for cat, count in hoofdcategorieen:
             self.assertEqual(testcats[cat], count)
         self.assertIn('subcategorie', res['aggs_list'])
-        self.assertIn('bezoekadres_buurt_naam', res['aggs_list'])
-        self.assertIn('buckets', res['aggs_list']['bezoekadres_buurt_naam'])
-        self.assertIn('bezoekadres_buurtcombinatie_code', res['aggs_list'])
-        self.assertIn('buckets', res['aggs_list']['bezoekadres_buurtcombinatie_code'])
+        self.assertIn('buurt_naam', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['buurt_naam'])
+        self.assertIn('buurtcombinatie_naam', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['buurtcombinatie_naam'])
 
     def test_get_dataselectie_invalidparm(self):
         """
@@ -174,7 +174,7 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(res['object_list'][0]['sbi_code'], ['85314'])
         self.assertEqual(res['page_count'], 1)
 
-        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)', 'postcode': '1012AB'}
+        q = {'page': 1, 'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)', 'postcode': '1081AB'}
         response = self.client.get('/dataselectie/hr/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
         res = loads(response.content.decode('utf-8'))

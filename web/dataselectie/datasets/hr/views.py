@@ -22,14 +22,14 @@ class HrBase(object):
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code', 'sbi_omschrijving',
         'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam', 'stadsdeel_naam', 'postcode',
-        , '_openbare_ruimte_naam'
+        '_openbare_ruimte_naam'
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
         'buurtcombinatie_naam': 'bezoekadres_buurtcombinatie_naam',
         'ggw_naam': 'bezoekadres_ggw_naam',
         'stadsdeel_naam': 'bezoekadres_stadsdeel_naam',
-        'postcode': 'bezoekadres_postcode'
+        'postcode': 'bezoekadres_postcode',
         'woonplaats': 'bezoekadres_plaats',
         '_openbare_ruimte_naam': 'bezoekadres_openbare_ruimte'
     }
