@@ -28,9 +28,9 @@ def create_geometry_dict(item):
             'geometrie_rd_x': int(geom[0]),
             'geometrie_rd_y': int(geom[1]),
             'geometrie_wgs_lat': (
-                '{:.7f}'.format(round(geom_wgs[1], 7))).replace('.', ','),
+                '{:.7f}'.format(geom_wgs[1], 7)).replace('.', ','),
             'geometrie_wgs_lon': (
-                '{:.7f}'.format(round(geom_wgs[0], 7))).replace('.', ',')
+                '{:.7f}'.format(geom_wgs[0], 7)).replace('.', ',')
         }
         item.update(res)
 
@@ -48,10 +48,6 @@ class BagBase(object):
         'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats', '_openbare_ruimte_naam', 'naam'
     ]
     raw_fields = ['naam', '_openbare_ruimte_naam']
-
-    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter']
-    el_sorts = sorts
-    keyfieldname = 'landelijk_id'
 
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
@@ -94,7 +90,7 @@ class BagCSV(BagBase, CSVExportView):
             ('oppervlakte', True, 'Oppervlakte (m2)', True),
             ('type_desc', True, 'Objecttype', True),
             ('status', True, 'Verblijfsobjectstatus', True),
-            ('openabre_ruimte_landelijk_id', True,
+            ('openbare_ruimte_landelijk_id', True,
              'Openbareruimte-identificatie', True),
             ('panden', True, 'Pandidentificatie', True),
             ('verblijfsobject', True, 'Verblijfsobjectidentificatie', True),
