@@ -27,7 +27,7 @@ class Vestiging(es.DocType):
     bezoekadres_volledig_adres = es.String(index='not_analyzed')
     bezoekadres_correctie = es.Boolean()
     bezoekadres_openbare_ruimte = es.String(index='not_analyzed')
-    bezoekadres_huisnummer = es.String(index='not_analyzed')
+    bezoekadres_huisnummer = es.Integer(index='not_analyzed')
     bezoekadres_huisletter = es.String(index='not_analyzed')
     bezoekadres_huisnummertoevoeging = es.String(index='not_analyzed')
     bezoekadres_postcode = es.String(index='not_analyzed')
@@ -46,7 +46,7 @@ class Vestiging(es.DocType):
     postadres_volledig_adres = es.String(index='not_analyzed')
     postadres_correctie = es.Boolean()
     postadres_openbare_ruimte = es.String(index='not_analyzed')
-    postadres_huisnummer = es.String(index='not_analyzed')
+    postadres_huisnummer = es.Integer(index='not_analyzed')
     postadres_huisletter = es.String(index='not_analyzed')
     postadres_huisnummertoevoeging = es.String(index='not_analyzed')
     postadres_postcode = es.String(index='not_analyzed')
@@ -147,7 +147,7 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
     for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam',
                    'eigenaar_id', 'non_mail'):
         setattr(doc, attrib, mat.get(attrib, ''))
-    doc.eigenaar_naam = mat['eigenaar'].get('volledig_naam', '')
+    doc.eigenaar_naam = mat['eigenaar'].get('volledige_naam', '')
     doc.eigenaar_id = mat['eigenaar'].get('id', '')
 
     # Using Vestiging name, otherwise, maatschappelijke_activiteit name, otherwise empty
