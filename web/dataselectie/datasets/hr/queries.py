@@ -61,14 +61,14 @@ def create_aggs() -> dict:
                     'order': {'_term': 'asc'},
                 },
             },
-            'bezoekadres_openbare_ruimte': {
+            'openbare_ruimte': {
                 'terms': {
                     'field': 'bezoekadres_openbare_ruimte',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'bezoekadres_postcode': {
+            'postcode': {
                 'terms': {
                     'field': 'bezoekadres_postcode',
                     'size': agg_size,
@@ -82,58 +82,30 @@ def create_aggs() -> dict:
                     'order': {'_term': 'asc'},
                 },
             },
-            'bezoekadres_buurtcombinatie_naam': {
+            'buurtcombinatie_naam': {
                 'terms': {
                     'field': 'bezoekadres_buurtcombinatie_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'bezoekadres_buurtcombinatie_code': {
-                'terms': {
-                    'field': 'bezoekadres_buurtcombinatie_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'bezoekadres_buurt_code': {
-                'terms': {
-                    'field': 'bezoekadres_buurt_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'bezoekadres_buurt_naam': {
+            'buurt_naam': {
                 'terms': {
                     'field': 'bezoekadres_buurt_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'bezoekadres_ggw_naam': {
+            'ggw_naam': {
                 'terms': {
                     'field': 'bezoekadres_ggw_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
-            'bezoekadres_ggw_code': {
-                'terms': {
-                    'field': 'bezoekadres_ggw_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
-            'bezoekadres_stadsdeel_naam': {
+            'stadsdeel_naam': {
                 'terms': {
                     'field': 'bezoekadres_stadsdeel_naam',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
-            'bezoekadres_stadsdeel_code': {
-                'terms': {
-                    'field': 'bezoekadres_stadsdeel_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
