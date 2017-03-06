@@ -121,17 +121,21 @@ def add_bag_info(doc, item):
 
     buurt = adresseerbaar_object.buurt
     if buurt:
+        # Buurt
         doc.bezoekadres_buurt_code = '%s%s' % (
             str(buurt.stadsdeel.code),
             str(buurt.code)
         )
         doc.bezoekadres_buurt_naam = buurt.naam
-
+        # Buurtcombinatie
         doc.bezoekadres_buurtcombinatie_code = '%s%s' % (
             str(buurt.stadsdeel.code),
             str(buurt.buurtcombinatie.code)
         )
         doc.bezoekadres_buurtcombinatie_naam = buurt.buurtcombinatie.naam
+        # Stadsdeel
+        doc.bezoekadres_stadsdeel_naam = buurt.stadsdeel.naam
+        doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
 
 
 def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
