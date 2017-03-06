@@ -17,17 +17,22 @@ class HrBase(object):
     """
     index = 'DS_INDEX'
 
-    raw_fields = ['naam', '_openbare_ruimte_naam']
+    raw_fields = []
     default_search = 'term'
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code', 'sbi_omschrijving',
-        'bezoekadres_buurt_naam', 'bezoekadres_buurt_code', 'bezoekadres_buurtcombinatie_code', 'bezoekadres_buurtcombinatie_naam', 'bezoekadres_ggw_naam', 'bezoekadres_ggw_code',
-        'bezoekadres_stadsdeel_naam', 'bezoekadres_stadsdeel_code', 'bezoekadres_postcode', 'bezoekadres_plaats', 'bezoekadres_openbare_ruimte', 'naam'
+        'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam', 'stadsdeel_naam', 'postcode',
+        , '_openbare_ruimte_naam'
     ]
-    fieldname_mapping = {'naam': 'bedrijfsnaam'}
-    sorts = ['_openbare_ruimte_naam', 'huisnummer', 'huisletter']
-    filtercategories = ('sbi_omschrijving', 'subcategorie', 'hoofdcategorie')
-    extra_context_data = {}
+    keyword_mapping = {
+        'buurt_naam': 'bezoekadres_buurt_naam',
+        'buurtcombinatie_naam': 'bezoekadres_buurtcombinatie_naam',
+        'ggw_naam': 'bezoekadres_ggw_naam',
+        'stadsdeel_naam': 'bezoekadres_stadsdeel_naam',
+        'postcode': 'bezoekadres_postcode'
+        'woonplaats': 'bezoekadres_plaats',
+        '_openbare_ruimte_naam': 'bezoekadres_openbare_ruimte'
+    }
     selection = []
 
     def process_huisnummer_toevoeging(self, source):
@@ -41,19 +46,6 @@ class HrBase(object):
                    if h not in (
                        str(source['bezoekadres_huisnummer']), source['bezoekadres_huisletter'])]
             return ''.join(hnm)
-
-    def proc_parameters(self, filter_keyword: str, val: str,
-                        filters: list) -> list:
-
-        lfilter = {
-            self.default_search: self.get_term_and_value(filter_keyword, val)
-        }
-
-        if filter_keyword in HR_KEYWORDS:
-            self.child_filters.append(lfilter)
-        else:
-            filters.append(lfilter)
-        return filters
 
 
 class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
@@ -85,7 +77,7 @@ class HrCSV(HrBase, CSVExportView):
              True),
             ('bezoekadres_postcode', False, 'Postcode bezoekadres (BAG)', True),
             ('bezoekadres_plaats', False, 'Woonplaats bezoekadres (BAG)', True),
-            ('postadres_volledig_adres', True, 'Postadres (Kvk HR)', True),
+            ('postadres_volledig_adres', True, 'Postadres (KvK HR)', True),
             ('postadres_correctie', True, 'Indicatie postadres geschat o.b.v BAG', True),
             ('postadres_openbare_ruimte', True, 'Openbare ruimte postadres (BAG)', True),
             ('postadres_huisnummer', True, 'Huisnummer postadres (BAG)', True),
