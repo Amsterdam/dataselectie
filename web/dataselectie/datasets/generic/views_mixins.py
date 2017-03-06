@@ -42,7 +42,11 @@ def stringify_item_value(value) -> str:
     if isinstance(value, date) or isinstance(value, datetime):
         return value.strftime('%d-%m-%Y')
     elif isinstance(value, list):
-        return ' / '.join([stringify_item_value(val) for val in value])
+        return ' | '.join([stringify_item_value(val) for val in value])
+    elif isinstance(value, bool):
+        if value:
+            return 'Ja'
+        return 'Nee'
     elif value is None:
         return ''
     else:
@@ -206,6 +210,9 @@ class ElasticSearchMixin(object):
         :param val: the value we are searching for
         :return: a small dict that contains the key/value pair to use in the ES search.
         """
+        # checking for keyword mapping to the actual elastic name
+        filter_keyword = self.keyword_mapping.get(filter_keyword, filter_keyword)
+        # Checking if a raw field is needed
         if filter_keyword in self.raw_fields:
             filter_keyword = "{}.raw".format(filter_keyword)
         return {filter_keyword: val}
@@ -225,12 +232,10 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     raw_fields = None
     # Sorting of the result
     sorts = []
-    # mapping keywords
+    # mapping keywords from parameters to elastic fields
     keyword_mapping = {}
     # request parameters
     request_parameters = None
-    # rename fields from elastic
-    mapped_elastic_fieldname = {}
 
     preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
@@ -275,46 +280,6 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
             if offset > 1:
                 query['from'] = offset
         return self.paginate(offset, query)
-
-    # def add_aggregates(self, response: dict):
-    #     aggs = response.get('aggregations', {})
-    #     self.extra_context_data['aggs_list'] = process_aggs(aggs)
-    #     self.extra_context_data['total'] = response['hits']['total']
-    #     self.total_elastic = int(response['hits']['total'])
-
-    def get_field_value_from_elastic(self, item: dict, field: str):
-        field = self.get_mapped_fieldname(field)
-        try:
-            value = item['_source'][field]
-        except KeyError:
-            value = self.get_data_from_function(item, field)
-
-        return value
-
-    def get_mapped_fieldname(self, fieldnm):
-        if fieldnm in self.mapped_elastic_fieldname:
-            fieldnm = self.mapped_elastic_fieldname[fieldnm]
-        return fieldnm
-
-    def get_data_from_function(self, item: dict, field: str):
-        try:
-            getfield = getattr(self, 'process_' + field)
-        except AttributeError:
-            pass
-        else:
-            return getfield(item['_source'])
-
-    def define_id(self, item: dict, elastic_data: dict) -> str:
-        """
-        Define the id that is used to retrieve the extra context data
-        :param item:
-        :param elastic_data:
-        :return: id
-        """
-        return item['_id']
-    #
-    # def define_total(self, response: dict):
-    #     self.extra_context_data['total'] = response['hits']['total']
 
 
 class GeoLocationSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
