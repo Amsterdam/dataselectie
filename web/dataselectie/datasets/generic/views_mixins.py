@@ -79,6 +79,8 @@ class SingleDispatchMixin(object):
             self.request_parameters = getattr(request, request.method)
             response = self.handle_request(request, *args, **kwargs)
             return self.render_to_response(response)
+        elif self.request.method == 'OPTIONS':
+            return super(SingleDispatchMixin, self).dispatch(request, *args, **kwargs)
         else:
             return self.http_method_not_allowed(request, *args, **kwargs)
 
