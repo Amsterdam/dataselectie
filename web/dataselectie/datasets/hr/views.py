@@ -18,7 +18,6 @@ class HrBase(object):
     index = 'DS_INDEX'
 
     raw_fields = []
-    default_search = 'term'
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code', 'sbi_omschrijving',
         'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam', 'stadsdeel_naam', 'postcode',

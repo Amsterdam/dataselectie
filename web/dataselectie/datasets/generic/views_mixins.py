@@ -103,7 +103,6 @@ class ElasticSearchMixin(object):
     }
     raw_fields = []
     keyword_mapping = {}
-    default_search = 'term'
     request = None
 
     def elastic_query(self, query):
@@ -143,7 +142,7 @@ class ElasticSearchMixin(object):
             # Since a parameter can be 0, which evalutes to False, a check
             # is actually made that the value is not None
             if val is not None:
-                filters.append({self.default_search: self.get_term_and_value(filter_keyword, val)})
+                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
 
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
