@@ -67,7 +67,7 @@ class SingleDispatchMixin(object):
     and unifies how they are treated
     """
     # Allowed methods
-    http_methods_allowed = ['GET', 'POST']
+    http_methods_allowed = ['GET', 'POST', 'OPTIONS']
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -75,12 +75,12 @@ class SingleDispatchMixin(object):
         and GET request. dispatch is overwritten to always go
         to the same handler
         """
-        if self.request.method in self.http_methods_allowed:
+        if self.request.method == 'OPTIONS':
+            return super(SingleDispatchMixin, self).dispatch(request, *args, **kwargs)
+        elif self.request.method in self.http_methods_allowed:
             self.request_parameters = getattr(request, request.method)
             response = self.handle_request(request, *args, **kwargs)
             return self.render_to_response(response)
-        elif self.request.method == 'OPTIONS':
-            return super(SingleDispatchMixin, self).dispatch(request, *args, **kwargs)
         else:
             return self.http_method_not_allowed(request, *args, **kwargs)
 
