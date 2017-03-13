@@ -139,13 +139,12 @@ def add_bag_info(doc, item):
 
 
 def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
-    doc = Vestiging(_id=item.id)  # HR is added to prevent id collisions
-
-    doc.vestiging_id = item.id
+    doc = Vestiging(_id=item.idr)  # HR is added to prevent id collisions
     doc.bag_numid = item.bag_numid
 
     # Working with the json
     data = item.api_json
+    doc.vestiging_id = data['vestigingsnummer']
     # Maatschapelijke activiteit
     mat = data['maatschappelijke_activiteit']
     for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam',

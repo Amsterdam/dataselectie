@@ -106,4 +106,14 @@ def create_aggs():
             },
         }
     }
+    # Adding count aggregations
+    count_aggs = {}
+    for key, aggregatie in aggs['aggs'].items():
+        count_aggs[f'{key}_count'] = {
+            'cardinality' : {
+                'field' : aggregatie['terms']['field'],
+                'precision_threshold': 1000
+            }
+        }
+    aggs['aggs'].update(count_aggs)
     return aggs

@@ -179,7 +179,7 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
         ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
         ('huisnummer', 'huisnummer'),
         ('huisletter', 'huisletter'),
-        ('huisnummer_toevoeging', 'toevoeging'),
+        ('huisnummer_toevoeging', 'huisnummer_toevoeging'),
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),

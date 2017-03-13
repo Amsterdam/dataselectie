@@ -31,7 +31,8 @@ class HrBase(object):
         'stadsdeel_naam': 'bezoekadres_stadsdeel_naam',
         'postcode': 'bezoekadres_postcode',
         'woonplaats': 'bezoekadres_plaats',
-        '_openbare_ruimte_naam': 'bezoekadres_openbare_ruimte'
+        '_openbare_ruimte_naam': 'bezoekadres_openbare_ruimte',
+        'naam': 'bezoekadres_openbare_ruimte',
     }
     selection = []
 
@@ -66,7 +67,7 @@ class HrCSV(HrBase, CSVExportView):
     name_conv = {'handelsnaam': 'naam'}
 
     hdrs = (('kvk_nummer', True, 'KvK-nummer', True),
-            ('handelsnaam', True, 'Handelsnaam', True),
+            ('handelsnaam', True, 'Eerste handelsnaam', True),
             ('non_mail', True, 'Indicatie non-mailing', True),
             ('bezoekadres_volledig_adres', True, 'Bezoekadres (KvK HR)', True),
             ('bezoekadres_correctie', True, 'Indicatie bezoekadres geschat o.b.v BAG', True),

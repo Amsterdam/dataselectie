@@ -189,10 +189,10 @@ class ElasticSearchMixin(object):
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = {
-            'aggs_list':  response.get('aggregations', {}),
+            'aggs_list':  self.process_aggs(response.get('aggregations', {})),
             'object_list': [item['_source'] for item in response['hits']['hits']],
         }
-        # Add counters
+        # Add total count
         elastic_data['object_count'] = response['hits']['total']
         try:
             elastic_data.update(self.add_page_counters(int(elastic_data['object_count'])))
@@ -217,6 +217,23 @@ class ElasticSearchMixin(object):
             filter_keyword = "{}.raw".format(filter_keyword)
         return {filter_keyword: val}
 
+    def process_aggs(self, aggs):
+        """
+        Process the aggregation create by elastic.
+        It seaches for agg_name and agg_name_count and then adds its
+        value to the agg_name, removing the agg_name count
+
+        This creates a unified aggregation for the front end
+        to work with
+        """
+        count_keys = [key for key in aggs.keys() if
+                  key.endswith('_count') and key[0:-6] in aggs]
+        for key in count_keys:
+            aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
+            # Removing the individual count aggregation
+            del aggs[key]
+        return aggs
+
 
 class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     """
@@ -230,8 +247,6 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     keywords = None
     # The name of the index to search in
     raw_fields = None
-    # Sorting of the result
-    sorts = []
     # mapping keywords from parameters to elastic fields
     keyword_mapping = {}
     # request parameters
