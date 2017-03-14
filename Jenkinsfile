@@ -18,6 +18,7 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
+
     stage("Checkout") {
         checkout scm
     }
@@ -31,15 +32,16 @@ node {
         }
     }
 
-    stage("Build image") {
+    stage("Build develop image") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}", "web")
             image.push()
+            image.push("acceptance")
         }
     }
 }
 
-String BRANCH = "${env.BRANCH_NAME}"
+String BRANCH = "${env.BRANCH_NAME}".toString()
 
 if (BRANCH == "master") {
 
