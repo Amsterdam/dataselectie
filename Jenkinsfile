@@ -18,7 +18,6 @@ def tryStep(String message, Closure block, Closure tearDown = null) {
 
 
 node {
-
     stage("Checkout") {
         checkout scm
     }
@@ -39,18 +38,28 @@ node {
         }
     }
 
-    stage("Build develop image") {
+    stage("Build image") {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}", "web")
             image.push()
-            image.push("acceptance")
         }
     }
 }
 
-String BRANCH = "${env.BRANCH_NAME}".toString()
+String BRANCH = "${env.BRANCH_NAME}"
 
 if (BRANCH == "master") {
+
+    node {
+        stage('Push acceptance image') {
+            tryStep "image tagging", {
+                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
+                image.pull()
+                image.push("acceptance")
+            }
+        }
+    }
+
 
     node {
         stage("Deploy to ACC") {
@@ -59,7 +68,6 @@ if (BRANCH == "master") {
                         parameters: [
                                 [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
                                 [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                                [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
                         ]
             }
         }
@@ -71,14 +79,11 @@ if (BRANCH == "master") {
         input "Deploy to Production?"
     }
 
-
-
 node {
     stage('Push production image') {
         tryStep "image tagging", {
             def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
             image.pull()
-
                 image.push("production")
                 image.push("latest")
             }
@@ -92,7 +97,6 @@ node {
                         parameters: [
                                 [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
                                 [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                                [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
                         ]
             }
         }
