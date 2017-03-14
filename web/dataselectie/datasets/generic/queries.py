@@ -16,23 +16,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def add_aggregations(aggs):
-    count_aggs = {}
-    # Creating count aggs per aggregatie settings.AGGS_VALUE_SIZE
-    for key, value in aggs.items():
-        if 'terms' in aggs[key]:
-            count_aggs[key + '_count'] = {
-                'cardinality': {
-                    'field': aggs[key]['terms']['field'],
-                    'precision_threshold': 1000
-                }
-            }
-    aggs.update(count_aggs)
-    return aggs
-
-
-def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None,
-                 qtype=None):
+def create_query(query, aggs=None, sort=None, default_query=None, qtype=None):
     if default_query:
         if query:
             query += default_query
@@ -52,9 +36,8 @@ def create_query(query, add_aggs, add_count_aggs, aggs, default_query=None,
             'query': {'match_all': {}}
         }
 
-    if add_aggs:
+    if aggs:
         q.update(aggs)
-        if add_count_aggs:
-            q['aggs'].update(add_aggregations(aggs['aggs']))
-
+    if sort:
+        q.update(sort)
     return q

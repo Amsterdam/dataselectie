@@ -9,8 +9,8 @@ from ..hr import documents as hrdocuments
 log = logging.getLogger(__name__)
 
 DOC_TYPES = (
-    bagdocuments.NummeraanduidingMeta,
-    hrdocuments.VestigingenMeta
+    bagdocuments.Nummeraanduiding,
+    hrdocuments.Vestiging
 )
 
 

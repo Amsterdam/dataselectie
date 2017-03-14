@@ -13,13 +13,24 @@ from django.conf import settings
 from ..generic.queries import create_query
 
 
-def meta_q(query: str, add_aggs=True, add_count_aggs=True) -> dict:
+def meta_q(query: str, add_aggs=True, sort=True) -> dict:
     # @TODO change to setting
-    aggs = bld_agg()
-    return create_query(query, add_aggs, add_count_aggs, aggs, qtype='bag_locatie')
+    if add_aggs:
+        aggs = create_aggs()
+    else:
+        aggs = None
+    sort = {
+        'sort': {
+            '_openbare_ruimte_naam.raw': { "order": "asc" },
+            'huisnummer': { "order": "asc" },
+            'huisletter': { "order": "asc" },
+            'huisnummer_toevoeging': { "order": "asc" }
+        }
+    }
+    return create_query(query, aggs, sort, qtype='nummeraanduiding')
 
 
-def bld_agg():
+def create_aggs():
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
@@ -95,4 +106,14 @@ def bld_agg():
             },
         }
     }
+    # Adding count aggregations
+    count_aggs = {}
+    for key, aggregatie in aggs['aggs'].items():
+        count_aggs[f'{key}_count'] = {
+            'cardinality' : {
+                'field' : aggregatie['terms']['field'],
+                'precision_threshold': 1000
+            }
+        }
+    aggs['aggs'].update(count_aggs)
     return aggs

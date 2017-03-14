@@ -12,7 +12,7 @@ from datasets.generic import analyzers
 log = logging.getLogger(__name__)
 
 
-class NummeraanduidingMeta(es.DocType):
+class Nummeraanduiding(es.DocType):
     """
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal
@@ -20,11 +20,8 @@ class NummeraanduidingMeta(es.DocType):
     The link with any data that is being used here is
     the bag_id.
     """
-
-    def __init__(self, *args, **kwargs):
-        super(NummeraanduidingMeta, self).__init__(*args, **kwargs)
-
     nummeraanduiding_id = es.String(index='not_analyzed')
+    landelijk_id = es.String(index='not_analyzed')
 
     _openbare_ruimte_naam = es.String(
         fields={'raw': es.String(index='not_analyzed')}
@@ -39,9 +36,9 @@ class NummeraanduidingMeta(es.DocType):
             'keyword': es.String(analyzer=analyzers.subtype),
         }
     )
-    huisnummer = es.Integer()
-    toevoeging = es.String()
-    huisletter = es.String()
+    huisnummer = es.Integer(index='not_analyzed')
+    huisnummer_toevoeging = es.String(index='not_analyzed')
+    huisletter = es.String(index='not_analyzed')
     postcode = es.String(index='not_analyzed')
     woonplaats = es.String(index='not_analyzed')
 
@@ -63,7 +60,7 @@ class NummeraanduidingMeta(es.DocType):
     type_desc = es.String(index='not_analyzed')
     hoofdadres = es.String(index='not_analyzed')  # Is there a choice option?
     # Landelijke codes
-    openabre_ruimte_landelijk_id = es.String(index='not_analyzed')
+    openbare_ruimte_landelijk_id = es.String(index='not_analyzed')
     verblijfsobject = es.String(index='not_analyzed')
     ligplaats = es.String(index='not_analyzed')
     standplaats = es.String(index='not_analyzed')
@@ -73,12 +70,11 @@ class NummeraanduidingMeta(es.DocType):
     oppervlakte = es.Integer()
     bouwblok = es.String(index='not_analyzed')
     gebruik = es.String(index='not_analyzed')
-    panden = es.String(index='not_analyzed')
+    panden = es.String(index='not_analyzed', multi=True)
 
     class Meta:
-        doc_type = 'bag_locatie'
+        doc_type = 'nummeraanduiding'
         index = settings.ELASTIC_INDICES['DS_INDEX']
-        all = es.MetaField(enabled=False)
 
 
 def update_doc_with_adresseerbaar_object(doc, item):
@@ -99,7 +95,6 @@ def update_doc_with_adresseerbaar_object(doc, item):
         batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
         log.error(adresseerbaar_object)
-        pass
 
     # Adding the ggw data
     ggw = adresseerbaar_object._gebiedsgerichtwerken
@@ -131,13 +126,27 @@ def update_doc_with_adresseerbaar_object(doc, item):
     doc.type_desc = models.Nummeraanduiding.OBJECT_TYPE_CHOICES[idx][1]
 
 
-def add_verblijfsobject_data(item, doc):
+def update_doc_from_param_list(target: Nummeraanduiding, source: object, mapping: list) -> None:
+    """
+    Given a list of parameters (target_field, source_field)
+    try to add it to the given document
+    from the source object
+    """
+    for (attr, obj_link) in mapping:
+        value = source
+        obj_link = obj_link.split('.')
+        try:
+            for link in obj_link:
+                value = getattr(value, link, None)
+            setattr(target, attr, value)
+        except Exception as e:
+            pass
+
+
+def add_verblijfsobject_data(doc, obj):
     """
     vbo gerelateerde data
     """
-
-    obj = item.verblijfsobject
-
     verblijfsobject_extra = [
         ('verblijfsobject', 'landelijk_id'),
         ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
@@ -145,17 +154,15 @@ def add_verblijfsobject_data(item, doc):
         ('bouwblok', 'bouwblok.code'),
         ('gebruik', 'gebruik.omschrijving')
     ]
-
     update_doc_from_param_list(doc, obj, verblijfsobject_extra)
 
     try:
-        doc.panden = '/'.join([i.landelijk_id for i in obj.panden.all()])
+        doc.panden = [i.landelijk_id for i in obj.panden.all()]
     except:
         pass
 
 
-def meta_from_nummeraanduiding(
-        item: models.Nummeraanduiding) -> NummeraanduidingMeta:
+def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding:
     """
     Van een Nummeraanduiding bak een dataselectie document
     met bag informatie en hr informatie
@@ -165,14 +172,14 @@ def meta_from_nummeraanduiding(
 
     start = time.time()
 
-    doc = NummeraanduidingMeta(_id=item.landelijk_id)
+    doc = Nummeraanduiding(_id=item.landelijk_id)
     parameters = [
         ('nummeraanduiding_id', 'id'),
         ('naam', 'openbare_ruimte.naam'),
         ('woonplaats', 'openbare_ruimte.woonplaats.naam'),
         ('huisnummer', 'huisnummer'),
         ('huisletter', 'huisletter'),
-        ('toevoeging', 'toevoeging'),
+        ('huisnummer_toevoeging', 'huisnummer_toevoeging'),
         ('postcode', 'postcode'),
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
@@ -183,10 +190,10 @@ def meta_from_nummeraanduiding(
         ('stadsdeel_naam', 'stadsdeel.naam'),
 
         # Landelijke IDs
-        ('openabre_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
+        ('openbare_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
-
+        ('landelijk_id', 'landelijk_id')
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
@@ -203,27 +210,7 @@ def meta_from_nummeraanduiding(
     # Verblijfsobject specific
     if item.verblijfsobject:
         batch.statistics.add('BAG Verblijfs objecten', total=False)
-        add_verblijfsobject_data(doc, item)
-
-    log.debug('doctime %s', (time.time() - start))
+        add_verblijfsobject_data(doc, item.verblijfsobject)
 
     # asserts?
     return doc
-
-
-def update_doc_from_param_list(
-        target: dict, source: object, mapping: list) -> None:
-    """
-    Given a list of parameters (target_field, source_field)
-    try to add it to the given document
-    from the source object
-    """
-    for (attr, obj_link) in mapping:
-        value = source
-        obj_link = obj_link.split('.')
-        try:
-            for link in obj_link:
-                value = getattr(value, link, None)
-            setattr(target, attr, value)
-        except Exception as e:
-            pass
