@@ -36,7 +36,6 @@ node {
         tryStep "build", {
             def image = docker.build("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}", "web")
             image.push()
-            image.push("acceptance")
         }
     }
 }
