@@ -73,7 +73,7 @@ class HrCSV(HrBase, CSVExportView):
             ('bezoekadres_openbare_ruimte', True, 'Openbare ruimte bezoekadres (BAG)', True),
             ('bezoekadres_huisnummer', False, 'Huisnummer bezoekadres (BAG)', True),
             ('bezoekadres_huisletter', False, 'Huisletter bezoekadres (BAG)', True),
-            ('bezoekadres_toevoeging', False, 'Huisnummertoevoeging bezoekadres (BAG)',
+            ('bezoekadres_huisnummertoevoeging', False, 'Huisnummertoevoeging bezoekadres (BAG)',
              True),
             ('bezoekadres_postcode', False, 'Postcode bezoekadres (BAG)', True),
             ('bezoekadres_plaats', False, 'Woonplaats bezoekadres (BAG)', True),
