@@ -23,17 +23,10 @@ node {
         checkout scm
     }
 
-    stage("Cleanup") {
-        tryStep "cleanup", {
-            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml kill"
-            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml rm -f -a"
-        }
-    }
-
     stage('Test') {
         tryStep "test", {
-        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml build"
-        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml run -u root --rm tests"
+        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml build && " +
+           "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml run --rm -u root tests"
     }, {
             sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml down"
         }
@@ -53,32 +46,38 @@ String BRANCH = "${env.BRANCH_NAME}".toString()
 if (BRANCH == "master") {
 
     node {
+        stage('Push acceptance image') {
+            tryStep "image tagging", {
+                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
+                image.pull()
+                image.push("acceptance")
+            }
+        }
+    }
+
+    node {
         stage("Deploy to ACC") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                        parameters: [
-                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                                [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
-                        ]
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
+                ]
             }
         }
     }
 
 
     stage('Waiting for approval') {
-        slackSend channel: '#ci-channel', color: 'warning', message: 'dataselectie is waiting for Production Release - please confirm'
+        slackSend channel: '#ci-channel', color: 'warning', message: 'Dataselectie is waiting for Production Release - please confirm'
         input "Deploy to Production?"
     }
 
-
-
-node {
-    stage('Push production image') {
-        tryStep "image tagging", {
-            def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
-            image.pull()
-
+    node {
+        stage('Push production image') {
+            tryStep "image tagging", {
+                def image = docker.image("build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${env.BUILD_NUMBER}")
+                image.pull()
                 image.push("production")
                 image.push("latest")
             }
@@ -89,11 +88,10 @@ node {
         stage("Deploy") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                        parameters: [
-                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
-                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                                [$class: 'StringParameterValue', name: 'BRANCH', value: 'master'],
-                        ]
+                parameters: [
+                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
+                ]
             }
         }
     }
