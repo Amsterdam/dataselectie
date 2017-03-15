@@ -45,8 +45,11 @@ class BagBase(object):
     q_func = meta_q
     keywords = [
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats', '_openbare_ruimte_naam', 'naam'
+        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats', '_openbare_ruimte_naam', 'openbare_ruimte'
     ]
+    keyword_mapping = {
+        'openbare_ruimte': 'naam',
+    }
     raw_fields = ['naam', '_openbare_ruimte_naam']
 
 

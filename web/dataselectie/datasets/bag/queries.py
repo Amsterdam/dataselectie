@@ -41,7 +41,7 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 },
             },
-            'naam': {
+            'openbare_ruimte': {
                 'terms': {
                     'field': 'naam.raw',
                     'size': agg_size,
