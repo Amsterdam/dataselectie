@@ -21,7 +21,7 @@ class Vestiging(es.DocType):
     datum_einde = es.Date()
     eigenaar_naam = es.String(index='not_analyzed')
     eigenaar_id = es.String(index='not_analyzed')
-    non_mail = es.Boolean()
+    non_mailing = es.Boolean()
 
     # Address information
     bezoekadres_volledig_adres = es.String(index='not_analyzed')
@@ -148,7 +148,7 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
     # Maatschapelijke activiteit
     mat = data['maatschappelijke_activiteit']
     for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam',
-                   'eigenaar_id', 'non_mail'):
+                   'eigenaar_id', 'non_mailing'):
         setattr(doc, attrib, mat.get(attrib, ''))
     doc.eigenaar_naam = mat['eigenaar'].get('volledige_naam', '')
     doc.eigenaar_id = mat['eigenaar'].get('id', '')

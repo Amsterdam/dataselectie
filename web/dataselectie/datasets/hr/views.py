@@ -67,7 +67,7 @@ class HrCSV(HrBase, CSVExportView):
 
     hdrs = (('kvk_nummer', True, 'KvK-nummer', True),
             ('handelsnaam', True, 'Eerste handelsnaam', True),
-            ('non_mail', True, 'Indicatie non-mailing', True),
+            ('non_mailing', True, 'Indicatie non-mailing', True),
             ('bezoekadres_volledig_adres', True, 'Bezoekadres (KvK HR)', True),
             ('bezoekadres_correctie', True, 'Indicatie bezoekadres geschat o.b.v BAG', True),
             ('bezoekadres_openbare_ruimte', True, 'Openbare ruimte bezoekadres (BAG)', True),
