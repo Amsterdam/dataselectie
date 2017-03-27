@@ -1,21 +1,18 @@
 # Python
 import codecs
 import csv
-from datetime import date, datetime
 import io
 import json
 import logging
-from typing import Generator
-# Packages
+from datetime import date, datetime
+
 from django.conf import settings
-from django.db.models import QuerySet
-from django.db.models.fields.related import ManyToManyField
-from django.http import HttpResponse, HttpResponseBadRequest, StreamingHttpResponse
+from django.http import HttpResponse, StreamingHttpResponse
 from django.views.generic import View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 from pytz import timezone
-
+from typing import Generator
 
 log = logging.getLogger(__name__)
 
@@ -24,6 +21,7 @@ def stringify_item_value(value) -> str:
     """
     Makes sure that the dict contains only strings for easy jsoning of the dict
     Following actions are taken:
+    - Nothing is done to a value that is a string already
     - None is replace by empty string
     - Boolean is converted to string
     - Numbers are converted to string
@@ -39,7 +37,9 @@ def stringify_item_value(value) -> str:
     @Returns:
     The string representation of the value
     """
-    if isinstance(value, date) or isinstance(value, datetime):
+    if isinstance(value, str):
+        return value
+    elif isinstance(value, date) or isinstance(value, datetime):
         return value.strftime('%d-%m-%Y')
     elif isinstance(value, list):
         return ' | '.join([stringify_item_value(val) for val in value])
@@ -76,16 +76,18 @@ class SingleDispatchMixin(object):
         to the same handler
         """
         if self.request.method == 'OPTIONS':
-            return super(SingleDispatchMixin, self).dispatch(request, *args, **kwargs)
+            return super(SingleDispatchMixin, self).dispatch(request, *args,
+                                                             **kwargs)
         elif self.request.method in self.http_methods_allowed:
             self.request_parameters = getattr(request, request.method)
-            response = self.handle_request(request, *args, **kwargs)
-            return self.render_to_response(response)
+            data = self.handle_request(request, *args, **kwargs)
+            return self.render_to_response(request, data)
         else:
             return self.http_method_not_allowed(request, *args, **kwargs)
 
-    def render_to_response(self, response):
-        return HttpResponse(json.dumps(response), content_type='application/json')
+    def render_to_response(self, request, response):
+        return HttpResponse(json.dumps(response),
+                            content_type='application/json')
 
 
 class ElasticSearchMixin(object):
@@ -144,7 +146,8 @@ class ElasticSearchMixin(object):
             # Since a parameter can be 0, which evalutes to False, a check
             # is actually made that the value is not None
             if val is not None:
-                filters.append({'term': self.get_term_and_value(filter_keyword, val)})
+                filters.append(
+                    {'term': self.get_term_and_value(filter_keyword, val)})
 
         # Adding geo filters
         for term, geo_type in self.geo_fields.items():
@@ -159,7 +162,8 @@ class ElasticSearchMixin(object):
                         val = []
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
-                    filters.append({geo_type[1]: {geo_type[0]: {'points': val}}})
+                    filters.append(
+                        {geo_type[1]: {geo_type[0]: {'points': val}}})
 
         if filters:
             query['query']['bool']['filter'] = filters
@@ -190,13 +194,14 @@ class ElasticSearchMixin(object):
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
         elastic_data = {
-            'aggs_list':  self.process_aggs(response.get('aggregations', {})),
-            'object_list': [item['_source'] for item in response['hits']['hits']],
-        }
+            'aggs_list': self.process_aggs(response.get('aggregations', {})),
+            'object_list': [item['_source'] for item in
+                            response['hits']['hits']],
+            'object_count': response['hits']['total']}
         # Add total count
-        elastic_data['object_count'] = response['hits']['total']
         try:
-            elastic_data.update(self.add_page_counters(int(elastic_data['object_count'])))
+            elastic_data.update(
+                self.add_page_counters(int(elastic_data['object_count'])))
         except TypeError:
             # There is no definition for the preview size
             pass
@@ -205,20 +210,24 @@ class ElasticSearchMixin(object):
 
     def get_term_and_value(self, filter_keyword: str, val: str) -> dict:
         """
-        Some fields need to be searched raw while others are analysed with the default string analyser which will
-        automatically convert the fields to lowercase in de the index.
+        Some fields need to be searched raw while others are analysed with
+        the default string analyser which will automatically convert the fields
+        to lowercase in de the index.
         :param filter_keyword: the keyword in the index to search on
         :param val: the value we are searching for
-        :return: a small dict that contains the key/value pair to use in the ES search.
+        :return: a small dict that contains the key/value pair
+                 to use in the ES search.
         """
         # checking for keyword mapping to the actual elastic name
-        filter_keyword = self.keyword_mapping.get(filter_keyword, filter_keyword)
+        filter_keyword = self.keyword_mapping.get(filter_keyword,
+                                                  filter_keyword)
         # Checking if a raw field is needed
         if filter_keyword in self.raw_fields:
             filter_keyword = "{}.raw".format(filter_keyword)
         return {filter_keyword: val}
 
-    def process_aggs(self, aggs):
+    @staticmethod
+    def process_aggs(aggs):
         """
         Process the aggregation create by elastic.
         It seaches for agg_name and agg_name_count and then adds its
@@ -228,7 +237,7 @@ class ElasticSearchMixin(object):
         to work with
         """
         count_keys = [key for key in aggs.keys() if
-                  key.endswith('_count') and key[0:-6] in aggs]
+                      key.endswith('_count') and key[0:-6] in aggs]
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
@@ -264,7 +273,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
 
     def handle_request(self, request, *args, **kwargs):
         elastic_data = self.load_from_elastic()  # See method for details
-        return elastic_data
+        return self.filter_data(elastic_data, request)
 
     # Tableview methods
 
@@ -296,6 +305,16 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
             if offset > 1:
                 query['from'] = offset
         return self.paginate(offset, query)
+
+    def filter_data(self, elastic_data, request):
+        """
+        Allow implementations to do additional filtering based on criteria 
+        that are hard (or impossible) to mix into the elastic query
+        :param elastic_data: The result that will be returned to the upstream view
+        :param request: The incoming request
+        :return: Something that resembles the original data minus sensitive fields.
+        """
+        return elastic_data
 
 
 class GeoLocationSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
@@ -332,12 +351,13 @@ class GeoLocationSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
             body=query,
             _source_include=['centroid']
         )
-        resp = self.bldresponse(response)
+        data = self.build_response(response)
 
-        log.info('response count %s', resp['object_count'])
-        return resp
+        log.info('response count %s', data['object_count'])
+        return data
 
-    def bldresponse(self, response):
+    @staticmethod
+    def build_response(response):
         resp = {
             'object_count': response['hits']['total'],
             'object_list': response['hits']['hits']
@@ -352,11 +372,11 @@ class CSVExportView(TableSearchView):
     # This is not relevant for csv export
     preview_size = None
     # The headers of the csv
-    headers = []
+    field_names = []
     # The pretty version of the headers
-    pretty_headers = []
+    csv_headers = []
 
-    def item_data_update(self, item):
+    def item_data_update(self, item, request):
         """
         Allow for subclasses to add custom fields to the item before it is
         strigified for export
@@ -376,19 +396,20 @@ class CSVExportView(TableSearchView):
         if query is not None and 'from' in query:
             del (query['from'])
         # Returning the elastic generator
-        return scan(self.elastic, query=query, index=settings.ELASTIC_INDICES[self.index])
+        return scan(self.elastic, query=query,
+                    index=settings.ELASTIC_INDICES[self.index])
 
     # TODO type es_generator
-    def result_generator(self, es_generator, batch_size: int=100):
+    def result_generator(self, request, es_generator, batch_size: int = 100):
         """
         Generate the result set for the CSV eport
         """
         write_buffer = io.StringIO()  # The buffer to stream to
-        writer = csv.DictWriter(write_buffer, self.headers, delimiter=';')
+        writer = csv.DictWriter(write_buffer, self.field_names, delimiter=';')
         more = True  # More results flag
         header_dict = {}  # A dict for the CSV headers
-        for i in range(len(self.headers)):
-            header_dict[self.headers[i]] = self.pretty_headers[i]
+        for i in range(len(self.field_names)):
+            header_dict[self.field_names[i]] = self.csv_headers[i]
 
         # A func to read and empty the buffer
         def read_and_empty_buffer():
@@ -405,7 +426,6 @@ class CSVExportView(TableSearchView):
         yield read_and_empty_buffer()
 
         # Yielding results in batches of batch_size
-        item_count = 0
         while more:
             item_count = 0
             # Collecting items for batch
@@ -413,15 +433,12 @@ class CSVExportView(TableSearchView):
                 item = item_hit['_source']
                 item_count += 1
                 # Allowing for custom updates
-                self.item_data_update(item)
+                item = self.item_data_update(item, request)
                 # Making sure all the data is in string form
-                item.update(
-                    {k: stringify_item_value(v) for k, v in item.items() if
-                    not isinstance(v, str) or v is None}
-                )
+                self.sanitize_fields(item, self.field_names)
                 resp = {}
                 # Only returning fields from the headers
-                for key in self.headers:
+                for key in self.field_names:
                     resp[key] = item.get(key, '')
                 writer.writerow(resp)
 
@@ -430,10 +447,13 @@ class CSVExportView(TableSearchView):
             # Stop the run, if end is reached
             more = item_count >= batch_size
 
-    def render_to_response(self, data, **response_kwargs):
+    def sanitize_fields(self, item, field_names):
+        pass
+
+    def render_to_response(self, request, data, **response_kwargs):
         # Returning a CSV
         # Streaming!
-        gen = self.result_generator(data)
+        gen = self.result_generator(request, data)
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \
             'attachment; ' \

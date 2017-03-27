@@ -1,13 +1,10 @@
 # Python
 # Packages
-from collections import OrderedDict
-from itertools import chain
 
-from django.db.models import QuerySet
-from django.db.models.expressions import RawSQL
+from authorization_django import levels as authorization_levels
 
-from datasets.generic.views_mixins import CSVExportView, GeoLocationSearchView, TableSearchView
-from datasets.hr import models as hrmodels
+from datasets.generic.views_mixins import CSVExportView, \
+    GeoLocationSearchView, TableSearchView, stringify_item_value
 from datasets.hr.queries import meta_q
 
 
@@ -17,11 +14,14 @@ class HrBase(object):
     """
     index = 'DS_INDEX'
 
+    nonmail_msg = 'Non-mailing-indicatie actief'
+    restricted_msg = 'Afgeschermd'
+
     raw_fields = []
     keywords = [
-        'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code', 'sbi_omschrijving',
-        'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam', 'stadsdeel_naam', 'postcode',
-        '_openbare_ruimte_naam', 'openbare_ruimte'
+        'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
+        'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
+        'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam', 'openbare_ruimte'
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
@@ -35,18 +35,6 @@ class HrBase(object):
     }
     selection = []
 
-    def process_huisnummer_toevoeging(self, source):
-        """
-        Sloop huisnummer en huisletter uit de toevoeging
-        :param source:
-        :return: toevoeging zonder huisnummer
-        """
-        if source.get('bezoekadres_huisnummertoevoeging', False):
-            hnm = [h for h in source['bezoekadres_huisnummertoevoeging'].split()
-                   if h not in (
-                       str(source['bezoekadres_huisnummer']), source['bezoekadres_huisletter'])]
-            return ''.join(hnm)
-
 
 class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
@@ -57,6 +45,32 @@ class HrSearch(HrBase, TableSearchView):
     def elastic_query(self, query: dict) -> dict:
         return meta_q(query, True)
 
+    def filter_data(self, elastic_data, request):
+        if request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE):
+            return elastic_data
+
+        for doc in elastic_data['object_list']:
+            non_mailing = doc.get('non_mailing', False)
+            hide_bezoekadres = doc.get('bezoekadres_afgeschermd', False)
+            hide_postadres = doc.get('postadres_afgeschermd', False)
+
+            remove_ba = hide_bezoekadres or non_mailing
+            remove_pa = hide_postadres or non_mailing
+
+            if remove_ba:
+                keystoremove = list(key for key in doc.keys()
+                                    if key.startswith('bezoekadres'))
+                for key in keystoremove:
+                    del doc[key]
+
+            if remove_pa:
+                keystoremove = list(key for key in doc.keys()
+                                    if key.startswith('postadres'))
+                for key in keystoremove:
+                    del doc[key]
+
+        return elastic_data
+
 
 class HrCSV(HrBase, CSVExportView):
     """
@@ -65,37 +79,38 @@ class HrCSV(HrBase, CSVExportView):
     """
     name_conv = {'handelsnaam': 'naam'}
 
-    hdrs = (('kvk_nummer', True, 'KvK-nummer', True),
-            ('handelsnaam', True, 'Eerste handelsnaam', True),
-            ('non_mailing', True, 'Indicatie non-mailing', True),
-            ('bezoekadres_volledig_adres', True, 'Bezoekadres (KvK HR)', True),
-            ('bezoekadres_correctie', True, 'Indicatie bezoekadres geschat o.b.v BAG', True),
-            ('bezoekadres_openbare_ruimte', True, 'Openbare ruimte bezoekadres (BAG)', True),
-            ('bezoekadres_huisnummer', False, 'Huisnummer bezoekadres (BAG)', True),
-            ('bezoekadres_huisletter', False, 'Huisletter bezoekadres (BAG)', True),
-            ('bezoekadres_huisnummertoevoeging', False, 'Huisnummertoevoeging bezoekadres (BAG)',
-             True),
-            ('bezoekadres_postcode', False, 'Postcode bezoekadres (BAG)', True),
-            ('bezoekadres_plaats', False, 'Woonplaats bezoekadres (BAG)', True),
-            ('postadres_volledig_adres', True, 'Postadres (KvK HR)', True),
-            ('postadres_correctie', True, 'Indicatie postadres geschat o.b.v BAG', True),
-            ('postadres_openbare_ruimte', True, 'Openbare ruimte postadres (BAG)', True),
-            ('postadres_huisnummer', True, 'Huisnummer postadres (BAG)', True),
-            ('postadres_huisletter', True, 'Huisletter postadres (BAG)', True),
-            ('postadres_huisnummertoevoeging', True, 'Huisnummertoevoeging postadres (BAG)', True),
-            ('postadres_postcode', True, 'Postcode postadres (BAG)', True),
-            ('postadres_plaats', True, 'Woonplaats postadres (BAG)', True),
-            ('hoofdcategorie', True, 'Hoofdcategorie', True),
-            ('subcategorie', True, 'Subcategorie', True),
-            ('sbi_omschrijving', True, 'SBI-omschrijving', True),
-            ('sbi_code', True, 'SBI-code', True),
-            ('datum_aanvang', True, 'Datum aanvang', True),
-            ('datum_einde', True, 'Datum einde', True),
-            ('eigenaar_naam', True, 'Naam eigenaar(en)', True))
+    fields_and_headers = (
+        ('kvk_nummer', 'KvK-nummer'),
+        ('handelsnaam', 'Eerste handelsnaam'),
+        ('non_mailing', 'Indicatie non-mailing'),
+        ('bezoekadres_volledig_adres', 'Bezoekadres (KvK HR)'),
+        ('bezoekadres_correctie', 'Indicatie bezoekadres geschat o.b.v BAG'),
+        ('bezoekadres_openbare_ruimte', 'Openbare ruimte bezoekadres (BAG)'),
+        ('bezoekadres_huisnummer', 'Huisnummer bezoekadres (BAG)'),
+        ('bezoekadres_huisletter', 'Huisletter bezoekadres (BAG)'),
+        ('bezoekadres_huisnummertoevoeging', 'Huisnummertoevoeging bezoekadres (BAG)'),
+        ('bezoekadres_postcode', 'Postcode bezoekadres (BAG)'),
+        ('bezoekadres_plaats', 'Woonplaats bezoekadres (BAG)'),
+        ('postadres_volledig_adres', 'Postadres (KvK HR)'),
+        ('postadres_correctie', 'Indicatie postadres geschat o.b.v BAG'),
+        ('postadres_openbare_ruimte', 'Openbare ruimte postadres (BAG)'),
+        ('postadres_huisnummer', 'Huisnummer postadres (BAG)'),
+        ('postadres_huisletter', 'Huisletter postadres (BAG)'),
+        ('postadres_huisnummertoevoeging',
+         'Huisnummertoevoeging postadres (BAG)'),
+        ('postadres_postcode', 'Postcode postadres (BAG)'),
+        ('postadres_plaats', 'Woonplaats postadres (BAG)'),
+        ('hoofdcategorie', 'Hoofdcategorie'),
+        ('subcategorie', 'Subcategorie'),
+        ('sbi_omschrijving', 'SBI-omschrijving'),
+        ('sbi_code', 'SBI-code'),
+        ('datum_aanvang', 'Datum aanvang'),
+        ('datum_einde', 'Datum einde'),
+        ('eigenaar_naam', 'Naam eigenaar(en)')
+    )
 
-    headers = [h[0] for h in hdrs if h[3]]
-    pretty_headers = [h[2] for h in hdrs if h[3]]
-    headers_hr = [h[0] for h in hdrs if h[3] and h[1]]
+    field_names = [h[0] for h in fields_and_headers]
+    csv_headers = [h[1] for h in fields_and_headers]
 
     def elastic_query(self, query):
         return meta_q(query, False, False)
@@ -104,3 +119,36 @@ class HrCSV(HrBase, CSVExportView):
         if 'size' in q:
             del (q['size'])
         return q
+
+    def item_data_update(self, item, request):
+        """
+        Remove field if needed
+        """
+        non_mailing = item.get('non_mailing', False)
+        hide_bezoekadres = item.get('bezoekadres_afgeschermd', False)
+        hide_postadres = item.get('postadres_afgeschermd', False)
+
+        not_authorized = not request.is_authorized_for(
+            authorization_levels.LEVEL_EMPLOYEE)
+
+        remove_ba = not_authorized and (hide_bezoekadres or non_mailing)
+        remove_pa = not_authorized and (hide_postadres or non_mailing)
+
+        if remove_ba:
+            item = {
+                k: v for k, v in item.items() if
+                not k.startswith('bezoekadres')
+            }
+
+        if remove_pa:
+            item = {
+                k: v for k, v in item.items() if
+                not k.startswith('postadres')
+            }
+
+        return item
+
+    def sanitize_fields(self, item, field_names):
+        item.update(
+            {field_name: stringify_item_value(item.get(field_name, None))
+             for field_name in field_names})

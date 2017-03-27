@@ -26,6 +26,7 @@ class Vestiging(es.DocType):
     # Address information
     bezoekadres_volledig_adres = es.String(index='not_analyzed')
     bezoekadres_correctie = es.Boolean()
+    bezoekadres_afgeschermd = es.Boolean()
     bezoekadres_openbare_ruimte = es.String(index='not_analyzed')
     bezoekadres_huisnummer = es.Integer(index='not_analyzed')
     bezoekadres_huisletter = es.String(index='not_analyzed')
@@ -45,6 +46,7 @@ class Vestiging(es.DocType):
 
     postadres_volledig_adres = es.String(index='not_analyzed')
     postadres_correctie = es.Boolean()
+    postadres_afgeschermd = es.Boolean()
     postadres_openbare_ruimte = es.String(index='not_analyzed')
     postadres_huisnummer = es.Integer(index='not_analyzed')
     postadres_huisletter = es.String(index='not_analyzed')
@@ -167,6 +169,8 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
             setattr(doc, f'{address_type}_openbare_ruimte', adres.get('straatnaam'))
             correctie = True if adres.get('correctie') else False
             setattr(doc, f'{address_type}_correctie', correctie)
+            afgeschermd = adres.get('afgeschermd', False)
+            setattr(doc, f'{address_type}_afgeschermd', afgeschermd)
 
     # SBI codes, categories and subcategories
     # Creating lists of the values and then setting

@@ -15,7 +15,7 @@ JSON = [
             "huisnummer": "2",
             "straatnaam": "Burgemeester Hogguerstraat",
             "updated_at": None,
-            "afgeschermd": False,
+            "afgeschermd": True,
             "query_string": None,
             "postbus_nummer": None,
             "volledig_adres": "Burgemeester Hogguerstraat 2 1064EB Amsterdam",
@@ -77,6 +77,7 @@ JSON = [
                 "volledige_naam": None,
             },
             "kvk_nummer": "50322348",
+            "non_mailing": False,
             "datum_einde": None,
             "datum_aanvang": "2010-07-01",
             "eigenaar_mks_id": None
@@ -174,6 +175,7 @@ JSON = [
                 "volledige_naam": None,
             },
             "kvk_nummer": "50324763",
+            "non_mailing": True,
             "datum_einde": None,
             "datum_aanvang": "2010-07-01",
             "eigenaar_mks_id": None
@@ -256,6 +258,7 @@ JSON = [
                 "volledige_naam": "Van Puffelen",
             },
             "kvk_nummer": "50326457",
+            "non_mailing": True,
             "datum_einde": None,
             "datum_aanvang": "2010-07-01",
             "eigenaar_mks_id": None
@@ -354,6 +357,7 @@ JSON = [
                 "volledige_naam": None,
             },
             "kvk_nummer": "50326457",
+            "non_mailing": True,
             "datum_einde": None,
             "datum_aanvang": "2010-07-01",
             "eigenaar_mks_id": None
@@ -452,6 +456,7 @@ JSON = [
                 "volledige_naam": None,
             },
             "kvk_nummer": "67539548",
+            "non_mailing": False,
             "datum_einde": None,
             "datum_aanvang": "2016-12-22",
             "eigenaar_mks_id": None
