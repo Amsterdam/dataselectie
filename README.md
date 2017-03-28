@@ -46,4 +46,4 @@ $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 
  ## Links
  - [Dokuwiki documentatie](https://dokuwiki.datapunt.amsterdam.nl/doku.php?id=start:datapunt:dataselectiesconfluence)
- - [API endpoint](https://api.datapunt.amsterdam.nl)
+ - [API endpoint](https://api.data.amsterdam.nl)
