@@ -57,7 +57,6 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
         # 6 lines: headers + 5 items
         self.assertEqual(len(res), 6)
         row2 = res[2].split(';')
-        print(row2)
         self.assertEqual(len(row2), 26)
 
     def test_export_hr_subcategorie(self):
