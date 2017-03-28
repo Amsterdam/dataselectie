@@ -1,14 +1,14 @@
 import random
 import string
 
-import factory
-import faker
+from factory import DjangoModelFactory, fuzzy
+from factory.declarations import SubFactory, LazyAttribute
+from faker import Factory 
 from django.contrib.gis.geos import Point
-from factory import fuzzy
 
 from datasets.bag import models
 
-faker_instance = faker.Factory.create(locale='nl_NL')
+faker_instance = Factory.create(locale='nl_NL')
 
 
 # Creating a Point
@@ -18,7 +18,7 @@ class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
             random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
 
 
-class EigendomsverhoudingFactory(factory.DjangoModelFactory):
+class EigendomsverhoudingFactory(DjangoModelFactory):
     class Meta:
         model = models.Eigendomsverhouding
 
@@ -26,7 +26,7 @@ class EigendomsverhoudingFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class RedenAfvoerFactory(factory.DjangoModelFactory):
+class RedenAfvoerFactory(DjangoModelFactory):
     class Meta:
         model = models.RedenAfvoer
 
@@ -34,7 +34,7 @@ class RedenAfvoerFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class RedenOpvoerFactory(factory.DjangoModelFactory):
+class RedenOpvoerFactory(DjangoModelFactory):
     class Meta:
         model = models.RedenOpvoer
 
@@ -42,7 +42,7 @@ class RedenOpvoerFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class FinancieringswijzeFactory(factory.DjangoModelFactory):
+class FinancieringswijzeFactory(DjangoModelFactory):
     class Meta:
         model = models.Financieringswijze
 
@@ -50,7 +50,7 @@ class FinancieringswijzeFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class GebruikFactory(factory.DjangoModelFactory):
+class GebruikFactory(DjangoModelFactory):
     class Meta:
         model = models.Gebruik
 
@@ -58,7 +58,7 @@ class GebruikFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class LiggingFactory(factory.DjangoModelFactory):
+class LiggingFactory(DjangoModelFactory):
     class Meta:
         model = models.Ligging
 
@@ -66,7 +66,7 @@ class LiggingFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class StatusFactory(factory.DjangoModelFactory):
+class StatusFactory(DjangoModelFactory):
     class Meta:
         model = models.Status
 
@@ -74,7 +74,7 @@ class StatusFactory(factory.DjangoModelFactory):
     omschrijving = fuzzy.FuzzyText(length=50)
 
 
-class GemeenteFactory(factory.DjangoModelFactory):
+class GemeenteFactory(DjangoModelFactory):
     class Meta:
         model = models.Gemeente
         django_get_or_create = ('code',)
@@ -84,7 +84,7 @@ class GemeenteFactory(factory.DjangoModelFactory):
     naam = 'Amsterdam'
 
 
-class BuurtcombinatieFactory(factory.DjangoModelFactory):
+class BuurtcombinatieFactory(DjangoModelFactory):
     class Meta:
         model = models.Buurtcombinatie
         django_get_or_create = ('code',)
@@ -95,67 +95,67 @@ class BuurtcombinatieFactory(factory.DjangoModelFactory):
     vollcode = fuzzy.FuzzyText(length=3)
 
 
-class StadsdeelFactory(factory.DjangoModelFactory):
+class StadsdeelFactory(DjangoModelFactory):
     class Meta:
         model = models.Stadsdeel
         django_get_or_create = ('code',)
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     code = fuzzy.FuzzyText(length=3, chars=string.digits)
-    gemeente = factory.SubFactory(GemeenteFactory)
+    gemeente = SubFactory(GemeenteFactory)
 
 
-class BuurtFactory(factory.DjangoModelFactory):
+class BuurtFactory(DjangoModelFactory):
     class Meta:
         model = models.Buurt
         django_get_or_create = ('code',)
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     code = fuzzy.FuzzyText(length=3, chars=string.digits)
-    stadsdeel = factory.SubFactory(StadsdeelFactory)
-    buurtcombinatie = factory.SubFactory(BuurtcombinatieFactory)
+    stadsdeel = SubFactory(StadsdeelFactory)
+    buurtcombinatie = SubFactory(BuurtcombinatieFactory)
 
 
-class LigplaatsFactory(factory.DjangoModelFactory):
+class LigplaatsFactory(DjangoModelFactory):
     class Meta:
         model = models.Ligplaats
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = id
-    buurt = factory.SubFactory(BuurtFactory)
+    buurt = SubFactory(BuurtFactory)
 
 
-class StandplaatsFactory(factory.DjangoModelFactory):
+class StandplaatsFactory(DjangoModelFactory):
     class Meta:
         model = models.Standplaats
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = id
-    buurt = factory.SubFactory(BuurtFactory)
+    buurt = SubFactory(BuurtFactory)
 
 
-class VerblijfsobjectFactory(factory.DjangoModelFactory):
+class VerblijfsobjectFactory(DjangoModelFactory):
     class Meta:
         model = models.Verblijfsobject
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
-    reden_afvoer = factory.SubFactory(RedenAfvoerFactory)
-    reden_opvoer = factory.SubFactory(RedenOpvoerFactory)
-    buurt = factory.SubFactory(BuurtFactory)
+    reden_afvoer = SubFactory(RedenAfvoerFactory)
+    reden_opvoer = SubFactory(RedenOpvoerFactory)
+    buurt = SubFactory(BuurtFactory)
 
 
-class WoonplaatsFactory(factory.DjangoModelFactory):
+class WoonplaatsFactory(DjangoModelFactory):
     class Meta:
         model = models.Woonplaats
         django_get_or_create = ('landelijk_id',)
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=4, chars=string.digits)
-    gemeente = factory.SubFactory(GemeenteFactory)
+    gemeente = SubFactory(GemeenteFactory)
 
 
-class OpenbareRuimteFactory(factory.DjangoModelFactory):
+class OpenbareRuimteFactory(DjangoModelFactory):
     class Meta:
         model = models.OpenbareRuimte
         django_get_or_create = ('code',)
@@ -163,44 +163,44 @@ class OpenbareRuimteFactory(factory.DjangoModelFactory):
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
     code = fuzzy.FuzzyText(length=5, chars=string.digits)
-    woonplaats = factory.SubFactory(WoonplaatsFactory)
-    naam = factory.LazyAttribute(lambda o: faker_instance.street_name())
+    woonplaats = SubFactory(WoonplaatsFactory)
+    naam = LazyAttribute(lambda o: faker_instance.street_name())
     # @TODO make it an optional value
     type = '01'  # weg
 
 
-class NummeraanduidingFactory(factory.DjangoModelFactory):
+class NummeraanduidingFactory(DjangoModelFactory):
     class Meta:
         model = models.Nummeraanduiding
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
-    huisnummer = factory.LazyAttribute(
+    huisnummer = LazyAttribute(
         lambda o: int(faker_instance.building_number()))
-    openbare_ruimte = factory.SubFactory(OpenbareRuimteFactory)
-    verblijfsobject = factory.SubFactory(VerblijfsobjectFactory)
+    openbare_ruimte = SubFactory(OpenbareRuimteFactory)
+    verblijfsobject = SubFactory(VerblijfsobjectFactory)
     type = '01'  # default verblijfsobject
     postcode = '1000AN'  # default postcode..
 
-    _openbare_ruimte_naam = factory.LazyAttribute(
+    _openbare_ruimte_naam = LazyAttribute(
         lambda o: o.openbare_ruimte.naam)
 
 
-class GrootstedelijkGebiedFactory(factory.DjangoModelFactory):
+class GrootstedelijkGebiedFactory(DjangoModelFactory):
     class Meta:
         model = models.Grootstedelijkgebied
 
     naam = fuzzy.FuzzyText(length=50)
 
 
-class UnescoFactory(factory.DjangoModelFactory):
+class UnescoFactory(DjangoModelFactory):
     class Meta:
         model = models.Unesco
 
     naam = fuzzy.FuzzyText(length=50)
 
 
-class GebiedsgerichtwerkenFactory(factory.DjangoModelFactory):
+class GebiedsgerichtwerkenFactory(DjangoModelFactory):
     class Meta:
         model = models.Gebiedsgerichtwerken
         django_get_or_create = ('code',)
@@ -208,4 +208,4 @@ class GebiedsgerichtwerkenFactory(factory.DjangoModelFactory):
     id = fuzzy.FuzzyText(length=4)
     naam = fuzzy.FuzzyText(length=50)
     code = fuzzy.FuzzyText(length=4)
-    stadsdeel = factory.SubFactory(StadsdeelFactory)
+    stadsdeel = SubFactory(StadsdeelFactory)

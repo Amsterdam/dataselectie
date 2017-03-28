@@ -2,16 +2,16 @@
 
 def tryStep(String message, Closure block, Closure tearDown = null) {
     try {
-        block();
+        block()
     }
     catch (Throwable t) {
         slackSend message: "${env.JOB_NAME}: ${message} failure ${env.BUILD_URL}", channel: '#ci-channel', color: 'danger'
 
-        throw t;
+        throw t
     }
     finally {
         if (tearDown) {
-            tearDown();
+            tearDown()
         }
     }
 }
@@ -25,9 +25,9 @@ node {
 
     stage('Test') {
         tryStep "test", {
-        sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml build && " +
-           "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml run --rm -u root tests"
-    }, {
+            sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml build && " +
+                    "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml run --rm -u root tests"
+        }, {
             sh "docker-compose -p dataselectie -f .jenkins-test/docker-compose.yml down"
         }
     }
@@ -58,10 +58,10 @@ if (BRANCH == "master") {
         stage("Deploy to ACC") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                parameters: [
-                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
-                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                ]
+                        parameters: [
+                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'acceptance'],
+                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
+                        ]
             }
         }
     }
@@ -71,6 +71,8 @@ if (BRANCH == "master") {
         slackSend channel: '#ci-channel', color: 'warning', message: 'Dataselectie is waiting for Production Release - please confirm'
         input "Deploy to Production?"
     }
+
+
 
     node {
         stage('Push production image') {
@@ -87,10 +89,10 @@ if (BRANCH == "master") {
         stage("Deploy") {
             tryStep "deployment", {
                 build job: 'Subtask_Openstack_Playbook',
-                parameters: [
-                    [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
-                    [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
-                ]
+                        parameters: [
+                                [$class: 'StringParameterValue', name: 'INVENTORY', value: 'production'],
+                                [$class: 'StringParameterValue', name: 'PLAYBOOK', value: 'deploy-dataselectie.yml'],
+                        ]
             }
         }
     }

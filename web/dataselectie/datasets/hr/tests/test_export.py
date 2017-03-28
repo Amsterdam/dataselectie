@@ -1,12 +1,16 @@
 # Python
 from urllib.parse import urlencode
+
 # Packages
 from django.conf import settings
 from django.core.management import call_command
 from django.test import Client, TestCase
 from elasticsearch import Elasticsearch
+
 # Project
+from datasets.generic.tests.authorization import AuthorizationSetup, AUTH_HEADER
 from .factories import create_hr_data
+
 
 class ESTestCase(TestCase):
     """
@@ -28,7 +32,7 @@ class ESTestCase(TestCase):
                           timeout="320s")
 
 
-class DataselectieExportTest(ESTestCase):
+class DataselectieExportTest(ESTestCase, AuthorizationSetup):
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
@@ -37,12 +41,15 @@ class DataselectieExportTest(ESTestCase):
 
     def setUp(self):
         self.client = Client()
+        self.setup_authorization()
+        self.headers = {AUTH_HEADER: f'Bearer {self.token_default}'}
 
     def tearDown(self):
         pass
 
     def test_complete_export_hr(self):
-        response = self.client.get('/dataselectie/hr/export/')
+        response = self.client.get('/dataselectie/hr/export/', **self.headers)
+
         self.assertEqual(response.status_code, 200)
 
         res = (b''.join(response.streaming_content)).decode('utf-8').strip()
@@ -50,14 +57,14 @@ class DataselectieExportTest(ESTestCase):
         # 6 lines: headers + 5 items
         self.assertEqual(len(res), 6)
         row2 = res[2].split(';')
-
+        print(row2)
         self.assertEqual(len(row2), 26)
 
     def test_export_hr_subcategorie(self):
         q = {'page': 1,
              'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)'}
         response = self.client.get(
-            '/dataselectie/hr/export/?{}'.format(urlencode(q)))
+            '/dataselectie/hr/export/?{}'.format(urlencode(q)), **self.headers)
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 

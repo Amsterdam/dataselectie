@@ -13,10 +13,9 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 import os
 import re
 import sys
+import datetime
 
 from typing import List
-
-TESTING = 'test' in sys.argv
 
 
 def _get_docker_host() -> str:
@@ -24,6 +23,7 @@ def _get_docker_host() -> str:
     if d_host:
         return re.match(r'tcp://(.*?):\d+', d_host).group(1)
     return '127.0.0.1'
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,7 +37,7 @@ SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
 
 DEBUG = SECRET_KEY == insecure_key
 
-ALLOWED_HOSTS = ['*']     # type: List[str]
+ALLOWED_HOSTS = ['*']  # type: List[str]
 
 SITE_ID = 1
 
@@ -59,16 +59,20 @@ INSTALLED_APPS = [
     'datasets.bag'
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = (
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.security.SecurityMiddleware',
+    'authorization_django.authorization_middleware',
+
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
+)
 
 ROOT_URLCONF = 'dataselectie.urls'
 
@@ -96,10 +100,14 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_DB', 'dataselectie'),
-        'USER': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_USER', 'dataselectie'),
-        'PASSWORD': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_PASSWORD', insecure_key),
-        'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'NAME': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_DB',
+                          'dataselectie'),
+        'USER': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_USER',
+                          'dataselectie'),
+        'PASSWORD': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_PASSWORD',
+                              insecure_key),
+        'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR',
+                          _get_docker_host()),
         'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', '5435'),
         'CONN_MAX_AGE': 60,
     },
@@ -108,8 +116,10 @@ DATABASES = {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
         'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
         'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
-        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD', insecure_key),
-        'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR', _get_docker_host()),
+        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD',
+                              insecure_key),
+        'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR',
+                          _get_docker_host()),
         'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
         'CONN_MAX_AGE': 60,
     },
@@ -124,7 +134,6 @@ DATABASES = {
         'CONN_MAX_AGE': 60,
     }
 }
-
 
 LOGGING = {
     'version': 1,
@@ -186,7 +195,6 @@ LOGGING = {
     },
 }
 
-
 # DB routing
 DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 
@@ -201,7 +209,6 @@ ELASTIC_INDICES = {
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000
 MIN_HR_NR = 1000
-
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
@@ -219,12 +226,41 @@ PARTIAL_IMPORT = {
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
+# Security
+DATAPUNT_AUTHZ = {
+    'JWT_SECRET_KEY': os.getenv('JWT_SHARED_SECRET_KEY'),
+    'JWT_ALGORITHM': 'HS256'
+}
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
+
+JWT_AUTH = {
+    'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
+    'JWT_DECODE_HANDLER': 'rest_framework_jwt.utils.jwt_decode_handler',
+    'JWT_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_payload_handler',
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',
+    'JWT_SECRET_KEY': os.getenv('JWT_SHARED_SECRET_KEY', 'some_shared_secret'),
+    'JWT_ALGORITHM': 'HS256',
+    'JWT_VERIFY': True,
+    'JWT_VERIFY_EXPIRATION': True,
+    'JWT_LEEWAY': 0,
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
+    'JWT_AUDIENCE': None,
+    'JWT_ISSUER': None,
+    'JWT_ALLOW_REFRESH': False,
+    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
+    'JWT_AUTH_HEADER_PREFIX': 'JWT',
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -241,18 +277,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# Checking if running inside some test mode
+# Generate https links
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Setup support for proxy headers
+USE_X_FORWARDED_HOST = True
 
-# settings below are just for unit test purposes and need to be put in a test_settings.py module
-TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
-
-IN_TEST_MODE = TESTING
-# Setting test prefix on index names in test
-if TESTING:
-    MIN_BAG_NR = 0
-    MIN_HR_NR = 0
-    for k, v in ELASTIC_INDICES.items():
-        ELASTIC_INDICES[k] = 'test_{}'.format(v)
-
-DATAPUNT_API_URL = 'https://api.datapunt.amsterdam.nl/'
+# Db routing goes haywire without this
+IN_TEST_MODE = 'test' in sys.argv

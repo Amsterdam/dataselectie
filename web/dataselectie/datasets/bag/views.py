@@ -1,10 +1,10 @@
 # Packages
 from django.contrib.gis.geos import GEOSGeometry
-from django.http import HttpResponse
-# Project
+
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.views_mixins import CSVExportView, GeoLocationSearchView, TableSearchView
+from datasets.generic.views_mixins import CSVExportView, GeoLocationSearchView, \
+    TableSearchView
 
 
 def create_geometry_dict(item):
@@ -17,7 +17,8 @@ def create_geometry_dict(item):
     """
     res = {}
     try:
-        geom_wgs = GEOSGeometry(f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
+        geom_wgs = GEOSGeometry(
+            f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
     except AttributeError:
         geom_wgs = None
     if geom_wgs:
@@ -44,8 +45,10 @@ class BagBase(object):
     db = 'bag'
     q_func = meta_q
     keywords = [
-        'buurt_naam', 'buurt_code', 'buurtcombinatie_code', 'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats', '_openbare_ruimte_naam', 'openbare_ruimte'
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
+        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats',
+        '_openbare_ruimte_naam', 'openbare_ruimte'
     ]
     keyword_mapping = {
         'openbare_ruimte': 'naam',
@@ -68,47 +71,50 @@ class BagCSV(BagBase, CSVExportView):
     Output CSV
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
-    hdrs = (('_openbare_ruimte_naam', True, 'Naam openbare ruimte', True),
-            ('huisnummer', True, 'Huisnummer', True),
-            ('huisletter', True, 'Huisletter', True),
-            ('huisnummer_toevoeging', True, 'Huisnummertoevoeging', True),
-            ('postcode', True, 'Postcode', True),
-            ('gemeente', False, 'Woonplaats', True),
-            ('stadsdeel_naam', False, 'Naam stadsdeel', True),
-            ('stadsdeel_code', False, 'Code stadsdeel', True),
-            ('ggw_naam', False, 'Naam gebiedsgerichtwerkengebied', True),
-            ('ggw_code', False, 'Code gebiedsgerichtwerkengebied', True),
-            ('buurtcombinatie_naam', True, 'Naam buurtcombinatie', True),
-            ('buurtcombinatie_code', True, 'Code buurtcombinatie', True),
-            ('buurt_naam', True, 'Naam buurt', True),
-            ('buurt_code', True, 'Code buurt', True),
-            ('bouwblok', True, 'Code bouwblok', True),
-            ('geometrie_rd_x', True, 'X-coordinaat (RD)', True),
-            ('geometrie_rd_y', True, 'Y-coordinaat (RD)', True),
-            ('geometrie_wgs_lat', True, 'Latitude (WGS84)', True),
-            ('geometrie_wgs_lon', True, 'Longitude (WGS84)', True),
-            ('hoofdadres', True, 'Indicatie hoofdadres', True),
-            ('gebruiksdoel_omschrijving', True, 'Gebruiksdoel', True),
-            ('gebruik', True, 'Feitelijk gebruik', True),
-            ('oppervlakte', True, 'Oppervlakte (m2)', True),
-            ('type_desc', True, 'Objecttype', True),
-            ('status', True, 'Verblijfsobjectstatus', True),
-            ('openbare_ruimte_landelijk_id', True,
-             'Openbareruimte-identificatie', True),
-            ('panden', True, 'Pandidentificatie', True),
-            ('verblijfsobject', True, 'Verblijfsobjectidentificatie', True),
-            ('ligplaats', True, 'Ligplaatsidentificatie', True),
-            ('standplaats', True, 'Standplaatsidentificatie', True),
-            ('landelijk_id', True, 'Nummeraanduidingidentificatie', True))
+    fields_and_headers = (
+        ('_openbare_ruimte_naam', 'Naam openbare ruimte'),
+        ('huisnummer', 'Huisnummer'),
+        ('huisletter', 'Huisletter'),
+        ('huisnummer_toevoeging', 'Huisnummertoevoeging'),
+        ('postcode', 'Postcode'),
+        ('gemeente', 'Woonplaats'),
+        ('stadsdeel_naam', 'Naam stadsdeel'),
+        ('stadsdeel_code', 'Code stadsdeel'),
+        ('ggw_naam', 'Naam gebiedsgerichtwerkengebied'),
+        ('ggw_code', 'Code gebiedsgerichtwerkengebied'),
+        ('buurtcombinatie_naam', 'Naam buurtcombinatie'),
+        ('buurtcombinatie_code', 'Code buurtcombinatie'),
+        ('buurt_naam', 'Naam buurt'),
+        ('buurt_code', 'Code buurt'),
+        ('bouwblok', 'Code bouwblok'),
+        ('geometrie_rd_x', 'X-coordinaat (RD)'),
+        ('geometrie_rd_y', 'Y-coordinaat (RD)'),
+        ('geometrie_wgs_lat', 'Latitude (WGS84)'),
+        ('geometrie_wgs_lon', 'Longitude (WGS84)'),
+        ('hoofdadres', 'Indicatie hoofdadres'),
+        ('gebruiksdoel_omschrijving', 'Gebruiksdoel'),
+        ('gebruik', 'Feitelijk gebruik'),
+        ('oppervlakte', 'Oppervlakte (m2)'),
+        ('type_desc', 'Objecttype'),
+        ('status', 'Verblijfsobjectstatus'),
+        ('openbare_ruimte_landelijk_id',
+         'Openbareruimte-identificatie'),
+        ('panden', 'Pandidentificatie'),
+        ('verblijfsobject', 'Verblijfsobjectidentificatie'),
+        ('ligplaats', 'Ligplaatsidentificatie'),
+        ('standplaats', 'Standplaatsidentificatie'),
+        ('landelijk_id', 'Nummeraanduidingidentificatie')
+    )
 
-    headers = [h[0] for h in hdrs if h[3]]
-    pretty_headers = [h[2] for h in hdrs if h[3]]
+    field_names = [h[0] for h in fields_and_headers]
+    csv_headers = [h[1] for h in fields_and_headers]
 
     def elastic_query(self, query):
         return meta_q(query, False, False)
 
-    def item_data_update(self, item):
+    def item_data_update(self, item, request):
         create_geometry_dict(item)
+        return item
 
     def paginate(self, offset, q):
         if 'size' in q:
