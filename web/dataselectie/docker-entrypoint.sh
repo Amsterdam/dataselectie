@@ -6,5 +6,5 @@ set -e   # stop on any error
 cd /app
 
 # run uwsgi
-exec uwsgi --ini /app/uwsgi.ini
+exec uwsgi
 
