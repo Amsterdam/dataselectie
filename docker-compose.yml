@@ -36,5 +36,10 @@ services:
 
   dataselectie:
       build: ./web
+      links:
+          - elasticsearch
+          - database_dataselectie
+          - database_BAG
+          - database_HR
       ports:
           - "8100:8000"

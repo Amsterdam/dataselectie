@@ -30,6 +30,11 @@ services:
 
   tests:
     build: ../web
+    links:
+        - database_dataselectie
+        - elasticsearch
+        - database_BAG
+        - database_HR
     environment:
       DATABASE_NAME: dataselectie
       DATABASE_USER: dataselectie
