@@ -1,43 +1,40 @@
-elasticsearch:
-    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-    command: elasticsearch -Des.network.host=0.0.0.0
-    ports:
-        - "9200:9200"
-        - "9300:9300"
+version: '2.1'
+services:
+  elasticsearch:
+      image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+      command: elasticsearch -Des.network.host=0.0.0.0
+      ports:
+          - "9200:9200"
+          - "9300:9300"
 
-database_dataselectie:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5435:5432"
-    environment:
-        POSTGRES_USER: dataselectie
-        POSTGRES_DB: dataselectie
-        POSTGRES_PASSWORD: insecure
+  database_dataselectie:
+      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+      ports:
+          - "5435:5432"
+      environment:
+          POSTGRES_USER: dataselectie
+          POSTGRES_DB: dataselectie
+          POSTGRES_PASSWORD: insecure
 
-database_BAG:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5436:5432"
-    environment:
-        POSTGRES_USER: atlas
-        POSTGRES_DB: atlas
-        POSTGRES_PASSWORD: insecure
+  database_BAG:
+      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+      ports:
+          - "5436:5432"
+      environment:
+          POSTGRES_USER: atlas
+          POSTGRES_DB: atlas
+          POSTGRES_PASSWORD: insecure
 
-database_HR:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5406:5432"
-    environment:
-        POSTGRES_USER: handelsregister
-        POSTGRES_DB: handelsregister
-        POSTGRES_PASSWORD: insecure
+  database_HR:
+      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+      ports:
+          - "5406:5432"
+      environment:
+          POSTGRES_USER: handelsregister
+          POSTGRES_DB: handelsregister
+          POSTGRES_PASSWORD: insecure
 
-dataselectie:
-    build: ./web
-    links:
-        - elasticsearch:elasticsearch
-        - database_dataselectie:database_dataselectie
-        - database_BAG:database_BAG
-        - database_HR:database_HR
-    ports:
-        - "8100:8000"
+  dataselectie:
+      build: ./web
+      ports:
+          - "8100:8000"

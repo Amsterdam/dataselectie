@@ -10,20 +10,15 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
-import os
+import datetime
 import re
 import sys
-import datetime
 
+import os
 from typing import List
 
-
-def _get_docker_host() -> str:
-    d_host = os.getenv('DOCKER_HOST', None)
-    if d_host:
-        return re.match(r'tcp://(.*?):\d+', d_host).group(1)
-    return '127.0.0.1'
-
+from dataselectie.utils import in_docker, get_docker_host, get_db_settings, \
+    get_db_variable, get_variable
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -96,41 +91,44 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
+DS_DATASELECTIE = get_db_settings(db='dataselectie',
+                                  docker_host='database_dataselectie',
+                                  localport='5435')
+DS_ATLAS = get_db_settings(db='atlas',
+                           docker_host='database_BAG',
+                           localport='5436')
+DS_HR = get_db_settings(db='handelsregister',
+                        docker_host='database_HR',
+                        localport='5406')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_DB',
-                          'dataselectie'),
-        'USER': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_USER',
-                          'dataselectie'),
-        'PASSWORD': os.getenv('DATABASE_DATASELECTIE_ENV_POSTGRES_PASSWORD',
-                              insecure_key),
-        'HOST': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_ADDR',
-                          _get_docker_host()),
-        'PORT': os.getenv('DATABASE_DATASELECTIE_PORT_5432_TCP_PORT', '5435'),
+        'NAME': DS_DATASELECTIE['db'],
+        'USER': DS_DATASELECTIE['username'],
+        'PASSWORD': DS_DATASELECTIE['password'],
+        'HOST': DS_DATASELECTIE['host'],
+        'PORT': DS_DATASELECTIE['port'],
         'CONN_MAX_AGE': 60,
     },
 
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_BAG_ENV_POSTGRES_DB', 'atlas'),
-        'USER': os.getenv('DATABASE_BAG_ENV_POSTGRES_USER', 'atlas'),
-        'PASSWORD': os.getenv('DATABASE_BAG_ENV_POSTGRES_PASSWORD',
-                              insecure_key),
-        'HOST': os.getenv('DATABASE_BAG_PORT_5432_TCP_ADDR',
-                          _get_docker_host()),
-        'PORT': os.getenv('DATABASE_BAG_PORT_5432_TCP_PORT', '5436'),
+        'NAME': DS_ATLAS['db'],
+        'USER': DS_ATLAS['username'],
+        'PASSWORD': DS_ATLAS['password'],
+        'HOST': DS_ATLAS['host'],
+        'PORT': DS_ATLAS['port'],
         'CONN_MAX_AGE': 60,
     },
 
     'hr': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': os.getenv('DATABASE_HR_ENV_POSTGRES_DB', 'handelsregister'),
-        'USER': os.getenv('DATABASE_HR_ENV_POSTGRES_USER', 'handelsregister'),
-        'PASSWORD': os.getenv('DATABASE_HR_ENV_POSTGRES_PASSWORD', 'insecure'),
-        'HOST': os.getenv('DATABASE_HR_PORT_5432_TCP_ADDR', _get_docker_host()),
-        'PORT': os.getenv('DATABASE_HR_PORT_5432_TCP_PORT', '5406'),
+        'NAME': DS_HR['db'],
+        'USER': DS_HR['username'],
+        'PASSWORD': DS_HR['password'],
+        'HOST': DS_HR['host'],
+        'PORT': DS_HR['port'],
         'CONN_MAX_AGE': 60,
     }
 }
@@ -199,8 +197,8 @@ LOGGING = {
 DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
-    os.getenv('ELASTICSEARCH_PORT_9200_TCP_ADDR', _get_docker_host()),
-    os.getenv('ELASTICSEARCH_PORT_9200_TCP_PORT', '9200'))]
+    get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),
+    get_variable('ELASTIC_PORT_OVERRIDE', '9200'))]
 
 ELASTIC_INDICES = {
     'DS_INDEX': 'ds_index'
@@ -237,10 +235,12 @@ SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
 AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
     {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
+    {
+        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
 JWT_AUTH = {
