@@ -87,6 +87,6 @@ el-backup:
     - ./backups/elasticsearch:/tmp/backups
   user: root
   command: >
-    bash -c "chmod -R 777 /tmp/backups \
-            && curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
-            && curl -X PUT http://el:9200/_snapshot/backup/ds_index?wait_for_completion=true -d '{ \"indices\": \"ds_index\" }'"
+    bash -c "curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}' \
+            && curl -X PUT http://el:9200/_snapshot/backup/ds_index?wait_for_completion=true -d '{ \"indices\": \"ds_index\" }' \
+            && chmod -R 777 /tmp/backups"
