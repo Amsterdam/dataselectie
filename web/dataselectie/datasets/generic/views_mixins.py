@@ -381,7 +381,7 @@ class CSVExportView(TableSearchView):
         Allow for subclasses to add custom fields to the item before it is
         strigified for export
         """
-        pass
+        return item
 
     def load_from_elastic(self) -> Generator:
         """
@@ -441,6 +441,8 @@ class CSVExportView(TableSearchView):
                 for key in self.field_names:
                     resp[key] = item.get(key, '')
                 writer.writerow(resp)
+                if item_count == batch_size:
+                    break
 
             # Yielding results
             yield read_and_empty_buffer()
