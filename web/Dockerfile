@@ -5,8 +5,7 @@ ENV PYTHONUNBUFFERED 1
 
 EXPOSE 8000
 
-RUN apt-get update \
-	&& apt-get install -y \
+RUN apt-get install -y \
 		gdal-bin \
 		libgeos-dev \
 		netcat \
