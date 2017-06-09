@@ -308,7 +308,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
 
     def filter_data(self, elastic_data, request):
         """
-        Allow implementations to do additional filtering based on criteria 
+        Allow implementations to do additional filtering based on criteria
         that are hard (or impossible) to mix into the elastic query
         :param elastic_data: The result that will be returned to the upstream view
         :param request: The incoming request
@@ -383,6 +383,12 @@ class CSVExportView(TableSearchView):
         """
         return item
 
+    def is_authorized(self, request):
+        """
+        Allow for authorization checks..
+        """
+        return True
+
     def load_from_elastic(self) -> Generator:
         """
         Instead of normal results
@@ -455,6 +461,13 @@ class CSVExportView(TableSearchView):
     def render_to_response(self, request, data, **response_kwargs):
         # Returning a CSV
         # Streaming!
+        if not self.is_authorized(request):
+            return HttpResponse(
+                """
+                Handelsregister schaamt zicht voor de kwaliteit
+                van hun data. U kunt dit niet downloaden zonder authorisatie
+                """, status=401)
+
         gen = self.result_generator(request, data)
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \

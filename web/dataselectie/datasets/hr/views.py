@@ -21,7 +21,8 @@ class HrBase(object):
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
-        'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam', 'openbare_ruimte'
+        'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam',
+        'openbare_ruimte'
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
@@ -67,6 +68,22 @@ class HrSearch(HrBase, TableSearchView):
                 keystoremove = list(key for key in doc.keys()
                                     if key.startswith('postadres'))
                 for key in keystoremove:
+                    del doc[key]
+
+            public_fields = [
+                'handelsnaam',
+                'hoofdcategorie',
+                'sbi_code',
+                'sbi_omschrijving',
+                'subcategorie',
+                'ggw_naam',
+                'buurt_naam',
+                # 'openbare_ruimte', ?
+            ]
+
+            # remove non public keys
+            for key in list(doc.keys()):
+                if key not in public_fields:
                     del doc[key]
 
         return elastic_data
