@@ -105,7 +105,8 @@ class HrCSV(HrBase, CSVExportView):
         ('bezoekadres_openbare_ruimte', 'Openbare ruimte bezoekadres (BAG)'),
         ('bezoekadres_huisnummer', 'Huisnummer bezoekadres (BAG)'),
         ('bezoekadres_huisletter', 'Huisletter bezoekadres (BAG)'),
-        ('bezoekadres_huisnummertoevoeging', 'Huisnummertoevoeging bezoekadres (BAG)'),
+        ('bezoekadres_huisnummertoevoeging',
+         'Huisnummertoevoeging bezoekadres (BAG)'),
         ('bezoekadres_postcode', 'Postcode bezoekadres (BAG)'),
         ('bezoekadres_plaats', 'Woonplaats bezoekadres (BAG)'),
         ('postadres_volledig_adres', 'Postadres (KvK HR)'),
@@ -131,6 +132,14 @@ class HrCSV(HrBase, CSVExportView):
 
     def elastic_query(self, query):
         return meta_q(query, False, False)
+
+    def is_authorized(self, request):
+        """
+        HR download is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
 
     def paginate(self, offset, q: dict) -> dict:
         if 'size' in q:
