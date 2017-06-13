@@ -41,8 +41,25 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, True)
 
+    def is_authorized(self, request):
+        """
+        HR dataselectie is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+
 
 class HrSearch(HrBase, TableSearchView):
+
+    def is_authorized(self, request):
+        """
+        HR dataselectie is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+
     def elastic_query(self, query: dict) -> dict:
         return meta_q(query, True)
 
