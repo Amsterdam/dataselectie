@@ -93,10 +93,7 @@ class SingleDispatchMixin(object):
 
     def render_to_response(self, request, response):
         if not self.is_authorized(request):
-            return HttpResponse(
-                """
-                Handelsregister kunt U niet downloaden zonder authorisatie
-                """, status=401)
+            return HttpResponse("Unauthorized", status=401)
 
         return HttpResponse(json.dumps(response),
                             content_type='application/json')
@@ -477,11 +474,7 @@ class CSVExportView(TableSearchView):
         # Returning a CSV
         # Streaming!
         if not self.is_authorized(request):
-            return HttpResponse(
-                """
-                Handelsregister schaamt zicht voor de kwaliteit
-                van hun data. U kunt dit niet downloaden zonder authorisatie
-                """, status=401)
+            return HttpResponse("Unauthorized", status=401)
 
         gen = self.result_generator(request, data)
         response = StreamingHttpResponse(gen, content_type="text/csv")
