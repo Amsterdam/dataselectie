@@ -95,8 +95,7 @@ class SingleDispatchMixin(object):
         if not self.is_authorized(request):
             return HttpResponse(
                 """
-                Handelsregister schaamt zicht voor de kwaliteit
-                van hun data. U kunt dit niet downloaden zonder authorisatie
+                Handelsregister kunt U niet downloaden zonder authorisatie
                 """, status=401)
 
         return HttpResponse(json.dumps(response),
