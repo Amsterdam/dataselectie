@@ -49,6 +49,10 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
 
     def test_complete_export_hr(self):
         response = self.client.get('/dataselectie/hr/export/', **self.headers)
+        self.assertEqual(response.status_code, 401)
+
+        self.headers = {AUTH_HEADER: f'Bearer {self.token_employee}'}
+        response = self.client.get('/dataselectie/hr/export/', **self.headers)
 
         self.assertEqual(response.status_code, 200)
 
@@ -60,6 +64,7 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(row2), 26)
 
     def test_export_hr_subcategorie(self):
+        self.headers = {AUTH_HEADER: f'Bearer {self.token_employee}'}
         q = {'page': 1,
              'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)'}
         response = self.client.get(

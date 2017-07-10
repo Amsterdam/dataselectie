@@ -78,14 +78,23 @@ class SingleDispatchMixin(object):
         if self.request.method == 'OPTIONS':
             return super(SingleDispatchMixin, self).dispatch(request, *args,
                                                              **kwargs)
-        elif self.request.method in self.http_methods_allowed:
+        if self.request.method in self.http_methods_allowed:
             self.request_parameters = getattr(request, request.method)
             data = self.handle_request(request, *args, **kwargs)
             return self.render_to_response(request, data)
-        else:
-            return self.http_method_not_allowed(request, *args, **kwargs)
+
+        return self.http_method_not_allowed(request, *args, **kwargs)
+
+    def is_authorized(self, _request):
+        """
+        Allow for authorization checks..
+        """
+        return True
 
     def render_to_response(self, request, response):
+        if not self.is_authorized(request):
+            return HttpResponse("Unauthorized", status=401)
+
         return HttpResponse(json.dumps(response),
                             content_type='application/json')
 
@@ -308,11 +317,14 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
 
     def filter_data(self, elastic_data, request):
         """
-        Allow implementations to do additional filtering based on criteria 
-        that are hard (or impossible) to mix into the elastic query
-        :param elastic_data: The result that will be returned to the upstream view
+        Allow implementations to do additional filtering based on
+        criteria that are hard (or impossible) to mix into the
+        elastic query
+        :param elastic_data:
+            The result that will be returned to the upstream view
         :param request: The incoming request
-        :return: Something that resembles the original data minus sensitive fields.
+        :return:
+            Something that resembles the original data minus sensitive fields.
         """
         return elastic_data
 
@@ -382,6 +394,12 @@ class CSVExportView(TableSearchView):
         strigified for export
         """
         return item
+
+    def is_authorized(self, request):
+        """
+        Allow for authorization checks..
+        """
+        return True
 
     def load_from_elastic(self) -> Generator:
         """
@@ -455,6 +473,9 @@ class CSVExportView(TableSearchView):
     def render_to_response(self, request, data, **response_kwargs):
         # Returning a CSV
         # Streaming!
+        if not self.is_authorized(request):
+            return HttpResponse("Unauthorized", status=401)
+
         gen = self.result_generator(request, data)
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \

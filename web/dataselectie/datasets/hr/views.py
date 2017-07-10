@@ -21,7 +21,8 @@ class HrBase(object):
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
-        'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam', 'openbare_ruimte'
+        'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam',
+        'openbare_ruimte'
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
@@ -40,8 +41,25 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, True)
 
+    def is_authorized(self, request):
+        """
+        HR dataselectie is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+
 
 class HrSearch(HrBase, TableSearchView):
+
+    def is_authorized(self, request):
+        """
+        HR dataselectie is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+
     def elastic_query(self, query: dict) -> dict:
         return meta_q(query, True)
 
@@ -69,6 +87,22 @@ class HrSearch(HrBase, TableSearchView):
                 for key in keystoremove:
                     del doc[key]
 
+            public_fields = [
+                'handelsnaam',
+                'hoofdcategorie',
+                'sbi_code',
+                'sbi_omschrijving',
+                'subcategorie',
+                'ggw_naam',
+                'buurt_naam',
+                # 'openbare_ruimte', ?
+            ]
+
+            # remove non public keys
+            for key in list(doc.keys()):
+                if key not in public_fields:
+                    del doc[key]
+
         return elastic_data
 
 
@@ -88,7 +122,8 @@ class HrCSV(HrBase, CSVExportView):
         ('bezoekadres_openbare_ruimte', 'Openbare ruimte bezoekadres (BAG)'),
         ('bezoekadres_huisnummer', 'Huisnummer bezoekadres (BAG)'),
         ('bezoekadres_huisletter', 'Huisletter bezoekadres (BAG)'),
-        ('bezoekadres_huisnummertoevoeging', 'Huisnummertoevoeging bezoekadres (BAG)'),
+        ('bezoekadres_huisnummertoevoeging',
+         'Huisnummertoevoeging bezoekadres (BAG)'),
         ('bezoekadres_postcode', 'Postcode bezoekadres (BAG)'),
         ('bezoekadres_plaats', 'Woonplaats bezoekadres (BAG)'),
         ('postadres_volledig_adres', 'Postadres (KvK HR)'),
@@ -114,6 +149,14 @@ class HrCSV(HrBase, CSVExportView):
 
     def elastic_query(self, query):
         return meta_q(query, False, False)
+
+    def is_authorized(self, request):
+        """
+        HR download is only for employees.
+        :param request:
+        :return: true when the user
+        """
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
 
     def paginate(self, offset, q: dict) -> dict:
         if 'size' in q:

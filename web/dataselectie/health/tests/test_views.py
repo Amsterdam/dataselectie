@@ -10,7 +10,7 @@ class StatusViewsTest(TestCase):
 
     def setUp(self):
         self.client = Client()
-        for a in range(20):
+        for _a in range(20):
             NummeraanduidingFactory()
 
     def test_status_health(self):
