@@ -4,6 +4,7 @@ from django.conf import settings
 
 from datasets.bag import models as bag_models
 from datasets.hr import models
+
 from . import documents
 from ..generic import index
 
