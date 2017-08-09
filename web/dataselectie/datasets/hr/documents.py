@@ -103,7 +103,7 @@ def add_bag_info(doc, item):
 
     # Adding geolocation
     try:
-        geom = adresseerbaar_object.geometrie.adresseerbaar_object.geometrie
+        geom = adresseerbaar_object.geometrie
         doc.centroid = geom.centroid.transform('wgs84', clone=True).coords
     except AttributeError:
         log.error('Missing geometrie %s' % adresseerbaar_object)

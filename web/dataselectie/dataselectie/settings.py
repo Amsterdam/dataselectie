@@ -39,9 +39,11 @@ ALLOWED_HOSTS = ['*']  # type: List[str]
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
+
     # dataselectie
     'batch',
     'api',
+
     # Datasets
     'datasets.hr',
     'datasets.bag'
