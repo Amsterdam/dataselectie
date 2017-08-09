@@ -59,14 +59,11 @@ class Vestiging(es.DocType):
     centroid = es.GeoPoint()
 
     # Categores
-    hcat = es.String(index='not_analyzed', multi=True)
     hoofdcategorie = es.String(index='not_analyzed', multi=True)
-    scat = es.String(index='not_analyzed', multi=True)
     subcategorie = es.String(index='not_analyzed', multi=True)
     # SBI codes
     sbi_code = es.String(index='not_analyzed', multi=True)
     sbi_omschrijving = es.String(index='not_analyzed', multi=True)
-
 
     class Meta:
         doc_type = 'vestiging'
@@ -77,20 +74,22 @@ def flatten_sbi(activiteit):
     """
     This is a fill gap until HR will create flat sbi codes
     """
-    # Making sure sbi_code_link is a dict
-    sbi_code_link = activiteit.get('sbi_code_link', {})  # catching key does not exist
-    if not sbi_code_link:  # Catching value is None / empty string
-        sbi_code_link = {}
+    # Making sure sbi_code_tree is a dict
+    sbi_code_tree = activiteit['sbi_code_tree']
+
+    qa_tree = sbi_code_tree.get('qa_tree', {})
 
     return {
         'sbi_code': activiteit.get('sbi_code', ''),
         'sbi_omschrijving': activiteit.get('sbi_omschrijving', ''),
-        'title': sbi_code_link.get('title', ''),
-        'scat': (sbi_code_link.get('sub_cat', {})).get('scat', ''),
-        'subcategorie': (sbi_code_link.get('sub_cat', {})).get('subcategorie', ''),
-        'hcat': ((sbi_code_link.get('sub_cat', {})).get('hcat', {})).get('hcat', ''),
-        'hoofdcategorie': ((sbi_code_link.get('sub_cat', {})).get('hcat', {})).get('hoofdcategorie', ''),
+        'qa_tree': sbi_code_tree.get('qa_tree', ''),
+        'sbi_tree': sbi_code_tree.get('sbi_tree', ''),
+        'title': sbi_code_tree.get('title', ''),
+
+        'hoofdcategorie': qa_tree['q1'],
+        'subcategorie': qa_tree['q2'],
     }
+
 
 def add_bag_info(doc, item):
     """
@@ -104,9 +103,8 @@ def add_bag_info(doc, item):
 
     # Adding geolocation
     try:
-        doc.centroid = (
-            adresseerbaar_object
-                .geometrie.centroid.transform('wgs84', clone=True).coords)
+        geom = adresseerbaar_object.geometrie.adresseerbaar_object.geometrie
+        doc.centroid = geom.centroid.transform('wgs84', clone=True).coords
     except AttributeError:
         log.error('Missing geometrie %s' % adresseerbaar_object)
 
@@ -186,15 +184,29 @@ def vestiging_from_hrdataselectie(
     # SBI codes, categories and subcategories
     # Creating lists of the values and then setting
     # the document
-    attributes = ('hcat', 'hoofdcategorie', 'scat', 'subcategorie', 'sbi_code', 'sbi_omschrijving')
-    codes = {}  # @TODO named tuple
+
+    codes = {
+        'hoofdcategorie': [],
+        'subcategorie': [],
+        'sbi_code': [],
+        'sbi_omschrijving': [],
+
+        # 'sbi_l1': [],
+        # 'sbi_l2': [],
+        # 'sbi_l3': [],
+        # 'sbi_l4': [],
+        # 'sbi_l5': [],
+    }
+
     for activiteit in data['activiteiten']:
-        # Flattening the sbi until HR does
+        # Flattening the sbi information
         activiteit = flatten_sbi(activiteit)
-        for attrib in attributes:
-            codes[attrib] = codes.get(attrib, []) + [activiteit.get(attrib, '')]
-    for attrib in attributes:
-        setattr(doc, attrib, codes.get(attrib))
+
+        for key, items in codes.items():
+            items.append(activiteit.get(key, ''))
+
+    for key, datalist in codes.items():
+        setattr(doc, key, datalist)
 
     if bag_item:
         add_bag_info(doc, bag_item)

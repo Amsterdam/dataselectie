@@ -20,10 +20,10 @@ def meta_q(query, add_aggs=False, sort=True):
         aggs = None
     sort = {
         'sort': {
-            'bezoekadres_openbare_ruimte': { "order": "asc" },
-            'bezoekadres_huisnummer': { "order": "asc" },
-            'bezoekadres_huisletter': { "order": "asc" },
-            'bezoekadres_huisnummertoevoeging': { "order": "asc" }
+            'bezoekadres_openbare_ruimte': {"order": "asc"},
+            'bezoekadres_huisnummer': {"order": "asc"},
+            'bezoekadres_huisletter': {"order": "asc"},
+            'bezoekadres_huisnummertoevoeging': {"order": "asc"}
         }
     }
     return create_query(query, aggs, sort, qtype='vestiging')
@@ -33,23 +33,9 @@ def create_aggs() -> dict:
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
-            'hcat': {
-                'terms': {
-                    'field': 'hcat',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
             'hoofdcategorie': {
                 'terms': {
                     'field': 'hoofdcategorie',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'scat': {
-                'terms': {
-                    'field': 'scat',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
@@ -116,8 +102,8 @@ def create_aggs() -> dict:
     count_aggs = {}
     for key, aggregatie in aggs['aggs'].items():
         count_aggs[f'{key}_count'] = {
-            'cardinality' : {
-                'field' : aggregatie['terms']['field'],
+            'cardinality': {
+                'field': aggregatie['terms']['field'],
                 'precision_threshold': 1000
             }
         }
