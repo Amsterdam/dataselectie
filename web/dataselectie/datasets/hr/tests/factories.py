@@ -8,7 +8,9 @@ def dataselectie_hr_factory(nummeraanduiding_obj, from_nr, to_nr):
     for json in fixture_utils.JSON[from_nr:to_nr]:
         id = json['vestigingsnummer']
         DataSelectie.objects.get_or_create(
-            id=id, api_json=json, bag_numid=nummeraanduiding_obj.landelijk_id)
+            id=id,
+            api_json=json,
+            bag_numid=nummeraanduiding_obj.landelijk_id)
 
 
 def create_hr_data():

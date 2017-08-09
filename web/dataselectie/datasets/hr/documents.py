@@ -74,7 +74,7 @@ def flatten_sbi(activiteit):
     """
     This is a fill gap until HR will create flat sbi codes
     """
-    # Making sure sbi_code_tree is a dict
+
     sbi_code_tree = activiteit['sbi_code_tree']
 
     qa_tree = sbi_code_tree.get('qa_tree', {})

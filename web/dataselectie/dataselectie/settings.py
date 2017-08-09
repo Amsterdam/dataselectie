@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = (
+    'authorization_django.authorization_middleware',
     'django.middleware.common.CommonMiddleware',
 )
 
