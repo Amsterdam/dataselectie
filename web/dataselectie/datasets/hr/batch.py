@@ -19,16 +19,17 @@ class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_INDEX']
 
-    queryset = models.DataSelectie.objects.filter(bag_numid__isnull=False).order_by('id')
+    queryset = models.DataSelectie.objects.filter(
+        bag_numid__isnull=False).order_by('id')
 
     def convert(self, obj):
-        # @TODO this can be switched to use the elasitc index to retrieve the data
-        # This will create a better contained unit
+        vestiging = obj
         try:
-            bag_obj = bag_models.Nummeraanduiding.objects.get(landelijk_id=obj.bag_numid)
+            bag_obj = bag_models.Nummeraanduiding.objects.get(
+                landelijk_id=vestiging.bag_numid)
         except bag_models.Nummeraanduiding.DoesNotExist:
             bag_obj = None
-        return documents.vestiging_from_hrdataselectie(obj, bag_obj)
+        return documents.vestiging_from_hrdataselectie(vestiging, bag_obj)
 
 
 class BuildIndexHrJob(object):

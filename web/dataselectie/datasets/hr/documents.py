@@ -140,7 +140,8 @@ def add_bag_info(doc, item):
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
 
 
-def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
+def vestiging_from_hrdataselectie(
+        item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
     doc = Vestiging(_id=item.id)  # HR is added to prevent id collisions
     doc.bag_numid = item.bag_numid
 
@@ -149,24 +150,34 @@ def vestiging_from_hrdataselectie(item: DataSelectie, bag_item: Nummeraanduiding
     doc.vestiging_id = data['vestigingsnummer']
     # Maatschapelijke activiteit
     mat = data['maatschappelijke_activiteit']
-    for attrib in ('kvk_nummer', 'datum_aanvang', 'datum_einde', 'eigenaar_naam',
-                   'eigenaar_id', 'non_mailing'):
+    for attrib in (
+            'kvk_nummer', 'datum_aanvang',
+            'datum_einde', 'eigenaar_naam',
+            'eigenaar_id', 'non_mailing'):
         setattr(doc, attrib, mat.get(attrib, ''))
     doc.eigenaar_naam = mat['eigenaar'].get('volledige_naam', '')
     doc.eigenaar_id = mat['eigenaar'].get('id', '')
 
-    # Using Vestiging name, otherwise, maatschappelijke_activiteit name, otherwise empty
+    # Using Vestiging name, otherwise,
+    # maatschappelijke_activiteit name, otherwise empty
     doc.handelsnaam = data.get('naam', mat.get('naam', ''))
 
     # Address
     for address_type in ('bezoekadres', 'postadres'):
         adres = data[address_type]
         if isinstance(adres, dict):
-            for attrib in ('volledig_adres', 'correctie', 'huisnummer',
-                           'huisletter', 'huisnummertoevoeging', 'postcode', 'plaats'):
+            for attrib in (
+                    'volledig_adres', 'correctie', 'huisnummer',
+                    'huisletter', 'huisnummertoevoeging',
+                    'postcode', 'plaats'):
                 setattr(doc, f'{address_type}_{attrib}', adres.get(attrib, ''))
-            # In HR is the openbareruimte naam is called straatnaam
-            setattr(doc, f'{address_type}_openbare_ruimte', adres.get('straatnaam'))
+
+            # In HR is the openbareruimte naam is
+            # called straatnaam
+            setattr(
+                doc, f'{address_type}_openbare_ruimte',
+                adres.get('straatnaam'))
+
             correctie = True if adres.get('correctie') else False
             setattr(doc, f'{address_type}_correctie', correctie)
             afgeschermd = adres.get('afgeschermd', False)
