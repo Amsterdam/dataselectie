@@ -117,7 +117,6 @@ class ImportIndexTask(object):
             # for the last part do not change end_part
             if denominator > numerator+1:
                 end_part = (numerator + 1) * chunk_size
-            end_part = (numerator + 1) * chunk_size
             total = end_part - start_index
 
         log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')
