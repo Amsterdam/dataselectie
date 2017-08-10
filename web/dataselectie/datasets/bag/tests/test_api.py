@@ -1,5 +1,4 @@
 # Python
-from rapidjson import loads
 from unittest import skip
 from urllib.parse import urlencode
 
@@ -33,6 +32,7 @@ class ESTestCase(TestCase):
 
 
 class DataselectieApiTest(ESTestCase):
+
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
@@ -53,7 +53,7 @@ class DataselectieApiTest(ESTestCase):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(
             res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertEqual(res['page_count'], 1)
@@ -69,7 +69,7 @@ class DataselectieApiTest(ESTestCase):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         previous = ''
         for olist in res['object_list']:
             sortcriterium = olist['_openbare_ruimte_naam'].strip() + \
@@ -87,7 +87,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get(
             '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(
             models.Stadsdeel.objects.filter(naam='Centrum').count(), 1)
         self.assertEqual(res['object_count'], 10)
@@ -99,11 +99,14 @@ class DataselectieApiTest(ESTestCase):
         Test the elastic while querying on field `stadsdeel_code`
         """
         q = dict(page=1, stadsdeel_code='A')  # Centrum
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
-        _ = models.Nummeraanduiding.objects.count()
+        res = response.json()
+
+        # models.Nummeraanduiding.objects.count()
+
         self.assertEqual(res['object_count'], 10)
         self.assertEqual(res['page_count'],
                          int(10 / settings.SEARCH_PREVIEW_SIZE + 1))
@@ -115,9 +118,11 @@ class DataselectieApiTest(ESTestCase):
         """
         self.assertEqual(models.Gebiedsgerichtwerken.objects.count(), 2)
         q = {'page': 1, 'ggw_naam': 'Centrum-West'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+
+        res = response.json()
         self.assertEqual(res['object_count'], 1)
         self.assertEqual(res['page_count'], 1)
 
@@ -128,10 +133,11 @@ class DataselectieApiTest(ESTestCase):
         self.assertEqual(models.Buurtcombinatie.objects.count(), 8)
 
         q = dict(page=1, buurtcombinatie_naam='Burgwallen-Nieuwe Zijde')
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
@@ -143,7 +149,7 @@ class DataselectieApiTest(ESTestCase):
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(res['object_count'], 8)
         self.assertEqual(res['page_count'], 1)
 
@@ -152,10 +158,11 @@ class DataselectieApiTest(ESTestCase):
         Test the elastic while querying on field `buurt_naam`
         """
         q = {'page': 1, 'buurt_naam': 'Hemelrijk'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(res['object_count'], 3)
         self.assertEqual(res['page_count'], 1)
 
@@ -165,25 +172,28 @@ class DataselectieApiTest(ESTestCase):
         """
 
         q = {'page': 1, 'postcode': '1012AA'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         postcode_count = models.Nummeraanduiding.objects.filter(
             postcode=q['postcode']).count()
         self.assertEqual(res['object_count'], postcode_count)
-        self.assertEqual(res['page_count'],
-                         int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
+        self.assertEqual(
+            res['page_count'],
+            int(postcode_count / settings.SEARCH_PREVIEW_SIZE + 1))
 
     def test_get_dataselectie_bag_shape_all(self):
         """
         Test querying on geolocation
         """
         q = {'shape': '[[1,1],[1,60],[60,1]]'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         total_count = models.Nummeraanduiding.objects.count()
         self.assertEqual(res['object_count'], total_count)
 
@@ -192,11 +202,12 @@ class DataselectieApiTest(ESTestCase):
         Test querying on geolocation
         """
         q = {
-            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
-        response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
+            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}   # noqa
+        response = self.client.get(
+            '/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(res['object_count'], 1)
 
     def test_setting_raw_fields(self):
@@ -209,7 +220,8 @@ class DataselectieApiTest(ESTestCase):
         fields = table_view.raw_fields + [extra_field]
         for item in fields:
             filter_dict.update(table_view.get_term_and_value(item, 'Value'))
-        # Now to check that every field in the raw has the .raw finish but not the last item
+        # Now to check that every field in the raw has
+        # the .raw finish but not the last item
         for field in table_view.raw_fields:
             self.assertIn('{}.raw'.format(field), filter_dict.keys())
             self.assertNotIn(field, filter_dict.keys())
@@ -226,7 +238,7 @@ class DataselectieApiTest(ESTestCase):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(
             res['object_count'], models.Nummeraanduiding.objects.count())
         self.assertNotIn('aggs_list', res)
