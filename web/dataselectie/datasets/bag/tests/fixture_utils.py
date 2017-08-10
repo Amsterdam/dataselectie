@@ -360,21 +360,22 @@ def create_verblijfsobject_fixtures():
                                                      _huisnummer_toevoeging="2",
                                                      buurt_id="6",
                                                      geometrie=Point(100, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543291",
-                                                     landelijk_id="0363010000543291",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=32,
-                                                     bouwlaag_toegang=1,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
-                                                     _huisnummer=3,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="1",
-                                                     buurt_id="7",
-                                                     geometrie=Point(30, 20))]
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543291",
+            landelijk_id="0363010000543291",
+            gebruiksdoel_code="1010",
+            gebruiksdoel_omschrijving="BEST-woning",
+            oppervlakte=32,
+            bouwlaag_toegang=1,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
+            _huisnummer=3,
+            _huisletter='',
+            _huisnummer_toevoeging="1",
+            buurt_id="7",
+            geometrie=Point(30, 20))]
 
 
 def create_ligplaats_fixtures():

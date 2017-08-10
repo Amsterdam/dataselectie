@@ -1,5 +1,4 @@
 # Python
-from rapidjson import loads
 from urllib.parse import urlencode
 
 # Packages
@@ -27,13 +26,20 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--recreate', verbosity=0,
-                     interactive=False)
-        call_command('elastic_indices', '--build', verbosity=0,
-                     interactive=False)
-        es.cluster.health(wait_for_status='yellow',
-                          wait_for_active_shards=0,
-                          timeout="320s")
+
+        call_command(
+            'elastic_indices', '--recreate', verbosity=0,
+            interactive=False
+        )
+
+        call_command(
+            'elastic_indices', '--build', verbosity=0,
+            interactive=False)
+
+        es.cluster.health(
+            wait_for_status='yellow',
+            wait_for_active_shards=0,
+            timeout="320s")
 
 
 class DataselectieApiTest(ESTestCase, AuthorizationSetup):
@@ -65,7 +71,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(len(res['object_list']), 5)
         self.assertEqual(res['page_count'], 1)
         self.assertIn('aggs_list', res)
@@ -75,21 +81,25 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         testcats = {
             'cultuur, sport, recreatie': 1,
             "productie, installatie, reparatie": 1,
-            'handel, vervoer, opslag': 1,
+            'handel, vervoer, opslag': 3,
             'bouw': 1,
-            'zakelijke dienstverlening': 1
+            'zakelijke dienstverlening': 3,
+            'informatie, telecommunicatie': 1,
+            'overige niet hierboven genoemd': 1,
         }
 
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
 
         self.assertEqual(len(res['aggs_list']['hoofdcategorie']['buckets']), 7)
 
-        hoofdcategorieen = [(k['key'], k['doc_count'])
-                            for k in
-                            res['aggs_list']['hoofdcategorie']['buckets']]
+        hoofdcategorieen = [
+            (k['key'], k['doc_count'])
+            for k in
+            res['aggs_list']['hoofdcategorie']['buckets']
+        ]
 
         for cat, count in hoofdcategorieen:
-            self.assertEqual(testcats[cat], count)
+            self.assertEqual(testcats[cat], count, cat)
 
         self.assertIn('subcategorie', res['aggs_list'])
         self.assertIn('buurt_naam', res['aggs_list'])
@@ -108,7 +118,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(len(res['object_list']), 0)
 
     def test_get_dataselectie_hr_sbi_code(self):
@@ -122,10 +132,10 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
-        self.assertIn('85314', res['object_list'][0]['sbi_code'])
+        self.assertIn('35111', res['object_list'][0]['sbi_code'])
         self.assertEqual(res['page_count'], 1)
 
     def test_get_dataselectie_hr_sbi_code2(self):
@@ -140,7 +150,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(
             res['object_list'][0]['sbi_code'],
@@ -158,7 +168,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             HR_BASE_QUERY.format(urlencode(q)),
             **self.header_auth_employee)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(
@@ -175,7 +185,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(
@@ -192,7 +202,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
         # self.check_in(res['object_list'], 'vestiging_id',
@@ -209,7 +219,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         response = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
                                    **self.header_auth_employee)
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
         self.assertEqual(res['page_count'], 1)
@@ -219,33 +229,41 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         """
         Test elastic querying on field in parent
         """
-        q = {'page': 1, 'stadsdeel_naam': 'Centrum',
-             'handelsnaam': 'Mundus College'}
+        q = {
+            'page': 1, 'stadsdeel_naam': 'Centrum',
+            'handelsnaam': 'Funky Solutions',
+        }
 
         response = self.client.get(
             HR_BASE_QUERY.format(urlencode(q)),
             **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
-
+        res = response.json()
         self.assertEqual(len(res['object_list']), 1)
-        self.assertEqual(res['object_list'][0]['sbi_code'], ['35111'])
+
+        self.assertEqual(
+            res['object_list'][0]['sbi_code'],
+            ['47544', '6201', '74201'],
+            'sbi codes should match'
+        )
+
         self.assertEqual(res['page_count'], 1)
 
-        q = {'page': 1,
-             'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)',
-             'postcode': '1081AB'}
-
-        response = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
-                                   **self.header_auth_employee)
+    def test_get_dataselectie_parent2(self):
+        q = {
+            'page': 1,
+            'postcode': '1075EC'  # Rietveld fixture
+        }
+        response = self.client.get(
+            HR_BASE_QUERY.format(urlencode(q)),
+            **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
-        # self.assertEqual(res['object_list'][0]['vestiging_id'], '000000000809')
-        self.assertEqual(res['object_list'][0]['sbi_code'], ['4639'])
+        self.assertEqual(res['object_list'][0]['sbi_code'], ['46471'])
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 1)
 
@@ -259,7 +277,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(
             res['object_count'], 5)
         self.assertNotIn('aggs_list', res)
@@ -274,14 +292,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         Test querying on geolocation
         """
         q = {
-            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}  # noqa
 
         response = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
                                    **self.header_auth_employee)
 
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(res['object_count'], 1)
 
     def test_get_dataselectiehr_geolocation2(self):
@@ -289,7 +307,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         Test elastic for returning only geolocation
         """
         q = {
-            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}
+            'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}   # noqa
 
         response = self.client.get(HR_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_employee)
@@ -297,7 +315,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         # assert that response status is 200
         self.assertEqual(response.status_code, 200)
 
-        res = loads(response.content.decode('utf-8'))
+        res = response.json()
         self.assertEqual(
             res['object_count'], 1)
         self.assertNotIn('aggs_list', res)
@@ -306,12 +324,12 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
     def test_hr_hides_afgeschermd(self):
         q = {'page': 1, 'handelsnaam': 'Armada Producties'}
 
-        res = self.client.get(
+        response = self.client.get(
             HR_BASE_QUERY.format(urlencode(q)),
             **self.header_auth_employee)
 
-        self.assertEquals(res.status_code, 200)
-        res_json = loads(res.content.decode('utf-8'))
+        self.assertEquals(response.status_code, 200)
+        res_json = response.json()
         self.assertEquals(res_json['object_count'], 1)
         self.assertEquals(
             res_json['object_list'][0]['postadres_afgeschermd'], True)
@@ -325,7 +343,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         #                      **self.header_auth_default)
 
         #self.assertEquals(res.status_code, 200)
-        #res_json = loads(res.content.decode('utf-8'))
+        #res_json = res.json()
         #self.assertEquals(res_json['object_count'], 1)
 
         #self.assertIn('handelsnaam', res_json['object_list'][0])
@@ -335,7 +353,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         # publiek request ziet alleen handelsnaam en sbi codes
         #res = self.client.get(HR_BASE_QUERY.format(urlencode(q)))
         #self.assertEquals(res.status_code, 200)
-        #res_json = loads(res.content.decode('utf-8'))
+        #res_json = res.json()
         #self.assertEquals(res_json['object_count'], 1)
 
         #self.assertIn('handelsnaam', res_json['object_list'][0])
@@ -343,13 +361,13 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         #self.assertIn('subcategorie', res_json['object_list'][0])
 
     def test_hr_hides_nonmailing(self):
-        q = {'page': 1, 'handelsnaam': 'Monique Brouns'}
+        q = {'page': 1, 'handelsnaam': 'Rietveld by Rietveld B.V.'}
 
         res = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
                               **self.header_auth_employee)
 
         self.assertEquals(res.status_code, 200)
-        res_json = loads(res.content.decode('utf-8'))
+        res_json = res.json()
         self.assertEquals(res_json['object_count'], 1)
         self.assertEquals(
             res_json['object_list'][0]['postadres_afgeschermd'], False)

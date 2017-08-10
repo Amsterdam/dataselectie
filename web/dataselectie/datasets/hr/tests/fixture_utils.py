@@ -248,7 +248,7 @@ JSON = [
             }
         ],
         "bezoekadres": {
-            "afgeschermd": True,
+            "afgeschermd": False,
             "bag_adresseerbaar_object": "https://api.data.amsterdam.nl/bag/verblijfsobject/0363010001171756/",
             "bag_numid": "0363200000542161",
             "bag_nummeraanduiding": "https://api.data.amsterdam.nl/bag/nummeraanduiding/0363200000542161/",
@@ -737,7 +737,7 @@ JSON = [
             "updated_at": None,
             "volledig_adres": "Koninginneweg 136 H 1075EC Amsterdam"
         },
-        "handelsnamen": [],
+        "handelsnamen": ['Rietveld'],
         "hoofdvestiging": True,
         "maatschappelijke_activiteit": {
             "datum_aanvang": "2005-09-14",
@@ -750,7 +750,7 @@ JSON = [
             "eigenaar_mks_id": None,
             "kvk_nummer": "09143737",
             "naam": "Rietveld by Rietveld B.V.",
-            "non_mailing": False
+            "non_mailing": True
         },
         "naam": "Rietveld by Rietveld B.V.",
         "postadres": {
