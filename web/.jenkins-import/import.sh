@@ -11,6 +11,8 @@ dc() {
 
 trap 'dc kill ; dc rm -f' EXIT
 
+dc pull
+
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
 
