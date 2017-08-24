@@ -75,7 +75,13 @@ class CreateDocTypeTask(object):
 
 class ImportIndexTask(object):
     queryset = None
-    batch_size = 10000
+
+    client = elasticsearch.Elasticsearch(
+        hosts=settings.ELASTIC_SEARCH_HOSTS,
+        # sniff_on_start=True,
+        retry_on_timeout=True,
+        refresh=True
+    )
 
     def get_queryset(self):
         return self.queryset.order_by('id')
@@ -103,10 +109,10 @@ class ImportIndexTask(object):
         numerator = settings.PARTIAL_IMPORT['numerator']
         denominator = settings.PARTIAL_IMPORT['denominator']
 
-        log.info("PART: %s OF %s" % (numerator + 1, denominator))
+        log.info("PART: %s OF %s", numerator + 1, denominator)
 
         end_part = count = total = qs.count()
-        chunk_size = batch_size
+        chunk_size = total
 
         start_index = 0
 
@@ -119,9 +125,9 @@ class ImportIndexTask(object):
                 end_part = (numerator + 1) * chunk_size
             total = end_part - start_index
 
-        log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')
+        log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')  # noqa
         # total batches in this (partial) bacth job
-        total_batches = int(chunk_size / batch_size)
+        total_batches = chunk_size / batch_size
         for i, start in enumerate(range(start_index, end_part, batch_size)):
             end = min(start + batch_size, end_part)
             yield (i + 1, total_batches + 1, start, end, total, qs[start: end])
@@ -130,39 +136,36 @@ class ImportIndexTask(object):
         """
         Index data of specified queryset
         """
-        client = elasticsearch.Elasticsearch(
-            hosts=settings.ELASTIC_SEARCH_HOSTS,
-            # sniff_on_start=True,
-            retry_on_timeout=True,
-            refresh=True
-        )
-
         start_time = time.time()
-        duration = time.time()
-        loop_time = elapsed = duration - start_time
+        loop_time = elapsed = time.time() - start_time
+        loop_times = [1]
 
         for batch_i, total_batches, start, end, total, qs in self.batch_qs():
 
             loop_start = time.time()
-            total_left = ((total_batches - batch_i) * loop_time) + 1 / 60
+            avg_loop_time = sum(loop_times) / float(len(loop_times))
+            total_left = ((total_batches - batch_i) * avg_loop_time) + 1 / 60
 
             progres_msg = \
-                '%s of %s : %8s %8s %8s duration: %.2f left: %.2f' % (
+                '%s of %.1f : %8s %8s %8s duration: %.2f left: %.2f batchtime %.2f' % (    # noqa
                     batch_i, total_batches, start, end, total, elapsed,
-                    total_left
+                    total_left, avg_loop_time
                 )
 
             log.info(progres_msg)
 
             helpers.bulk(
-                client,
+                self.client,
                 (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
                 refresh=True
             )
 
-            now = time.time()
-            elapsed = now - start_time
-            loop_time = now - loop_start
+            elapsed = time.time() - start_time
+            loop_time = time.time() - loop_start
+            loop_times.append(loop_time)
+
+            if len(loop_times) > 15:
+                loop_times.pop(0)
 
         batch.statistics.report()

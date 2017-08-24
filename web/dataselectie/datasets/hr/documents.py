@@ -74,10 +74,16 @@ def flatten_sbi(activiteit):
     """
     This is a fill gap until HR will create flat sbi codes
     """
+    error = None
 
-    sbi_code_tree = activiteit['sbi_code_tree']
+    sbi_code_tree = activiteit.get('sbi_code_tree', {})
 
-    qa_tree = sbi_code_tree.get('qa_tree', {})
+    if not sbi_code_tree:
+        error = "missing sbi information"
+        qa_tree = {}
+        sbi_code_tree = {}
+    else:
+        qa_tree = sbi_code_tree.get('qa_tree', {}) or {}
 
     return {
         'sbi_code': activiteit.get('sbi_code', ''),
@@ -86,9 +92,9 @@ def flatten_sbi(activiteit):
         'sbi_tree': sbi_code_tree.get('sbi_tree', ''),
         'title': sbi_code_tree.get('title', ''),
 
-        'hoofdcategorie': qa_tree['q1'],
-        'subcategorie': qa_tree['q2'],
-    }
+        'hoofdcategorie': qa_tree.get('q1', ''),
+        'subcategorie': qa_tree.get('q2', ''),
+    }, error
 
 
 def add_bag_info(doc, item):
@@ -200,7 +206,17 @@ def vestiging_from_hrdataselectie(
 
     for activiteit in data['activiteiten']:
         # Flattening the sbi information
-        activiteit = flatten_sbi(activiteit)
+        activiteit, error = flatten_sbi(activiteit)
+
+        if error:
+            log.error("""
+
+            No sbi information for activiteit:
+            %s
+            %s
+            %s
+
+                """, doc.handelsnaam, activiteit, doc.vestiging_id)
 
         for key, items in codes.items():
             items.append(activiteit.get(key, ''))

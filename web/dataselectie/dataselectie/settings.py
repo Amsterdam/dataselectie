@@ -11,14 +11,11 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import datetime
-import re
 import sys
 
 import os
-from typing import List
 
-from dataselectie.utils import in_docker, get_docker_host, get_db_settings, \
-    get_db_variable, get_variable
+from dataselectie.utils import get_db_settings, get_variable
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +29,7 @@ SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
 
 DEBUG = SECRET_KEY == insecure_key
 
-ALLOWED_HOSTS = ['*']  # type: List[str]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -76,15 +73,20 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
-DS_DATASELECTIE = get_db_settings(db='dataselectie',
-                                  docker_host='database_dataselectie',
-                                  localport='5435')
-DS_ATLAS = get_db_settings(db='atlas',
-                           docker_host='database_BAG',
-                           localport='5436')
-DS_HR = get_db_settings(db='handelsregister',
-                        docker_host='database_HR',
-                        localport='5406')
+DS_DATASELECTIE = get_db_settings(
+    db='dataselectie',
+    docker_host='database_dataselectie',
+    localport='5435')
+
+DS_ATLAS = get_db_settings(
+    db='atlas',
+    docker_host='database_BAG',
+    localport='5436')
+
+DS_HR = get_db_settings(
+    db='handelsregister',
+    docker_host='database_HR',
+    localport='5406')
 
 DATABASES = {
     'default': {
@@ -219,21 +221,12 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
-]
-
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
     'JWT_DECODE_HANDLER': 'rest_framework_jwt.utils.jwt_decode_handler',
     'JWT_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_payload_handler',
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',  # noqa
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',             # noqa
     'JWT_SECRET_KEY': os.getenv('JWT_SHARED_SECRET_KEY', 'some_shared_secret'),
     'JWT_ALGORITHM': 'HS256',
     'JWT_VERIFY': True,
