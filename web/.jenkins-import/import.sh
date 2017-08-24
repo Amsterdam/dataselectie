@@ -23,7 +23,7 @@ dc up -d database_BAG database_HR
 sleep 14 # waiting for postgres to start
 
 dc exec -T database_BAG update-db.sh atlas
-dc exec -T database_HR update-db.sh handelsregister
+dc exec -T database_HR update-table.sh handelsregister hr_dataselectie public handelsregister
 
 dc run --rm importer
 
