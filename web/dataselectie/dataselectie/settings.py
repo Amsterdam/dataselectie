@@ -120,6 +120,9 @@ DATABASES = {
     }
 }
 
+LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
+LOGSTASH_PORT = os.getenv('LOGSTASH_GELF_UDP_PORT', '12201')
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
@@ -132,12 +135,21 @@ LOGGING = {
             'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         },
     },
+
     'handlers': {
         'console': {
             'level': 'INFO',
             'class': 'logging.StreamHandler',
             'formatter': 'console',
         },
+
+        'graypy': {
+            'level': 'ERROR',
+            'class': 'graypy.GELFHandler',
+            'host': LOGSTASH_HOST,
+            'port': LOGSTASH_PORT,
+        },
+
     },
 
     'root': {
@@ -153,6 +165,12 @@ LOGGING = {
             'propagate': False,
         },
 
+        'django.request': {
+            'handlers': ['graypy', 'console'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+
         'search': {
             'handlers': ['console'],
             'level': 'ERROR',
@@ -166,13 +184,6 @@ LOGGING = {
         },
 
         'urllib3.connectionpool': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-        # Log all unhandled exceptions
-        'django.request': {
             'handlers': ['console'],
             'level': 'ERROR',
             'propagate': False,

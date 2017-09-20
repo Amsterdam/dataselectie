@@ -3,8 +3,10 @@ from django.contrib.gis.geos import GEOSGeometry
 
 from datasets.bag import models
 from datasets.bag.queries import meta_q
-from datasets.generic.views_mixins import CSVExportView, GeoLocationSearchView, \
-    TableSearchView
+
+from datasets.generic.views_mixins import CSVExportView
+from datasets.generic.views_mixins import GeoLocationSearchView
+from datasets.generic.views_mixins import TableSearchView
 
 
 def create_geometry_dict(item):
@@ -19,8 +21,9 @@ def create_geometry_dict(item):
     try:
         geom_wgs = GEOSGeometry(
             f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
-    except AttributeError:
+    except(AttributeError, KeyError):
         geom_wgs = None
+
     if geom_wgs:
         # Convert to wgs
         geom = geom_wgs.transform(28992, clone=True).coords

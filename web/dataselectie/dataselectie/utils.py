@@ -2,9 +2,10 @@
 import re
 
 import os
+from typing import Dict
+
 from django.apps import apps
 from django.test.runner import DiscoverRunner
-from typing import Dict
 
 
 class ManagedModelTestRunner(DiscoverRunner):
@@ -81,8 +82,9 @@ def get_db_variable(db: str, varname: str, docker_default: str,
     :param sa_default: The default value (Running standalone)
     :return: The applicable value of the requested variable
     """
-    return get_variable(f"{db}_DB_{varname}_OVERRIDE".upper(),
-                        docker_default, sa_default)
+    return get_variable(
+        f"{db}_DB_{varname}_OVERRIDE".upper(),
+        docker_default, sa_default)
 
 
 def get_variable(varname, docker_default: str, sa_default: str = None):
