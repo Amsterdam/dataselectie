@@ -166,13 +166,13 @@ LOGGING = {
         },
 
         'django.request': {
-            'handlers': ['graypy', 'console'],
+            'handlers': ['graypy'],
             'level': 'ERROR',
             'propagate': True,
         },
 
         'search': {
-            'handlers': ['console'],
+            'handlers': ['console', 'graypy'],
             'level': 'ERROR',
             'propagate': False,
         },
