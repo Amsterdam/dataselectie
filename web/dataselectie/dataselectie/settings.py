@@ -149,12 +149,11 @@ LOGGING = {
             'host': LOGSTASH_HOST,
             'port': LOGSTASH_PORT,
         },
-
     },
 
     'root': {
         'level': 'INFO',
-        'handlers': ['console'],
+        'handlers': ['console', 'graypy'],
     },
 
     'loggers': {
@@ -165,14 +164,8 @@ LOGGING = {
             'propagate': False,
         },
 
-        'django.request': {
-            'handlers': ['graypy'],
-            'level': 'ERROR',
-            'propagate': True,
-        },
-
         'search': {
-            'handlers': ['console', 'graypy'],
+            'handlers': ['console'],
             'level': 'ERROR',
             'propagate': False,
         },
