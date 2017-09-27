@@ -46,10 +46,19 @@ INSTALLED_APPS = [
     'datasets.bag'
 ]
 
-MIDDLEWARE = (
+# set to True for local development.
+LOCAL = False
+CORS_ORIGIN_ALLOW_ALL = True
+
+MIDDLEWARE = [
     'authorization_django.authorization_middleware',
     'django.middleware.common.CommonMiddleware',
-)
+]
+
+if LOCAL:
+    INSTALLED_APPS += ('corsheaders',)
+    MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
+
 
 ROOT_URLCONF = 'dataselectie.urls'
 
