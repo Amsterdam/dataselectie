@@ -31,7 +31,7 @@ Lokale setup voor dataselectie
 
 ```
 $ docker-compose up -d
-$ docker-compose exec database_BAG update-db.sh atlas
+$ docker-compose exec database_BAG update-db.sh bag
 $ docker-compose exec database_HR update-db.sh handelsregister
 $ docker-compose exec database_dataselectie update-db.sh dataselectie
 $ docker-compose exec dataselectie python manage.py migrate
