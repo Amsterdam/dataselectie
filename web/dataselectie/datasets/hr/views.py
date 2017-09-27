@@ -3,8 +3,11 @@
 
 from authorization_django import levels as authorization_levels
 
-from datasets.generic.views_mixins import CSVExportView, \
-    GeoLocationSearchView, TableSearchView, stringify_item_value
+from datasets.generic.views_mixins import CSVExportView
+from datasets.generic.views_mixins import GeoLocationSearchView
+from datasets.generic.views_mixins import TableSearchView
+from datasets.generic.views_mixins import stringify_item_value
+
 from datasets.hr.queries import meta_q
 
 
@@ -115,6 +118,7 @@ class HrCSV(HrBase, CSVExportView):
 
     fields_and_headers = (
         ('kvk_nummer', 'KvK-nummer'),
+        ('vestiging_id', 'Vestigings Nummer'),
         ('handelsnaam', 'Eerste handelsnaam'),
         ('non_mailing', 'Indicatie non-mailing'),
         ('bezoekadres_volledig_adres', 'Bezoekadres (KvK HR)'),

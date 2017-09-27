@@ -28,7 +28,7 @@ def stringify_item_value(value) -> str:
     - Datetime and Dates are converted to EU norm dates
 
     Important!
-    If no conversion van be found the same value is returned
+    If NO conversion can be found the same value is returned
     This may, or may not break the jsoning of the object list
 
     @Parameter:
@@ -383,7 +383,7 @@ class CSVExportView(TableSearchView):
     """
     # This is not relevant for csv export
     preview_size = None
-    # The headers of the csv
+    # The fields we use in the csv
     field_names = []
     # The pretty version of the headers
     csv_headers = []
@@ -425,6 +425,7 @@ class CSVExportView(TableSearchView):
         write_buffer = io.StringIO()  # The buffer to stream to
         writer = csv.DictWriter(write_buffer, self.field_names, delimiter=';')
         more = True  # More results flag
+
         header_dict = {}  # A dict for the CSV headers
         for i in range(len(self.field_names)):
             header_dict[self.field_names[i]] = self.csv_headers[i]
@@ -462,10 +463,11 @@ class CSVExportView(TableSearchView):
                 if item_count == batch_size:
                     break
 
-            # Yielding results
-            yield read_and_empty_buffer()
             # Stop the run, if end is reached
             more = item_count >= batch_size
+
+        # Yielding (batch size) results
+        yield read_and_empty_buffer()
 
     def sanitize_fields(self, item, field_names):
         pass
