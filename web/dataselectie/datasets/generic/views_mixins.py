@@ -418,7 +418,7 @@ class CSVExportView(TableSearchView):
                     index=settings.ELASTIC_INDICES[self.index])
 
     # TODO type es_generator
-    def result_generator(self, request, es_generator, batch_size: int = 100):
+    def result_generator(self, request, es_generator, batch_size: int = 900):
         """
         Generate the result set for the CSV eport
         """
