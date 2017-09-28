@@ -114,13 +114,18 @@ def get_db_settings(db: str, docker_host: str,
              'username', 'password', 'host', 'port' and 'db'
     """
     return {
-        'username': get_db_variable(db=db, varname='user', docker_default=db),
-        'password': get_db_variable(db=db, varname='password',
-                                    docker_default='insecure'),
-        'host': get_db_variable(db=db, varname='host',
-                                docker_default=docker_host,
-                                sa_default='localhost'),
-        'port': get_db_variable(db=db, varname='port', docker_default='5432',
-                                sa_default=localport),
-        'db': get_db_variable(db=db, varname='database', docker_default=db)
+        'username': get_db_variable(
+            db=db, varname='user', docker_default=db),
+        'password': get_db_variable(
+            db=db, varname='password',
+            docker_default='insecure'),
+        'host': get_db_variable(
+            db=db, varname='host',
+            docker_default=docker_host,
+            sa_default='localhost'),
+        'port': get_db_variable(
+            db=db, varname='port', docker_default='5432',
+            sa_default=localport),
+        'db': get_db_variable(
+            db=db, varname='database', docker_default=db)
     }
