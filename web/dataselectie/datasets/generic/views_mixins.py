@@ -463,6 +463,8 @@ class CSVExportView(TableSearchView):
                 if item_count == batch_size:
                     break
 
+            yield read_and_empty_buffer()
+
             # Stop the run, if end is reached
             more = item_count >= batch_size
 
