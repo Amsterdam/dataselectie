@@ -18,7 +18,7 @@ do
 done
 
 # wait for postgres dataselectie
-while ! nc -z database_dataselectie 5432
+while ! nc -z database 5432
 do
 	echo "Waiting for postgres..."
 	sleep 2

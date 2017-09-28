@@ -84,18 +84,13 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 DS_DATASELECTIE = get_db_settings(
     db='dataselectie',
-    docker_host='database_dataselectie',
+    docker_host='database',
     localport='5435')
 
-DS_ATLAS = get_db_settings(
+DS_BAG = get_db_settings(
     db='atlas',
     docker_host='database_BAG',
     localport='5436')
-
-DS_HR = get_db_settings(
-    db='handelsregister',
-    docker_host='database_HR',
-    localport='5406')
 
 DATABASES = {
     'default': {
@@ -110,23 +105,13 @@ DATABASES = {
 
     'bag': {
         'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_ATLAS['db'],
-        'USER': DS_ATLAS['username'],
-        'PASSWORD': DS_ATLAS['password'],
-        'HOST': DS_ATLAS['host'],
-        'PORT': DS_ATLAS['port'],
+        'NAME': DS_BAG['db'],
+        'USER': DS_BAG['username'],
+        'PASSWORD': DS_BAG['password'],
+        'HOST': DS_BAG['host'],
+        'PORT': DS_BAG['port'],
         'CONN_MAX_AGE': 60,
     },
-
-    'hr': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_HR['db'],
-        'USER': DS_HR['username'],
-        'PASSWORD': DS_HR['password'],
-        'HOST': DS_HR['host'],
-        'PORT': DS_HR['port'],
-        'CONN_MAX_AGE': 60,
-    }
 }
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')

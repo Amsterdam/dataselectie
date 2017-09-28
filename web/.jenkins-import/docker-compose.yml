@@ -7,7 +7,7 @@ services:
       user: root
       command: /usr/share/elasticsearch/bin/elasticsearch -Des.insecure.allow.root=true -Des.network.host=0.0.0.0 -Des.path.repo=/tmp
 
-  database_dataselectie:
+  database:
       image: build.datapunt.amsterdam.nl:5000/atlas/postgres
       environment:
           POSTGRES_USER: dataselectie
@@ -21,20 +21,12 @@ services:
           POSTGRES_DB: atlas
           POSTGRES_PASSWORD: insecure
 
-  database_HR:
-      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-      environment:
-          POSTGRES_USER: handelsregister
-          POSTGRES_DB: handelsregister
-          POSTGRES_PASSWORD: insecure
-
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
-      - database_dataselectie:database_dataselectie
+      - database:database
       - database_BAG:database_BAG
-      - database_HR:database_HR
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:
@@ -47,9 +39,8 @@ services:
     image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
-      - database_dataselectie:database_dataselectie
+      - database:database
       - database_BAG:database_BAG
-      - database_HR:database_HR
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:
@@ -61,9 +52,8 @@ services:
     image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
-      - database_dataselectie:database_dataselectie
+      - database:database
       - database_BAG:database_BAG
-      - database_HR:database_HR
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:
@@ -75,9 +65,8 @@ services:
     image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
-      - database_dataselectie:database_dataselectie
+      - database:database
       - database_BAG:database_BAG
-      - database_HR:database_HR
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:
