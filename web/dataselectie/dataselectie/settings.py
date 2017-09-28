@@ -37,7 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
-    # dataselectie
+    #'django_extensions',
+    'dataselectie',
     'batch',
     'api',
 
