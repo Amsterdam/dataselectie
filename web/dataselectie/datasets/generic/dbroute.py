@@ -10,7 +10,7 @@ class DatasetsRouter(object):
     example: bag dataset with BAG database settings
     """
 
-    datasets = ('bag', 'hr', 'dataselectie')  # A list of available datasets
+    datasets = ('bag')  # A list of available datasets
 
     def _model_in_datasets(self, app):
         """

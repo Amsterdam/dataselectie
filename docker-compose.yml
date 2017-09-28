@@ -7,7 +7,7 @@ services:
           - "9200:9200"
           - "9300:9300"
 
-  database_dataselectie:
+  database:
       image: build.datapunt.amsterdam.nl:5000/atlas/postgres
       ports:
           - "5435:5432"
@@ -25,21 +25,11 @@ services:
           POSTGRES_DB: atlas
           POSTGRES_PASSWORD: insecure
 
-  database_HR:
-      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-      ports:
-          - "5406:5432"
-      environment:
-          POSTGRES_USER: handelsregister
-          POSTGRES_DB: handelsregister
-          POSTGRES_PASSWORD: insecure
-
   dataselectie:
       build: ./web
       links:
           - elasticsearch
-          - database_dataselectie
+          - database
           - database_BAG
-          - database_HR
       ports:
           - "8100:8000"

@@ -34,7 +34,7 @@ class ManageView(Operation):
         return history[-1]
 
     def database_forwards(self, app_label, schema_editor, from_state, to_state):
-        if app_label == schema_editor.connection.alias == 'hr':
+        if app_label == 'hr':
             schema_editor.execute("DROP VIEW IF EXISTS {}".format(self.view_name))
             schema_editor.execute("CREATE VIEW {} AS {}".format(self.view_name, self.sql))
 

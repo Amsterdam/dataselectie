@@ -21,7 +21,7 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.unmanaged_models = []
 
     def setup_test_environment(self, *args, **kwargs):
-        datasets = ['bag', 'hr']  # update when new datasets are introdiced
+        datasets = ['bag']  # update when new datasets are introdiced
         for dataset in datasets:
             self.unmanaged_models.extend(
                 [model for _, model in apps.all_models[dataset].items() if
