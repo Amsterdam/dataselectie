@@ -271,7 +271,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     # request parameters
     request_parameters = None
 
-    preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
+    preview_size = settings.DOWNLOAD_BATCH  # type int
 
     def __init__(self):
         super(View, self).__init__()
@@ -418,10 +418,12 @@ class CSVExportView(TableSearchView):
                     index=settings.ELASTIC_INDICES[self.index])
 
     # TODO type es_generator
-    def result_generator(self, request, es_generator, batch_size: int = 900):
+    def result_generator(self, request, es_generator):
         """
         Generate the result set for the CSV eport
         """
+        batch_size = settings.DOWNLOAD_BATCH
+
         write_buffer = io.StringIO()  # The buffer to stream to
         writer = csv.DictWriter(write_buffer, self.field_names, delimiter=';')
         more = True  # More results flag

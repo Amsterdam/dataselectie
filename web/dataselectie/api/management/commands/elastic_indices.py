@@ -94,6 +94,7 @@ def set_partial_config(options):
         denominator = int(denominator)
 
         assert (numerator < denominator)
+        assert (numerator >= 0)
 
         settings.PARTIAL_IMPORT['numerator'] = numerator
         settings.PARTIAL_IMPORT['denominator'] = denominator

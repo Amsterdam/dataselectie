@@ -6,3 +6,4 @@ django-jenkins==0.18.1
 factory-boy
 datapunt-authorization-django
 datapunt-authorization-levels
+corsheaders

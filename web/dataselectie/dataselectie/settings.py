@@ -196,6 +196,7 @@ MIN_HR_NR = 1000
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
+DOWNLOAD_BATCH = 500
 AGGS_VALUE_SIZE = 100
 
 # Batch processing
