@@ -6,13 +6,14 @@ import json
 import logging
 from datetime import date, datetime
 
+from typing import Generator
+
 from django.conf import settings
 from django.http import HttpResponse, StreamingHttpResponse
 from django.views.generic import View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
 from pytz import timezone
-from typing import Generator
 
 log = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def stringify_item_value(value) -> str:
     """
     if isinstance(value, str):
         return value
-    elif isinstance(value, date) or isinstance(value, datetime):
+    elif isinstance(value, (date, datetime)):
         return value.strftime('%d-%m-%Y')
     elif isinstance(value, list):
         return ' | '.join([stringify_item_value(val) for val in value])
@@ -119,7 +120,7 @@ class ElasticSearchMixin(object):
     request = None
 
     def elastic_query(self, query):
-        raise NotImplemented
+        raise NotImplementedError
 
     def handle_query_size_offset(self, query: dict) -> dict:
         """
@@ -149,6 +150,17 @@ class ElasticSearchMixin(object):
         # Retrieving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 
+        self._add_keyword_filters(request_parameters, filters)
+        self._add_geo_filters(request_parameters, filters)
+
+        if filters:
+            query['query']['bool']['filter'] = filters
+
+        return self.handle_query_size_offset(query)
+
+    def _add_keyword_filters(self, request_parameters, filters):
+        """add keyword filters"""
+
         # Checking for known keyword filters
         for filter_keyword in self.keywords:
             val = request_parameters.get(filter_keyword, None)
@@ -158,26 +170,27 @@ class ElasticSearchMixin(object):
                 filters.append(
                     {'term': self.get_term_and_value(filter_keyword, val)})
 
-        # Adding geo filters
+    def _add_geo_filters(self, request_parameters, filters):
+        """ Adding geo filters """
+
+        def stringyfy(val):
+            """Checking if val needs to be converted from string"""
+            if isinstance(val, str):
+                try:
+                    val = json.loads(val)
+                except ValueError:
+                    # Bad formatted json.
+                    val = []
+            return val
+
         for term, geo_type in self.geo_fields.items():
             val = request_parameters.get(term, None)
             if val is not None:
-                # Checking if val needs to be converted from string
-                if isinstance(val, str):
-                    try:
-                        val = json.loads(val)
-                    except ValueError:
-                        # Bad formatted json.
-                        val = []
+                val = stringyfy(val)
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
                     filters.append(
                         {geo_type[1]: {geo_type[0]: {'points': val}}})
-
-        if filters:
-            query['query']['bool']['filter'] = filters
-
-        return self.handle_query_size_offset(query)
 
     def load_from_elastic(self):
         """
@@ -271,7 +284,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     # request parameters
     request_parameters = None
 
-    preview_size = settings.DOWNLOAD_BATCH  # type int
+    preview_size = settings.SEARCH_PREVIEW_SIZE  # type int
 
     def __init__(self):
         super(View, self).__init__()
@@ -388,14 +401,14 @@ class CSVExportView(TableSearchView):
     # The pretty version of the headers
     csv_headers = []
 
-    def item_data_update(self, item, request):
+    def item_data_update(self, item, _request):
         """
         Allow for subclasses to add custom fields to the item before it is
         strigified for export
         """
         return item
 
-    def is_authorized(self, request):
+    def is_authorized(self, _request):
         """
         Allow for authorization checks..
         """
@@ -412,12 +425,12 @@ class CSVExportView(TableSearchView):
         query = self.add_elastic_filters(q)
         # Making sure there is no pagination
         if query is not None and 'from' in query:
-            del (query['from'])
+            del query['from']
         # Returning the elastic generator
-        return scan(self.elastic, query=query,
-                    index=settings.ELASTIC_INDICES[self.index])
+        return scan(
+            self.elastic, query=query,
+            index=settings.ELASTIC_INDICES[self.index])
 
-    # TODO type es_generator
     def result_generator(self, request, es_generator):
         """
         Generate the result set for the CSV eport

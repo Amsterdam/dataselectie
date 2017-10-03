@@ -196,8 +196,8 @@ MIN_HR_NR = 1000
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
-DOWNLOAD_BATCH = 500
 AGGS_VALUE_SIZE = 100
+DOWNLOAD_BATCH = 900
 
 # Batch processing
 BATCH_SETTINGS = {
@@ -208,6 +208,7 @@ PARTIAL_IMPORT = {
     'numerator': 0,
     'denominator': 1,
 }
+
 # Password validation
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
