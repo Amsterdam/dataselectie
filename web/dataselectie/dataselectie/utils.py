@@ -100,8 +100,9 @@ def get_variable(varname, docker_default: str, sa_default: str = None):
     return os.getenv(varname, docker_default if in_docker() else sa_default)
 
 
-def get_db_settings(db: str, docker_host: str,
-                    localport: str) -> Dict[str, str]:
+def get_db_settings(
+        db: str, docker_host: str,
+        localport: str, user: str = '') -> Dict[str, str]:
     """
     Get the complete settings for a given database. Taking all possible
     environments into account.
@@ -113,9 +114,13 @@ def get_db_settings(db: str, docker_host: str,
     :return: A dict containing all settings:
              'username', 'password', 'host', 'port' and 'db'
     """
+
+    if not user:
+        user = db
+
     return {
         'username': get_db_variable(
-            db=db, varname='user', docker_default=db),
+            db=db, varname='user', docker_default=user),
         'password': get_db_variable(
             db=db, varname='password',
             docker_default='insecure'),

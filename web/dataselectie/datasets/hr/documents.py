@@ -14,60 +14,73 @@ class Vestiging(es.DocType):
     """
     Elastic data for vestigingen of handelsregister
     """
-    vestiging_id = es.String(index='not_analyzed')
-    kvk_nummer = es.String(index='not_analyzed')
-    handelsnaam = es.String(index='not_analyzed')
+    vestiging_id = es.Keyword(index='not_analyzed')
+    kvk_nummer = es.Keyword(index='not_analyzed')
+    handelsnaam = es.Keyword(index='not_analyzed')
     datum_aanvang = es.Date()
     datum_einde = es.Date()
-    eigenaar_naam = es.String(index='not_analyzed')
-    eigenaar_id = es.String(index='not_analyzed')
+    eigenaar_naam = es.Keyword(index='not_analyzed')
+    eigenaar_id = es.Keyword(index='not_analyzed')
     non_mailing = es.Boolean()
 
     # Address information
-    bezoekadres_volledig_adres = es.String(index='not_analyzed')
+    bezoekadres_volledig_adres = es.Keyword(index='not_analyzed')
     bezoekadres_correctie = es.Boolean()
     bezoekadres_afgeschermd = es.Boolean()
-    bezoekadres_openbare_ruimte = es.String(index='not_analyzed')
+    bezoekadres_openbare_ruimte = es.Keyword(index='not_analyzed')
     bezoekadres_huisnummer = es.Integer(index='not_analyzed')
-    bezoekadres_huisletter = es.String(index='not_analyzed')
-    bezoekadres_huisnummertoevoeging = es.String(index='not_analyzed')
-    bezoekadres_postcode = es.String(index='not_analyzed')
-    bezoekadres_plaats = es.String(index='not_analyzed')
+    bezoekadres_huisletter = es.Keyword(index='not_analyzed')
+    bezoekadres_huisnummertoevoeging = es.Keyword(index='not_analyzed')
+    bezoekadres_postcode = es.Keyword(index='not_analyzed')
+    bezoekadres_plaats = es.Keyword(index='not_analyzed')
 
-    bezoekadres_buurt_code = es.String(index='not_analyzed')
-    bezoekadres_buurt_naam = es.String(index='not_analyzed')
-    bezoekadres_buurtcombinatie_code = es.String(index='not_analyzed')
-    bezoekadres_buurtcombinatie_naam = es.String(index='not_analyzed')
-    bezoekadres_ggw_code = es.String(index='not_analyzed')
-    bezoekadres_ggw_naam = es.String(index='not_analyzed')
-    bezoekadres_gsg_naam = es.String(index='not_analyzed')
-    bezoekadres_stadsdeel_code = es.String(index='not_analyzed')
-    bezoekadres_stadsdeel_naam = es.String(index='not_analyzed')
+    bezoekadres_buurt_code = es.Keyword(index='not_analyzed')
+    bezoekadres_buurt_naam = es.Keyword(index='not_analyzed')
+    bezoekadres_buurtcombinatie_code = es.Keyword(index='not_analyzed')
+    bezoekadres_buurtcombinatie_naam = es.Keyword(index='not_analyzed')
+    bezoekadres_ggw_code = es.Keyword(index='not_analyzed')
+    bezoekadres_ggw_naam = es.Keyword(index='not_analyzed')
+    bezoekadres_gsg_naam = es.Keyword(index='not_analyzed')
+    bezoekadres_stadsdeel_code = es.Keyword(index='not_analyzed')
+    bezoekadres_stadsdeel_naam = es.Keyword(index='not_analyzed')
 
-    postadres_volledig_adres = es.String(index='not_analyzed')
+    postadres_volledig_adres = es.Keyword(index='not_analyzed')
     postadres_correctie = es.Boolean()
     postadres_afgeschermd = es.Boolean()
-    postadres_openbare_ruimte = es.String(index='not_analyzed')
+    postadres_openbare_ruimte = es.Keyword(index='not_analyzed')
     postadres_huisnummer = es.Integer(index='not_analyzed')
-    postadres_huisletter = es.String(index='not_analyzed')
-    postadres_huisnummertoevoeging = es.String(index='not_analyzed')
-    postadres_postcode = es.String(index='not_analyzed')
-    postadres_plaats = es.String(index='not_analyzed')
+    postadres_huisletter = es.Keyword(index='not_analyzed')
+    postadres_huisnummertoevoeging = es.Keyword(index='not_analyzed')
+    postadres_postcode = es.Keyword(index='not_analyzed')
+    postadres_plaats = es.Keyword(index='not_analyzed')
 
     # And the bag numid
-    bag_numid = es.String(index='not_analyzed')
+    bag_numid = es.Keyword(index='not_analyzed')
     centroid = es.GeoPoint()
 
     # Categores
-    hoofdcategorie = es.String(index='not_analyzed', multi=True)
-    subcategorie = es.String(index='not_analyzed', multi=True)
+    hoofdcategorie = es.Keyword(index='not_analyzed', multi=True)
+    subcategorie = es.Keyword(index='not_analyzed', multi=True)
     # SBI codes
-    sbi_code = es.String(index='not_analyzed', multi=True)
-    sbi_omschrijving = es.String(index='not_analyzed', multi=True)
+    sbi_code = es.Keyword(index='not_analyzed', multi=True)
+    sbi_omschrijving = es.Keyword(index='not_analyzed', multi=True)
+
+    sbi_l1 = es.Keyword(index='not_analyzed', multi=True)
+    sbi_l2 = es.Keyword(index='not_analyzed', multi=True)
+    sbi_l3 = es.Keyword(index='not_analyzed', multi=True)
+    sbi_l4 = es.Keyword(index='not_analyzed', multi=True)
+    sbi_l5 = es.Keyword(index='not_analyzed', multi=True)
+
+    # bijzondere rechtstoestand
+
+    # status = es.Keyword(index='not_analyzed')
+
+    bijzondere_rechtstoestand = es.Keyword(index='not_analyzed')
 
     class Meta:
+        all = es.MetaField(enabled=False)
         doc_type = 'vestiging'
-        index = settings.ELASTIC_INDICES['DS_INDEX']
+        index = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
 
 def flatten_sbi(activiteit):
@@ -97,11 +110,11 @@ def flatten_sbi(activiteit):
     }, error
 
 
-def add_bag_info(doc, item):
+def add_bag_info(doc, ves):
     """
     Adding bag information
     """
-    adresseerbaar_object = item.adresseerbaar_object
+    adresseerbaar_object = ves.adresseerbaar_object
     # If there is no adresseerbaar_object there is no
     # point to continue
     if not adresseerbaar_object:
@@ -112,10 +125,10 @@ def add_bag_info(doc, item):
         geom = adresseerbaar_object.geometrie
         doc.centroid = geom.centroid.transform('wgs84', clone=True).coords
     except AttributeError:
-        log.error('Missing geometrie %s' % adresseerbaar_object)
+        log.error('Missing geometrie %s', adresseerbaar_object)
 
     # Adding the ggw data
-    ggw = adresseerbaar_object._gebiedsgerichtwerken
+    ggw = adresseerbaar_object._gebiedsgerichtwerken   # noqa
     if ggw:
         doc.bezoekadres_ggw_code = ggw.code
         doc.bezoekadres_ggw_naam = ggw.naam
@@ -144,31 +157,11 @@ def add_bag_info(doc, item):
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
 
 
-def vestiging_from_hrdataselectie(
-        item: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
-    doc = Vestiging(_id=item.id)  # HR is added to prevent id collisions
-    doc.bag_numid = item.bag_numid
-
-    # Working with the json
-    data = item.api_json
-    doc.vestiging_id = data['vestigingsnummer']
-    # Maatschapelijke activiteit
-    mat = data['maatschappelijke_activiteit']
-    for attrib in (
-            'kvk_nummer', 'datum_aanvang',
-            'datum_einde', 'eigenaar_naam',
-            'eigenaar_id', 'non_mailing'):
-        setattr(doc, attrib, mat.get(attrib, ''))
-    doc.eigenaar_naam = mat['eigenaar'].get('volledige_naam', '')
-    doc.eigenaar_id = mat['eigenaar'].get('id', '')
-
-    # Using Vestiging name, otherwise,
-    # maatschappelijke_activiteit name, otherwise empty
-    doc.handelsnaam = data.get('naam', mat.get('naam', ''))
+def add_adres_to_doc(doc, ves_data):
 
     # Address
     for address_type in ('bezoekadres', 'postadres'):
-        adres = data[address_type]
+        adres = ves_data[address_type]
         if isinstance(adres, dict):
             for attrib in (
                     'volledig_adres', 'correctie', 'huisnummer',
@@ -187,6 +180,25 @@ def vestiging_from_hrdataselectie(
             afgeschermd = adres.get('afgeschermd', False)
             setattr(doc, f'{address_type}_afgeschermd', afgeschermd)
 
+
+def _log_sbi_error(doc, activiteit):
+
+    log.error("""
+
+    No sbi information for activiteit:
+    %s
+    %s
+    %s
+
+        """, doc.handelsnaam, activiteit, doc.vestiging_id)
+
+
+def add_sbi_to_doc(doc, ves_data):
+    """
+    Add sbi information to doc
+
+    levels and qa tree
+    """
     # SBI codes, categories and subcategories
     # Creating lists of the values and then setting
     # the document
@@ -194,35 +206,98 @@ def vestiging_from_hrdataselectie(
     codes = {
         'hoofdcategorie': [],
         'subcategorie': [],
+
         'sbi_code': [],
         'sbi_omschrijving': [],
-
-        # 'sbi_l1': [],
-        # 'sbi_l2': [],
-        # 'sbi_l3': [],
-        # 'sbi_l4': [],
-        # 'sbi_l5': [],
     }
 
-    for activiteit in data['activiteiten']:
+    levels = {
+        'l1': [],    # will be added as sbi_l1 in doc..etc
+        'l2': [],
+        'l3': [],
+        'l4': [],
+        'l5': [],
+    }
+
+    for activiteit in ves_data['activiteiten']:
         # Flattening the sbi information
         activiteit, error = flatten_sbi(activiteit)
 
         if error:
-            log.error("""
+            _log_sbi_error(doc, activiteit)
 
-            No sbi information for activiteit:
-            %s
-            %s
-            %s
+        for key, bucket in codes.items():
+            bucket.append(activiteit.get(key, ''))
 
-                """, doc.handelsnaam, activiteit, doc.vestiging_id)
+        # extract levels
+        sbi_tree = activiteit.get('sbi_tree', {})
 
-        for key, items in codes.items():
-            items.append(activiteit.get(key, ''))
+        for key, bucket in levels.items():
+            level_omschrijving = sbi_tree.get(key, [])
+            if not level_omschrijving:
+                continue
+            print(key)
+            print(level_omschrijving)
+            bucket.append("-".join(level_omschrijving))
 
     for key, datalist in codes.items():
         setattr(doc, key, datalist)
+
+    for key, datalist in levels.items():
+        # add sbi_lx keys
+        setattr(doc, 'sbi_%s' % key, datalist)
+
+
+def set_eigenaar_to_doc(doc, eigenaar):
+    """
+    Set eigenaar information to doc
+    """
+
+    doc.eigenaar_naam = eigenaar.get('volledige_naam', '')
+    doc.eigenaar_id = eigenaar.get('id', '')
+
+    if eigenaar.get('faillissement'):
+        doc.bijzondere_rechtstoestand = 'Failliet'
+    elif eigenaar.get('status', ''):
+        doc.bijzondere_rechtstoestand = 'Surseance'
+
+    # bijzondere rechtstoestand
+    # doc.reden_insolvatie = eigenaar.get('reden_insolvatie', '')
+    # doc.duur = eigenaar.get('reden_insolvatie', '')
+
+
+def jsonpprint(data):
+    import json
+    print(json.dumps(data, sort_keys=True, indent=4))
+
+
+def vestiging_from_hrdataselectie(
+        ves: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
+    doc = Vestiging(_id=ves.id)  # HR is added to prevent id collisions
+    """
+    Create vestiging document from vesitiging json data.
+    """
+    doc.bag_numid = ves.bag_numid
+    # Working with the json
+    ves_data = ves.api_json
+    # jsonpprint(ves_data)
+    doc.vestiging_id = ves_data['vestigingsnummer']
+    # Maatschapelijke activiteit
+    mac = ves_data['maatschappelijke_activiteit']
+    for attrib in (
+            'kvk_nummer', 'datum_aanvang',
+            'datum_einde', 'eigenaar_naam',
+            'eigenaar_id', 'non_mailing'):
+        setattr(doc, attrib, mac.get(attrib, ''))
+
+    set_eigenaar_to_doc(doc, mac['eigenaar'])
+
+    # Using Vestiging name, otherwise,
+    # maatschappelijke_activiteit name, otherwise empty
+    doc.handelsnaam = ves_data.get('naam', mac.get('naam', ''))
+
+    add_adres_to_doc(doc, ves_data)
+    add_sbi_to_doc(doc, ves_data)
 
     if bag_item:
         add_bag_info(doc, bag_item)

@@ -10,14 +10,44 @@ from ..generic import index
 
 log = logging.getLogger(__name__)
 
+
 HR_DOC_TYPES = (
     documents.Vestiging,
 )
 
 
+class RebuildDocTaskHR(index.CreateDocTypeTask):
+    index = settings.ELASTIC_INDICES['DS_HR_INDEX']
+    doc_types = HR_DOC_TYPES
+
+
+class ReBuildIndexDsHRJob(object):
+    name = "Recreate search-index for all HR data from elastic"
+
+    @staticmethod
+    def tasks():
+        return [
+            DeleteDsHRIndexTask(),
+            RebuildDocTaskHR()
+        ]
+
+
+class DeleteIndexDsHRJob(object):
+    name = "Delete HR related indexes"
+
+    @staticmethod
+    def tasks():
+        return [DeleteDsHRIndexTask()]
+
+
+class DeleteDsHRIndexTask(index.DeleteIndexTask):
+    index = settings.ELASTIC_INDICES['DS_HR_INDEX']
+    doc_types = HR_DOC_TYPES
+
+
 class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
-    index = settings.ELASTIC_INDICES['DS_INDEX']
+    index = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
     queryset = models.DataSelectie.objects.filter(
         bag_numid__isnull=False).order_by('id')

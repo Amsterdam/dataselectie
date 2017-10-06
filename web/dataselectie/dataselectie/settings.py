@@ -15,7 +15,8 @@ import sys
 
 import os
 
-from dataselectie.utils import get_db_settings, get_variable
+from dataselectie.utils import get_variable
+from dataselectie.utils import get_db_settings
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -113,6 +114,16 @@ DATABASES = {
         'PORT': DS_BAG['port'],
         'CONN_MAX_AGE': 60,
     },
+
+    'hr': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': DS_HR['db'],
+        'USER': DS_HR['username'],
+        'PASSWORD': DS_HR['password'],
+        'HOST': DS_HR['host'],
+        'PORT': DS_HR['port'],
+        'CONN_MAX_AGE': 60,
+    },
 }
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
@@ -187,7 +198,8 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_PORT_OVERRIDE', '9200'))]
 
 ELASTIC_INDICES = {
-    'DS_INDEX': 'ds_index'
+    'DS_BAG_INDEX': 'ds_bag_index',
+    'DS_HR_INDEX': 'ds_hr_index'
 }
 
 MAX_SEARCH_ITEMS = 10000

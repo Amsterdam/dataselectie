@@ -66,7 +66,7 @@ class Nummeraanduiding(es.DocType):
     standplaats = es.String(index='not_analyzed')
 
     # Verblijfsobject specific data
-    gebruiksdoel_omschrijving = es.String(index='not_analyzed')
+    # gebruiksdoel_omschrijving = es.String(index='not_analyzed')
     oppervlakte = es.Integer()
     bouwblok = es.String(index='not_analyzed')
     gebruik = es.String(index='not_analyzed')
@@ -74,7 +74,7 @@ class Nummeraanduiding(es.DocType):
 
     class Meta:
         doc_type = 'nummeraanduiding'
-        index = settings.ELASTIC_INDICES['DS_INDEX']
+        index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
 
 
 def update_doc_with_adresseerbaar_object(doc, item):
@@ -90,7 +90,7 @@ def update_doc_with_adresseerbaar_object(doc, item):
     try:
         doc.centroid = (
             adresseerbaar_object
-                .geometrie.centroid.transform('wgs84', clone=True).coords)
+            .geometrie.centroid.transform('wgs84', clone=True).coords)
     except AttributeError:
         batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
@@ -149,7 +149,7 @@ def add_verblijfsobject_data(doc, obj):
     """
     verblijfsobject_extra = [
         ('verblijfsobject', 'landelijk_id'),
-        ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
+        # ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
         ('oppervlakte', 'oppervlakte'),
         ('bouwblok', 'bouwblok.code'),
         ('gebruik', 'gebruik.omschrijving')

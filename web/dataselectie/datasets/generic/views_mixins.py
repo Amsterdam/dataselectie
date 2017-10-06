@@ -274,7 +274,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     # attributes:
     # ---------------------
     # The name of the index to search in
-    index = 'DS_INDEX'
+    index = None  # 'DS_INDEX'
     # A set of optional keywords to filter the results further
     keywords = None
     # The name of the index to search in

@@ -1,45 +1,46 @@
 version: '3.0'
 services:
   elasticsearch:
-      image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-      command: elasticsearch -Des.network.host=0.0.0.0
-      ports:
-          - "9200:9200"
-          - "9300:9300"
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
+    # image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
+    command: elasticsearch -Des.network.host=0.0.0.0
+    ports:
+      - "9200:9200"
+      - "9300:9300"
 
   database:
-      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-      ports:
-          - "5435:5432"
-      environment:
-          POSTGRES_USER: dataselectie
-          POSTGRES_DB: dataselectie
-          POSTGRES_PASSWORD: insecure
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: dataselectie
+      POSTGRES_DB: dataselectie
+      POSTGRES_PASSWORD: insecure
 
   database_BAG:
-      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-      ports:
-          - "5436:5432"
-      environment:
-          POSTGRES_USER: atlas
-          POSTGRES_DB: atlas
-          POSTGRES_PASSWORD: insecure
+    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
+    ports:
+        - "5436:5432"
+    environment:
+      POSTGRES_USER: atlas
+      POSTGRES_DB: atlas
+      POSTGRES_PASSWORD: insecure
 
   dataselectie:
-      build: ./web
-      links:
-          - elasticsearch
-          - database
-          - database_BAG
-      ports:
-          - "8000:8000"
-      environment:
-        JWT_SHARED_SECRET_KEY: atleast16characters
-        UWSGI_HTTP: ":8000"
-        UWSGI_MODULE: "dataselectie.wsgi:application"
-        UWSGI_PROCESSES: 4
-        UWSGI_MASTER: 1
-        UWSGI_STATIC_MAP: "/static=/static"
-        UWSGI_VACUUM: 1
-        UWSGI_HARAKIRI: 15
-        UWSGI_DIE_ON_TERM: 1
+    build: ./web
+    links:
+      - elasticsearch
+      - database
+      - database_BAG
+    ports:
+      - "8000:8000"
+    environment:
+      JWT_SHARED_SECRET_KEY: atleast16characters
+      UWSGI_HTTP: ":8000"
+      UWSGI_MODULE: "dataselectie.wsgi:application"
+      UWSGI_PROCESSES: 4
+      UWSGI_MASTER: 1
+      UWSGI_STATIC_MAP: "/static=/static"
+      UWSGI_VACUUM: 1
+      UWSGI_HARAKIRI: 15
+      UWSGI_DIE_ON_TERM: 1

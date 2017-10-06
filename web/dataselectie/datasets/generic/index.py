@@ -73,6 +73,53 @@ class CreateDocTypeTask(object):
         idx.create()
 
 
+def chunck_qs_by_id(qs, chuncks=1000):
+    """
+    Determine ID range, chunck up range.
+    """
+
+    min_id = int(qs.first().id)
+    max_id = int(qs.last().id)
+
+    delta_step = int((max_id - min_id) / chuncks) or 1
+
+    log.debug(
+        'id range %s %s, chunksize %s', min_id, max_id, delta_step)
+
+    steps = list(range(min_id, max_id, delta_step))
+    # add max id range (bigger then last_id)
+    steps.append(max_id+1)
+    return steps
+
+
+def return_qs_parts(qs, modulo, modulo_value):
+    """ generate qs within min_id and max_id
+
+        modulo and modulo_value determin which chuncks
+        are teturned.
+
+        if partial = 1/3
+
+        then this function only returns chuncks index i for which
+        modulo i % 3 == 1
+    """
+    chuncks = 1000
+
+    if modulo > 1000:
+        chuncks = modulo
+
+    steps = chunck_qs_by_id(qs, chuncks)
+
+    for i in range(len(steps)-1):
+        if not i % modulo == modulo_value:
+            continue
+        start_id = steps[i]
+        end_id = steps[i+1]
+        qs_s = qs.filter(id__gte=start_id).filter(id__lt=end_id)
+        log.debug('%4d Count: %s range %s %s', i, qs_s.count(), start_id, end_id)
+        yield qs_s, i/1000.0
+
+
 class ImportIndexTask(object):
     queryset = None
 
@@ -98,39 +145,20 @@ class ImportIndexTask(object):
         Usage:
             # Make sure to order your querset!
             article_qs = Article.objects.order_by('id')
-            for start, end, total, qs in batch_qs(article_qs):
-                print "Now processing %s - %s of %s" % (start + 1, end, total)
+            for qs in batch_qs(article_qs):
                 for article in qs:
                     print article.body
         """
         qs = self.get_queryset()
 
-        batch_size = settings.BATCH_SETTINGS['batch_size']
+        # batch_size = settings.BATCH_SETTINGS['batch_size']
         numerator = settings.PARTIAL_IMPORT['numerator']
         denominator = settings.PARTIAL_IMPORT['denominator']
 
         log.info("PART: %s OF %s", numerator + 1, denominator)
 
-        end_part = count = total = qs.count()
-        chunk_size = total
-
-        start_index = 0
-
-        # Do partial import
-        if denominator > 1:
-            chunk_size = int(total / denominator)
-            start_index = numerator * chunk_size
-            # for the last part do not change end_part
-            if denominator > numerator+1:
-                end_part = (numerator + 1) * chunk_size
-            total = end_part - start_index
-
-        log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')  # noqa
-        # total batches in this (partial) bacth job
-        total_batches = chunk_size / batch_size
-        for i, start in enumerate(range(start_index, end_part, batch_size)):
-            end = min(start + batch_size, end_part)
-            yield (i + 1, total_batches + 1, start, end, total, qs[start: end])
+        for qs_p, progres in return_qs_parts(qs, denominator, numerator):
+            yield qs_p, progres
 
     def execute(self):
         """
@@ -140,16 +168,15 @@ class ImportIndexTask(object):
         loop_time = elapsed = time.time() - start_time
         loop_times = [1]
 
-        for batch_i, total_batches, start, end, total, qs in self.batch_qs():
+        for qs, progress in self.batch_qs():
 
             loop_start = time.time()
             avg_loop_time = sum(loop_times) / float(len(loop_times))
-            total_left = ((total_batches - batch_i) * avg_loop_time) + 1 / 60
+            total_left = (1 / (progress + 0.001)) * elapsed - elapsed
 
             progres_msg = \
-                '%s of %.1f : %8s %8s %8s duration: %.2f left: %.2f batchtime %.2f' % (    # noqa
-                    batch_i, total_batches, start, end, total, elapsed,
-                    total_left, avg_loop_time
+                '%.3f : duration: %.2f left: %.2f batchtime %.2f' % (    # noqa
+                    progress, elapsed, total_left, avg_loop_time
                 )
 
             log.info(progres_msg)
@@ -158,7 +185,7 @@ class ImportIndexTask(object):
                 self.client,
                 (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
-                refresh=True
+                # refresh=True
             )
 
             elapsed = time.time() - start_time

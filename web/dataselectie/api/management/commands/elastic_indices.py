@@ -4,8 +4,8 @@ from django.conf import settings
 from django.core.management import BaseCommand
 
 import datasets.bag.batch as bagbatch
-import datasets.generic.batch as genbatch
 import datasets.hr.batch as hrbatch
+
 from batch import batch
 
 
@@ -18,7 +18,8 @@ class Command(BaseCommand):
     ordered = ['bag', 'hr']
 
     recreate_indexes = {
-        'bag': (genbatch.ReBuildIndexDsJob,)
+        'bag': (bagbatch.ReBuildIndexDsBAGJob,),
+        'hr': (hrbatch.ReBuildIndexDsHRJob,)
     }
 
     def add_arguments(self, parser):

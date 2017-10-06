@@ -44,7 +44,7 @@ class BagBase(object):
     Base class mixing for data settings
     """
     model = models.Nummeraanduiding
-    index = 'DS_INDEX'
+    index = 'DS_BAG_INDEX'
     db = 'bag'
     q_func = meta_q
     keywords = [

@@ -53,8 +53,9 @@ def check_data(request):
             # check elastic
             try:
                 client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
-                assert Search().using(client)\
-                               .index(settings.ELASTIC_INDICES['DS_INDEX'])\
+                for index in settings.ELASTIC_INDICES.values():
+                    assert Search().using(client)\
+                               .index(settings.ELASTIC_INDICES[index])\
                                .query("match_all", size=0)
             except:
                 log.exception("Autocomplete failed")

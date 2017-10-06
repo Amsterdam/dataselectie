@@ -13,9 +13,38 @@ BAG_DOC_TYPES = (
 )
 
 
+class DeleteDsBAGIndexTask(index.DeleteIndexTask):
+    index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
+    doc_types = BAG_DOC_TYPES
+
+
+class RebuildDocTaskBAG(index.CreateDocTypeTask):
+    index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
+    doc_types = BAG_DOC_TYPES
+
+
+class ReBuildIndexDsBAGJob(object):
+    name = "Recreate search-index for all BAG data from elastic"
+
+    @staticmethod
+    def tasks():
+        return [
+            DeleteDsBAGIndexTask(),
+            RebuildDocTaskBAG()
+        ]
+
+
+class DeleteIndexDsBAGJob(object):
+    name = "Delete BAG related indexes"
+
+    @staticmethod
+    def tasks():
+        return [DeleteDsBAGIndexTask()]
+
+
 class IndexDsBagTask(index.ImportIndexTask):
     name = "index bag data"
-    index = settings.ELASTIC_INDICES['DS_INDEX']
+    index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
 
     queryset = models.Nummeraanduiding.objects.\
         prefetch_related('verblijfsobject').\

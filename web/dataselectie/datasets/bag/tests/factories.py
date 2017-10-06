@@ -3,7 +3,7 @@ import string
 
 from factory import DjangoModelFactory, fuzzy
 from factory.declarations import SubFactory, LazyAttribute
-from faker import Factory 
+from faker import Factory
 from django.contrib.gis.geos import Point
 
 from datasets.bag import models
@@ -56,7 +56,6 @@ class GebruikFactory(DjangoModelFactory):
 
     code = fuzzy.FuzzyText(length=4)
     omschrijving = fuzzy.FuzzyText(length=50)
-
 
 class LiggingFactory(DjangoModelFactory):
     class Meta:
@@ -143,6 +142,21 @@ class VerblijfsobjectFactory(DjangoModelFactory):
     reden_afvoer = SubFactory(RedenAfvoerFactory)
     reden_opvoer = SubFactory(RedenOpvoerFactory)
     buurt = SubFactory(BuurtFactory)
+
+
+class GebruiksdoelFactory(DjangoModelFactory):
+
+    class Meta:
+        model = models.Gebruiksdoel
+
+    #verblijfsobject = models.ForeignKey(
+    #    Verblijfsobject, max_length=16, related_name='gebruiksdoelen')
+    verblijfsobject = SubFactory(VerblijfsobjectFactory)
+
+    code = fuzzy.FuzzyText(max_length=4)
+    omschrijving = fuzzy.FuzzyText(max_length=150)
+    code_plus = fuzzy.FuzzyText(max_length=4, null=True)
+    omschrijving_plus = fuzzy.FuzzyText(max_length=150, null=True)
 
 
 class WoonplaatsFactory(DjangoModelFactory):

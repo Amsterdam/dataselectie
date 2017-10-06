@@ -15,7 +15,7 @@ class HrBase(object):
     """
     Base class mixing for data settings
     """
-    index = 'DS_INDEX'
+    index = 'DS_HR_INDEX'
 
     nonmail_msg = 'Non-mailing-indicatie actief'
     restricted_msg = 'Afgeschermd'
@@ -25,7 +25,8 @@ class HrBase(object):
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
         'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam',
-        'openbare_ruimte'
+        'openbare_ruimte',
+        'bijzondere_rechtstoestand',
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
@@ -41,6 +42,7 @@ class HrBase(object):
 
 
 class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
+
     def elastic_query(self, query):
         return meta_q(query, True)
 
@@ -160,11 +162,12 @@ class HrCSV(HrBase, CSVExportView):
         :param request:
         :return: true when the user
         """
-        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+        return True
+        # return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
 
-    def paginate(self, offset, q: dict) -> dict:
+    def paginate(self, _offset, q: dict) -> dict:
         if 'size' in q:
-            del (q['size'])
+            del q['size']
         return q
 
     def item_data_update(self, item, request):
