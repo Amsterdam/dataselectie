@@ -90,7 +90,7 @@ DS_DATASELECTIE = get_db_settings(
     localport='5406')
 
 DS_BAG = get_db_settings(
-    db='atlas',
+    db='dataselectie',
     user='handelsregister',
     docker_host='127.0.0.1',
     localport='5406')
@@ -194,11 +194,17 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'urllib3.util': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
     },
 }
 
-# DB routing
-DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
+IN_TEST_MODE = 'test' in sys.argv
+
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),

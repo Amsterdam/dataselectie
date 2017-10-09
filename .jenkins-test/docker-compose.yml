@@ -13,19 +13,11 @@ services:
           POSTGRES_DB: dataselectie
           POSTGRES_PASSWORD: insecure
 
-  database_BAG:
-      image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-      environment:
-          POSTGRES_USER: atlas
-          POSTGRES_DB: atlas
-          POSTGRES_PASSWORD: insecure
-
   tests:
     build: ../web
     links:
         - database
         - elasticsearch
-        - database_BAG
     environment:
       DATABASE_NAME: dataselectie
       DATABASE_USER: dataselectie

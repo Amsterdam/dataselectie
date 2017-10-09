@@ -644,4 +644,15 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='adressen', to='bag.Grootstedelijkgebied'),
         ),
 
+        migrations.CreateModel(
+            name='Gebruiksdoel',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('code', models.CharField(max_length=4)),
+                ('omschrijving', models.CharField(max_length=150)),
+                ('code_plus', models.CharField(max_length=4, null=True)),
+                ('omschrijving_plus', models.CharField(max_length=150, null=True)),
+                ('verblijfsobject', models.ForeignKey(max_length=16, on_delete=django.db.models.deletion.CASCADE, related_name='gebruiksdoelen', to='bag.Verblijfsobject')),
+            ],
+        ),
     ]

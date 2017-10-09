@@ -2,8 +2,9 @@ django
 elasticsearch_dsl
 Psycopg2
 requests
+graypy
+django-cors-headers
 django-jenkins==0.18.1
 factory-boy
 datapunt-authorization-django
 datapunt-authorization-levels
-corsheaders

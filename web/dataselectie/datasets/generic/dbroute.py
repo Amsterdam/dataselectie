@@ -10,7 +10,7 @@ class DatasetsRouter(object):
     example: bag dataset with BAG database settings
     """
 
-    datasets = ('bag', 'hr')  # A list of available datasets
+    datasets = ('bag',)  # A list of available datasets
 
     def _model_in_datasets(self, app):
         """
@@ -21,7 +21,7 @@ class DatasetsRouter(object):
 
     def db_for_read(self, model, **hints):
         """
-        Attempts to read auth models go to auth_db.
+        Attempts to read
         """
         if self._model_in_datasets(model._meta.app_label):
             return model._meta.app_label
@@ -29,7 +29,7 @@ class DatasetsRouter(object):
 
     def db_for_write(self, model, **hints):
         """
-        Attempts to write auth models go to auth_db.
+        Attempts to write
         """
         if self._model_in_datasets(model._meta.app_label):
             # Only allow writing in testing
@@ -45,10 +45,10 @@ class DatasetsRouter(object):
     def allow_migrate(self, db, app_label, model_name=None, **hints):
         """
         Do Not allowe migration of datasets. This should already be handled by
-        managed=False, but jsut to be sure
+        managed=False, but just to be sure
         """
-        if self._model_in_datasets(app_label) and not settings.IN_TEST_MODE:
-            return False
+        if settings.IN_TEST_MODE:
+            return True
         elif self._model_in_datasets(app_label) and db != app_label:
             return False
-        return None
+        return True

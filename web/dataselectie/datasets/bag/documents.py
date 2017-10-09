@@ -23,9 +23,7 @@ class Nummeraanduiding(es.DocType):
     nummeraanduiding_id = es.Keyword(index='not_analyzed')
     landelijk_id = es.Keyword(index='not_analyzed')
 
-    _openbare_ruimte_naam = es.Keyword(
-        fields={'raw': es.Keyword(index='not_analyzed')}
-    )
+    _openbare_ruimte_naam = es.Keyword()
     naam = es.Keyword()
     huisnummer = es.Integer(index='not_analyzed')
     huisnummer_toevoeging = es.Keyword(index='not_analyzed')
@@ -57,7 +55,8 @@ class Nummeraanduiding(es.DocType):
     standplaats = es.Keyword(index='not_analyzed')
 
     # Verblijfsobject specific data
-    gebruiksdoelen_omschrijvingen = es.Keyword(index='not_analyzed', multi=True)
+    gebruiksdoelen_omschrijvingen = es.Keyword(
+        index='not_analyzed', multi=True)
     gebruiksdoelen_coden = es.Keyword(index='not_analyzed', multi=True)
 
     oppervlakte = es.Integer()

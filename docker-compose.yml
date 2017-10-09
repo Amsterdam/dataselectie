@@ -1,9 +1,8 @@
 version: '3.0'
 services:
   elasticsearch:
-    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch:latest
-    # image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
-    command: elasticsearch -Des.network.host=0.0.0.0
+    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
     ports:
       - "9200:9200"
       - "9300:9300"
@@ -17,21 +16,11 @@ services:
       POSTGRES_DB: dataselectie
       POSTGRES_PASSWORD: insecure
 
-  database_BAG:
-    image: build.datapunt.amsterdam.nl:5000/atlas/postgres
-    ports:
-        - "5436:5432"
-    environment:
-      POSTGRES_USER: atlas
-      POSTGRES_DB: atlas
-      POSTGRES_PASSWORD: insecure
-
   dataselectie:
     build: ./web
     links:
       - elasticsearch
       - database
-      - database_BAG
     ports:
       - "8000:8000"
     environment:
