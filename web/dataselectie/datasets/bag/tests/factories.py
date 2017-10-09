@@ -144,21 +144,6 @@ class VerblijfsobjectFactory(DjangoModelFactory):
     buurt = SubFactory(BuurtFactory)
 
 
-class GebruiksdoelFactory(DjangoModelFactory):
-
-    class Meta:
-        model = models.Gebruiksdoel
-
-    #verblijfsobject = models.ForeignKey(
-    #    Verblijfsobject, max_length=16, related_name='gebruiksdoelen')
-    verblijfsobject = SubFactory(VerblijfsobjectFactory)
-
-    code = fuzzy.FuzzyText(max_length=4)
-    omschrijving = fuzzy.FuzzyText(max_length=150)
-    code_plus = fuzzy.FuzzyText(max_length=4, null=True)
-    omschrijving_plus = fuzzy.FuzzyText(max_length=150, null=True)
-
-
 class WoonplaatsFactory(DjangoModelFactory):
     class Meta:
         model = models.Woonplaats

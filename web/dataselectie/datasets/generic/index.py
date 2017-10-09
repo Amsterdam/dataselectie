@@ -107,6 +107,11 @@ def return_qs_parts(qs, modulo, modulo_value):
 
     if modulo > 1000:
         chuncks = modulo
+    elif modulo == 1 and modulo_value == 0:
+        # do not chunck 1 of 1
+        yield qs, 1
+        raise StopIteration
+        # chuncks = 1
 
     steps = chunck_qs_by_id(qs, chuncks)
 
@@ -127,7 +132,6 @@ class ImportIndexTask(object):
         hosts=settings.ELASTIC_SEARCH_HOSTS,
         # sniff_on_start=True,
         retry_on_timeout=True,
-        refresh=True
     )
 
     def get_queryset(self):
@@ -158,6 +162,7 @@ class ImportIndexTask(object):
         log.info("PART: %s OF %s", numerator + 1, denominator)
 
         for qs_p, progres in return_qs_parts(qs, denominator, numerator):
+            print(qs_p)
             yield qs_p, progres
 
     def execute(self):
@@ -165,18 +170,16 @@ class ImportIndexTask(object):
         Index data of specified queryset
         """
         start_time = time.time()
-        loop_time = elapsed = time.time() - start_time
-        loop_times = [1]
 
         for qs, progress in self.batch_qs():
 
-            loop_start = time.time()
-            avg_loop_time = sum(loop_times) / float(len(loop_times))
+            elapsed = time.time() - start_time
+
             total_left = (1 / (progress + 0.001)) * elapsed - elapsed
 
             progres_msg = \
-                '%.3f : duration: %.2f left: %.2f batchtime %.2f' % (    # noqa
-                    progress, elapsed, total_left, avg_loop_time
+                '%.3f : duration: %.2f left: %.2f' % (
+                    progress, elapsed, total_left
                 )
 
             log.info(progres_msg)
@@ -185,14 +188,8 @@ class ImportIndexTask(object):
                 self.client,
                 (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
-                # refresh=True
             )
 
-            elapsed = time.time() - start_time
-            loop_time = time.time() - loop_start
-            loop_times.append(loop_time)
-
-            if len(loop_times) > 15:
-                loop_times.pop(0)
-
-        batch.statistics.report()
+        idx = es.Index(self.index)
+        # refresh index, make sure its ready for queries
+        idx.refresh()

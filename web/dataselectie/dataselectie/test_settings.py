@@ -1,6 +1,6 @@
 from .settings import *
 
-TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
+#TEST_RUNNER = 'dataselectie.utils.ManagedModelTestRunner'
 
 # Setting test prefix on index names in test
 if IN_TEST_MODE:

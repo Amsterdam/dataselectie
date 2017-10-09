@@ -54,7 +54,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'authorization_django.authorization_middleware',
-    'django.middleware.common.CommonMiddleware',
+    # 'django.middleware.common.CommonMiddleware',
 ]
 
 if LOCAL:
@@ -87,12 +87,19 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 DS_DATASELECTIE = get_db_settings(
     db='dataselectie',
     docker_host='database',
-    localport='5435')
+    localport='5406')
 
 DS_BAG = get_db_settings(
     db='atlas',
-    docker_host='database_BAG',
-    localport='5436')
+    user='handelsregister',
+    docker_host='127.0.0.1',
+    localport='5406')
+
+DS_HR = get_db_settings(
+    db='handelsregister',
+    docker_host='127.0.0.1',
+    localport='5406')
+
 
 DATABASES = {
     'default': {
@@ -275,4 +282,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 # Db routing goes haywire without this
-IN_TEST_MODE = 'test' in sys.argv

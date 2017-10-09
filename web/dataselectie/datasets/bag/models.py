@@ -14,6 +14,7 @@ from datasets.generic import model_mixins as mixins
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
              models.Model):
     class Meta:
+        managed = False
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
@@ -1002,3 +1003,6 @@ class Gebruiksdoel(models.Model):
     omschrijving = models.CharField(max_length=150)
     code_plus = models.CharField(max_length=4, null=True)
     omschrijving_plus = models.CharField(max_length=150, null=True)
+
+    class Meta(object):
+        managed = False

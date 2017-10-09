@@ -12,7 +12,8 @@ def create_stadsdeel_fixtures():
     return [
         models.Stadsdeel.objects.get_or_create(
             id="03630000000018", code="A", naam="Centrum", vervallen=False,
-            gemeente_id="03630000000000")
+            gemeente_id="03630000000000"
+        )
     ]
 
 
@@ -266,12 +267,10 @@ def create_verblijfsobject_fixtures():
     create_buurt_fixtures()
     # create_gebruiksdoelen
 
-    return [
+    verblijfsobjecten = [
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543292",
             landelijk_id="0363010000543292",
-            gebruiksdoel_code="0800",
-            gebruiksdoel_omschrijving="BEST-winkelfunctie",
             oppervlakte=30,
             bouwlaag_toegang=0,
             woningvoorraad=False,
@@ -287,8 +286,6 @@ def create_verblijfsobject_fixtures():
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543293",
             landelijk_id="0363010000543293",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=32,
             bouwlaag_toegang=1,
             woningvoorraad=True,
@@ -304,8 +301,6 @@ def create_verblijfsobject_fixtures():
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543294",
             landelijk_id="0363010000543294",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=48,
             bouwlaag_toegang=2,
             woningvoorraad=True,
@@ -321,8 +316,6 @@ def create_verblijfsobject_fixtures():
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543295",
             landelijk_id="0363010000543295",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=48,
             bouwlaag_toegang=2,
             woningvoorraad=True,
@@ -337,8 +330,6 @@ def create_verblijfsobject_fixtures():
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543296",
             landelijk_id="0363010000543296",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=32,
             bouwlaag_toegang=1,
             woningvoorraad=True,
@@ -350,10 +341,9 @@ def create_verblijfsobject_fixtures():
             _huisnummer_toevoeging="",
             buurt_id="3",
             geometrie=Point(100, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543297",
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543297",
             landelijk_id="0363010000543297",
-            gebruiksdoel_code="0800",
-            gebruiksdoel_omschrijving="BEST-winkelfunctie",
             oppervlakte=30,
             bouwlaag_toegang=0,
             woningvoorraad=False,
@@ -365,10 +355,9 @@ def create_verblijfsobject_fixtures():
             _huisnummer_toevoeging="H",
             buurt_id="4",
             geometrie=Point(100, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543298",
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543298",
             landelijk_id="0363010000543298",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=32,
             bouwlaag_toegang=1,
             woningvoorraad=True,
@@ -380,10 +369,9 @@ def create_verblijfsobject_fixtures():
             _huisnummer_toevoeging="1",
             buurt_id="5",
             geometrie=Point(20, 30)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543299",
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543299",
             landelijk_id="0363010000543299",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=48,
             bouwlaag_toegang=2,
             woningvoorraad=True,
@@ -398,8 +386,6 @@ def create_verblijfsobject_fixtures():
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543291",
             landelijk_id="0363010000543291",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=32,
             bouwlaag_toegang=1,
             woningvoorraad=True,
@@ -410,7 +396,29 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="1",
             buurt_id="7",
-            geometrie=Point(30, 20))]
+            geometrie=Point(30, 20))
+    ]
+
+    gebruiksdoelen = [
+        ("1010", "BEST-woning"),
+        ("0800", "BEST-winkelfunctie"),
+        ("0800", "BEST-winkelfunctie"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+    ]
+
+    for (vbo, _), gbd in zip(verblijfsobjecten, gebruiksdoelen):
+        models.Gebruiksdoel.objects.get_or_create(
+            verblijfsobject=vbo,
+            code=gbd[0],
+            omschrijving=gbd[1]
+        )
+
+    return verblijfsobjecten
 
 
 def create_ligplaats_fixtures():
