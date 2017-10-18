@@ -6,5 +6,5 @@ graypy
 django-cors-headers
 django-jenkins==0.18.1
 factory-boy
-datapunt-authorization-django
-datapunt-authorization-levels
+datapunt-authorization-django==0.2.16
+datapunt-authorization-levels==0.1.3
