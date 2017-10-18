@@ -12,11 +12,12 @@ dc() {
 # remove old stuff.
 #dc rm -f
 
+dc pull
+dc build
 
-#dc pull
+rm -rf ${DIR}/backups/
 
-#rm -rf ${DIR}/backups
-#mkdir -p ${DIR}/backups
+mkdir -p ${DIR}/backups/elasticsearch
 
 #dc build --pull
 #
@@ -61,8 +62,8 @@ do
 done
 
 #
-#dc run --rm importer python manage.py import --bagdbindexes
-#dc run --rm importer python manage.py import --bagdbconstraints
+dc run --rm importer python manage.py import --bagdbindexes
+dc run --rm importer python manage.py import --bagdbconstraints
 
 dc run --rm importer python manage.py migrate contenttypes
 dc run --rm importer python manage.py elastic_indices --recreate
@@ -70,9 +71,8 @@ dc run --rm importer python manage.py elastic_indices --recreate
 # import..indexes.
 dc run --rm importer bash docker-index-bag.sh
 
+dc run --rm elasticsearch chmod -R 777 /tmp/backups
 
-dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}'
-dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup/ds_bag_index?wait_for_completion=true -d '{ \"indices\": \"ds_bag_index\" }'
-dc run --rm el-backup chmod -R 777 /tmp/backups
+dc run importer /app/elk-bag-backup.sh
 
-dc down
+dc run --rm elasticsearch chmod -R 777 /tmp/backups

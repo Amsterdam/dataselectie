@@ -38,7 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
-    #'django_extensions',
+    # 'django_extensions',
+
     'dataselectie',
     'batch',
     'api',
@@ -134,7 +135,7 @@ DATABASES = {
     #},
 }
 
-USE_I18N=True
+USE_I18N = True
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
 LOGSTASH_PORT = os.getenv('LOGSTASH_GELF_UDP_PORT', 12201)

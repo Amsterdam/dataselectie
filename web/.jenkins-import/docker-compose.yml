@@ -2,6 +2,7 @@ version: '3.0'
 services:
   elasticsearch:
       image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
+      user: root
       volumes:
         - ./backups/elasticsearch:/tmp/backups
       command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
@@ -24,9 +25,6 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:
-
-  el-backup:
-    image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
 
 volumes:
   databasevolume:
