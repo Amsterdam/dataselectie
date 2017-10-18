@@ -44,9 +44,11 @@ INSTALLED_APPS = [
     'api',
 
     # Datasets
+
     'datasets.hr',
     'datasets.bag'
 ]
+
 
 # set to True for local development.
 LOCAL = False
@@ -54,7 +56,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'authorization_django.authorization_middleware',
-    # 'django.middleware.common.CommonMiddleware',
 ]
 
 if LOCAL:
@@ -87,7 +88,7 @@ WSGI_APPLICATION = 'dataselectie.wsgi.application'
 DS_DATASELECTIE = get_db_settings(
     db='dataselectie',
     docker_host='database',
-    localport='5406')
+    localport='5435')
 
 DS_BAG = get_db_settings(
     db='dataselectie',
@@ -112,26 +113,28 @@ DATABASES = {
         'CONN_MAX_AGE': 60,
     },
 
-    'bag': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_BAG['db'],
-        'USER': DS_BAG['username'],
-        'PASSWORD': DS_BAG['password'],
-        'HOST': DS_BAG['host'],
-        'PORT': DS_BAG['port'],
-        'CONN_MAX_AGE': 60,
-    },
+    #'bag': {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': DS_BAG['db'],
+    #    'USER': DS_BAG['username'],
+    #    'PASSWORD': DS_BAG['password'],
+    #    'HOST': DS_BAG['host'],
+    #    'PORT': DS_BAG['port'],
+    #    'CONN_MAX_AGE': 60,
+    #},
 
-    'hr': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_HR['db'],
-        'USER': DS_HR['username'],
-        'PASSWORD': DS_HR['password'],
-        'HOST': DS_HR['host'],
-        'PORT': DS_HR['port'],
-        'CONN_MAX_AGE': 60,
-    },
+    #'hr': {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': DS_HR['db'],
+    #    'USER': DS_HR['username'],
+    #    'PASSWORD': DS_HR['password'],
+    #    'HOST': DS_HR['host'],
+    #    'PORT': DS_HR['port'],
+    #    'CONN_MAX_AGE': 60,
+    #},
 }
+
+USE_I18N=True
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
 LOGSTASH_PORT = os.getenv('LOGSTASH_GELF_UDP_PORT', 12201)

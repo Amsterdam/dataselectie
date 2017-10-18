@@ -3,6 +3,10 @@ import logging
 import time
 # Packages
 from django.conf import settings
+from django.db.models.functions import Cast
+from django.db.models import F
+from django.db.models import BigIntegerField
+
 import elasticsearch
 from elasticsearch import helpers
 from elasticsearch.exceptions import NotFoundError
@@ -70,78 +74,39 @@ class CreateDocTypeTask(object):
         idx.create()
 
 
-def chunck_qs_by_id(qs, chuncks=1000):
-    """
-    Determine ID range, chunck up range.
-    """
-    if not qs.count():
-        return []
-
-    # incase of string -> 00003
-    # we must return length
-    width = 0
-
-    if isinstance(qs.first().id, str):
-        width = len(qs.first().id)
-
-    min_id = int(qs.first().id)
-    max_id = int(qs.last().id)
-
-    delta_step = int((max_id - min_id) / chuncks) or 1
-
-    log.debug(
-        'id range %s %s, chunksize %s', min_id, max_id, delta_step)
-
-    steps = list(range(min_id, max_id, delta_step))
-    # add max id range (bigger then last_id)
-    steps.append(max_id+1)
-    return steps, width
-
-
 def return_qs_parts(qs, modulo, modulo_value):
-    """ generate qs within min_id and max_id
-
-        modulo and modulo_value determin which chuncks
-        are teturned.
-
-        if partial = 1/3
-
-        then this function only returns chuncks index i for which
-        modulo i % 3 == 1
     """
-    chuncks = 1000
+    build qs
 
-    if modulo > 1000:
-        chuncks = modulo
+    modulo and modulo_value determin which chuncks
+    are teturned.
 
-    steps, width = chunck_qs_by_id(qs, chuncks)
+    if partial = 1/3
 
-    for i in range(len(steps)-1):
-        if not i % modulo == modulo_value:
-            continue
+    then this function only returns chuncks index i for which
+    modulo i % 3 == 1
+    """
 
-        start_id = steps[i]
-        end_id = steps[i+1]
+    qs_s = (
+        qs
+        .annotate(intid=Cast('id', BigIntegerField()))
+        .annotate(idmod=F('intid') % modulo)
+        .filter(idmod=modulo_value-1)
+    )
 
-        print(width)
+    qs_count = qs_s.count()
+    log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
-        if width:
-            # deal with string values as pk
-            start_id = f'%0{width}d' % start_id
-            end_id = f'%0{width}d' % end_id
+    for i in range(0, qs_count+1000, 1000):
 
-        qs_s = qs.filter(id__gte=start_id).filter(id__lt=end_id)
+        if i > qs_count:
+            qs_ss = qs_s[i:]
+        else:
+            qs_ss = qs_s[i:i+1000]
 
-        count = qs_s.count()
+        log.debug('Batch %4d %4d', i, i + 1000)
 
-        log.debug(
-            '%4d Count: %s range %s %s',
-            i, qs_s.count(), start_id, end_id)
-
-        if count == 0:
-            continue
-
-        yield qs_s, i/1000.0
+        yield qs_ss, i/qs_count
 
     raise StopIteration
 

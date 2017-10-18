@@ -20,22 +20,23 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.verbosity = 2
         self.unmanaged_models = []
 
-    def setup_test_environment(self, *args, **kwargs):
-        datasets = ['bag']  # update when new datasets are introdiced
-        for dataset in datasets:
-            self.unmanaged_models.extend(
-                [model for _, model in apps.all_models[dataset].items() if
-                 not model._meta.managed]
-            )
-        for m in self.unmanaged_models:
-            m._meta.managed = True
-        super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
+    #def setup_test_environment(self, *args, **kwargs):
+    #    datasets = ['bag', 'hr']  # update when new datasets are introdiced
+    #    # datasets = []  # update when new datasets are introdiced
+    #    for dataset in datasets:
+    #        self.unmanaged_models.extend(
+    #            [model for _, model in apps.all_models[dataset].items() if
+    #             not model._meta.managed]
+    #        )
+    #    for m in self.unmanaged_models:
+    #        m._meta.managed = True
+    #    super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
 
-    def teardown_test_environment(self, *args, **kwargs):
-        super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
-        # reset unmanaged models
-        for m in self.unmanaged_models:
-            m._meta.managed = False
+    #def teardown_test_environment(self, *args, **kwargs):
+    #    super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
+    #    # reset unmanaged models
+    #    for m in self.unmanaged_models:
+    #        m._meta.managed = False
 
 
 def get_docker_host():
