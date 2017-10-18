@@ -16,14 +16,14 @@ dc() {
 
 # trap 'dc kill ; dc rm -f' EXIT
 
-#dc pull
+dc pull
 
 #rm -rf ${DIR}/backups
 #mkdir -p ${DIR}/backups
 
-#dc build --pull
+dc build --pull
 
-#dc up -d database
+dc up -d database
 
 #sleep 5 # waiting for postgres to start
 
@@ -62,26 +62,34 @@ do
 dc exec -T database update-table.sh bag $tablename public dataselectie
 done
 
-#
-#dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
-#
-#dc run --rm importer
-#
 
-#dc run importer_el1
-## create the new elastic indexes
-#dc up importer_el1 importer_el2 importer_el3
-## wait until all building is done
-#import_status=`docker wait dataselectie_importer_el1_1 dataselectie_importer_el2_1 dataselectie_importer_el3_1`
-#
-## count the errors.
-#import_error=`echo $import_status | grep -o "1" | wc -l`
-#
-#if (( $import_error > 0 ))
-#then
-#    echo 'Elastic Import Error. 1 or more workers failed'
-#    exit 1
-#fi
-#
-#dc run --rm el-backup
-#dc down
+dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
+
+dc run --rm importer
+
+
+dc exec importer bash -c "/app/docker-wait.sh \ && python manage.py elastic_indices bag --partial=1/3 --build" &
+dc exec importer bash -c "python manage.py elastic_indices bag --partial=2/3 --build" &
+dc exec importer bash -c "python manage.py elastic_indices bag --partial=3/3 --build"
+
+FAIL=0
+
+for job in `jobs -p`
+do
+	echo $job
+	wait $job || let "FAIL+=1"
+done
+
+echo $FAIL
+
+if [ "$FAIL" == "0" ];
+then
+    echo "YAY!"
+else
+    echo "FAIL! ($FAIL)"
+    echo 'Elastic Import Error. 1 or more workers failed'
+    exit 1
+fi
+
+dc run --rm el-backup
+dc down
