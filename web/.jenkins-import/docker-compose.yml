@@ -17,8 +17,8 @@ services:
       #vo- databasevolume:/tmp
 
   importer:
-    #image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
-    build: ../
+    image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
+    # build: ../
     links:
       - elasticsearch:elasticsearch
       - database:database
