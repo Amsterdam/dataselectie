@@ -7,16 +7,14 @@ from django.http import HttpResponse
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 
-from datasets.bag.models import Nummeraanduiding
-from datasets.hr.models import DataSelectie
-
 log = logging.getLogger(__name__)
 
 
-def health(request):
+def health(_request):
     # check database
     message = ''
     status = 200
+
     try:
         with connection.cursor() as cursor:
             cursor.execute("select 1")
@@ -25,6 +23,7 @@ def health(request):
         log.exception("Database connectivity failed")
         message += "\nDatabase connectivity failed."
         status = 500
+        return HttpResponse(message, content_type='text/plain', status=status)
 
     # check elasticsearch
     try:
@@ -34,36 +33,36 @@ def health(request):
         log.exception("Elasticsearch connectivity failed")
         message += "\nElasticsearch connectivity failed."
         status = 500
+        return HttpResponse(message, content_type='text/plain', status=status)
 
     if not message:
         message = "Connectivity OK"
 
-    return HttpResponse(
-        message, content_type='text/plain', status=status)
+    return HttpResponse(message, content_type='text/plain', status=status)
 
 
 def check_data(request):
     # check bag / hr
+    message = None
+    status = 200
 
-    status, message = checknrs(Nummeraanduiding.objects.count(), settings.MIN_BAG_NR, "BAG")
-    if status == 200:
-        status, message = checknrs(DataSelectie.objects.count(), settings.MIN_HR_NR, "DataselectieHR")
+    # check elastic
+    try:
+        client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
+        for index in settings.ELASTIC_INDICES.keys():
+            assert (
+                Search()
+                .using(client)
+                .index(settings.ELASTIC_INDICES[index])
+                .query("match_all", size=0)
+            )
+    except:
+        message += "\nElastic data missing."
+        log.exception(message)
+        status = 500
 
-        if status == 200:
-            # check elastic
-            try:
-                client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
-                for index in settings.ELASTIC_INDICES.values():
-                    assert Search().using(client)\
-                               .index(settings.ELASTIC_INDICES[index])\
-                               .query("match_all", size=0)
-            except:
-                log.exception("Autocomplete failed")
-                message += "\nAutocomplete failed."
-                status = 500
-
-            if not message:
-                message = "Data Ok"
+    if not message:
+        message = "Data Ok"
 
     return HttpResponse(message, content_type='text/plain', status=status)
 

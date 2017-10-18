@@ -87,14 +87,21 @@ def return_qs_parts(qs, modulo, modulo_value):
     modulo i % 3 == 1
     """
 
-    qs_s = (
-        qs
-        .annotate(intid=Cast('id', BigIntegerField()))
-        .annotate(idmod=F('intid') % modulo)
-        .filter(idmod=modulo_value-1)
-    )
+    if modulo != 1:
+        qs_s = (
+            qs
+            .annotate(intid=Cast('id', BigIntegerField()))
+            .annotate(idmod=F('intid') % modulo)
+            .filter(idmod=modulo_value-1)
+        )
+    else:
+        qs_s = qs
 
     qs_count = qs_s.count()
+
+    if not qs_count:
+        raise StopIteration
+
     log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
     for i in range(0, qs_count+1000, 1000):

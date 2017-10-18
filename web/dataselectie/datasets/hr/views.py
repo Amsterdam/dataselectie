@@ -162,8 +162,7 @@ class HrCSV(HrBase, CSVExportView):
         :param request:
         :return: true when the user
         """
-        return True
-        # return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
 
     def paginate(self, _offset, q: dict) -> dict:
         if 'size' in q:
