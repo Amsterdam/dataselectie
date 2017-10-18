@@ -10,19 +10,21 @@ dc() {
 }
 
 
-dc pull
+# Done IN BAG import
+#dc pull
 
 #rm -rf ${DIR}/backups
 #mkdir -p ${DIR}/backups
 
-dc build --pull
+#dc build --pull
 
 dc up -d database elasticsearch
 
 dc run --rm importer bash /app/docker-wait.sh
 
-#dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
+dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
 
+# Done in bag import
 #dc run --rm importer python manage.py migrate contenttypes
 #dc run --rm importer python manage.py elastic_indices --recreate
 

@@ -10,13 +10,12 @@ dc() {
 }
 
 # remove old stuff.
-#dc rm -f
+dc rm -f
 
 dc pull
 dc build
 
 rm -rf ${DIR}/backups/
-
 mkdir -p ${DIR}/backups/elasticsearch
 
 #dc build --pull
@@ -58,7 +57,7 @@ declare  -a bag_tables=(
 for tablename in "${bag_tables[@]}"
 do
 	echo $tablename
-	#dc exec -T database update-table.sh bag $tablename public dataselectie
+	dc exec -T database update-table.sh bag $tablename public dataselectie
 done
 
 #
