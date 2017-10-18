@@ -61,38 +61,18 @@ do
 done
 
 #
-dc run --rm importer python manage.py import --bagdbindexes
-dc run --rm importer python manage.py import --bagdbconstraints
+#dc run --rm importer python manage.py import --bagdbindexes
+#dc run --rm importer python manage.py import --bagdbconstraints
 
 dc run --rm importer python manage.py migrate contenttypes
 dc run --rm importer python manage.py elastic_indices --recreate
 
 # import..indexes.
-dc run --rm importer python manage.py elastic_indices bag --partial=1/30000 --build
-#dc run --rm importer python manage.py elastic_indices bag --partial=2/30000 --build
-#dc run --rm importer python manage.py elastic_indices bag --partial=3/30000 --build
+dc run --rm importer bash docker-index-bag.sh
 
-FAIL=0
 
-for job in `jobs -p`
-do
-	echo $job
-	wait $job || let "FAIL+=1"
-done
+dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}'
+dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup/ds_bag_index?wait_for_completion=true -d '{ \"indices\": \"ds_bag_index\" }'
+dc run --rm el-backup chmod -R 777 /tmp/backups
 
-echo $FAIL
-
-if [ "$FAIL" == "0" ];
-then
-    echo "YAY!"
-else
-    echo "FAIL! ($FAIL)"
-    echo 'Elastic Import Error. 1 or more workers failed'
-    exit 1
-fi
-
-#dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup -d '{ \"type\": \"fs\", \"settings\": { \"location\": \"/tmp/backups\" }}'
-#dc run --rm el-backup curl -X PUT http://el:9200/_snapshot/backup/ds_bag_index?wait_for_completion=true -d '{ \"indices\": \"ds_bag_index\" }'
-#dc run --rm el-backup chmod -R 777 /tmp/backups
-
-# dc down
+dc down
