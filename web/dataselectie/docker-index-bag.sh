@@ -4,9 +4,9 @@ set -u   # crash on missing env variables
 set -e   # stop on any error
 
 
-python manage.py elastic_indices bag --partial=1/30000 --build &
-python manage.py elastic_indices bag --partial=2/30000 --build &
-python manage.py elastic_indices bag --partial=3/30000 --build &
+python manage.py elastic_indices bag --partial=1/3 --build &
+python manage.py elastic_indices bag --partial=2/3 --build &
+python manage.py elastic_indices bag --partial=3/3 --build &
 
 FAIL=0
 
