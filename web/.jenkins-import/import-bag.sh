@@ -10,6 +10,7 @@ dc() {
 }
 
 # remove old stuff.
+dc down
 dc rm -f
 
 dc pull
