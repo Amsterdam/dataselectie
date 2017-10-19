@@ -63,7 +63,7 @@ class IndexHrTask(index.ImportIndexTask):
 
 
 class BuildIndexHrJob(object):
-    name = "Create new search-index for all HR data from database"
+    name = "Fill HR search-index for all HR data from database"
 
     @staticmethod
     def tasks():

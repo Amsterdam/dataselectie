@@ -92,12 +92,14 @@ def return_qs_parts(qs, modulo, modulo_value):
             qs
             .annotate(intid=Cast('id', BigIntegerField()))
             .annotate(idmod=F('intid') % modulo)
-            .filter(idmod=modulo_value-1)
+            .filter(idmod=modulo_value)
         )
     else:
         qs_s = qs
 
     qs_count = qs_s.count()
+
+    log.debug('PART: %d %d %d', qs.count(), modulo, modulo_value)
 
     if not qs_count:
         raise StopIteration

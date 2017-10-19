@@ -57,7 +57,7 @@ class IndexDsBagTask(index.ImportIndexTask):
 
 
 class BuildIndexDsBagJob(object):
-    name = "Create new search-index for all BAG data from database"
+    name = "Fill DS BAG search-index for database"
 
     @staticmethod
     def tasks():
