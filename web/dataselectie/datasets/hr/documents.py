@@ -233,6 +233,8 @@ def add_sbi_to_doc(doc, ves_data):
         sbi_tree = activiteit.get('sbi_tree', {})
 
         for key, bucket in levels.items():
+            if not sbi_tree:
+                continue
             level_omschrijving = sbi_tree.get(key, [])
             if not level_omschrijving:
                 continue
