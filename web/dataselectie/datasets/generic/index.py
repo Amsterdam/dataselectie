@@ -99,21 +99,22 @@ def return_qs_parts(qs, modulo, modulo_value):
 
     qs_count = qs_s.count()
 
-    log.debug('PART: %d %d %d', qs.count(), modulo, modulo_value)
+    log.debug('PART %d/%d Count: %d', modulo, modulo_value, qs.count())
 
     if not qs_count:
         raise StopIteration
 
     log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
-    for i in range(0, qs_count+1000, 1000):
+    batch_size = 200
+    for i in range(0, qs_count+batch_size, batch_size):
 
         if i > qs_count:
             qs_ss = qs_s[i:]
         else:
-            qs_ss = qs_s[i:i+1000]
+            qs_ss = qs_s[i:i+batch_size]
 
-        log.debug('Batch %4d %4d', i, i + 1000)
+        log.debug('Batch %4d %4d', i, i + batch_size)
 
         yield qs_ss, i/qs_count
 

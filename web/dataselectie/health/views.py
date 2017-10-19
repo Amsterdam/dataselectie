@@ -15,15 +15,15 @@ def health(_request):
     message = ''
     status = 200
 
-    try:
-        with connection.cursor() as cursor:
-            cursor.execute("select 1")
-            assert cursor.fetchone()
-    except:
-        log.exception("Database connectivity failed")
-        message += "\nDatabase connectivity failed."
-        status = 500
-        return HttpResponse(message, content_type='text/plain', status=status)
+    #try:
+    #    with connection.cursor() as cursor:
+    #        cursor.execute("select 1")
+    #        assert cursor.fetchone()
+    #except:
+    #    log.exception("Database connectivity failed")
+    #    message += "\nDatabase connectivity failed."
+    #    status = 500
+    #    return HttpResponse(message, content_type='text/plain', status=status)
 
     # check elasticsearch
     try:
