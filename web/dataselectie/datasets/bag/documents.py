@@ -20,49 +20,49 @@ class Nummeraanduiding(es.DocType):
     The link with any data that is being used here is
     the bag_id.
     """
-    nummeraanduiding_id = es.Keyword(index='not_analyzed')
-    landelijk_id = es.Keyword(index='not_analyzed')
+    nummeraanduiding_id = es.Keyword()
+    landelijk_id = es.Keyword()
 
     _openbare_ruimte_naam = es.Keyword()
     naam = es.Keyword()
-    huisnummer = es.Integer(index='not_analyzed')
-    huisnummer_toevoeging = es.Keyword(index='not_analyzed')
-    huisletter = es.Keyword(index='not_analyzed')
-    postcode = es.Keyword(index='not_analyzed')
-    woonplaats = es.Keyword(index='not_analyzed')
+    huisnummer = es.Integer()
+    huisnummer_toevoeging = es.Keyword()
+    huisletter = es.Keyword()
+    postcode = es.Keyword()
+    woonplaats = es.Keyword()
 
-    buurt_code = es.Keyword(index='not_analyzed')
-    buurt_naam = es.Keyword(index='not_analyzed')
-    buurtcombinatie_code = es.Keyword(index='not_analyzed')
-    buurtcombinatie_naam = es.Keyword(index='not_analyzed')
-    ggw_code = es.Keyword(index='not_analyzed')
-    ggw_naam = es.Keyword(index='not_analyzed')
+    buurt_code = es.Keyword()
+    buurt_naam = es.Keyword()
+    buurtcombinatie_code = es.Keyword()
+    buurtcombinatie_naam = es.Keyword()
+    ggw_code = es.Keyword()
+    ggw_naam = es.Keyword()
 
-    gsg_naam = es.Keyword(index='not_analyzed')
+    gsg_naam = es.Keyword()
 
-    stadsdeel_code = es.Keyword(index='not_analyzed')
-    stadsdeel_naam = es.Keyword(index='not_analyzed')
+    stadsdeel_code = es.Keyword()
+    stadsdeel_naam = es.Keyword()
 
     # Extended information
     centroid = es.GeoPoint()
-    status = es.Keyword(index='not_analyzed')
-    type_desc = es.Keyword(index='not_analyzed')
-    hoofdadres = es.Keyword(index='not_analyzed')  # Is there a choice option?
+    status = es.Keyword()
+    type_desc = es.Keyword()
+    hoofdadres = es.Keyword()  # Is there a choice option?
     # Landelijke codes
-    openbare_ruimte_landelijk_id = es.Keyword(index='not_analyzed')
-    verblijfsobject = es.Keyword(index='not_analyzed')
-    ligplaats = es.Keyword(index='not_analyzed')
-    standplaats = es.Keyword(index='not_analyzed')
+    openbare_ruimte_landelijk_id = es.Keyword()
+    verblijfsobject = es.Keyword()
+    ligplaats = es.Keyword()
+    standplaats = es.Keyword()
 
     # Verblijfsobject specific data
     gebruiksdoelen_omschrijvingen = es.Keyword(
         index='not_analyzed', multi=True)
-    gebruiksdoelen_coden = es.Keyword(index='not_analyzed', multi=True)
+    gebruiksdoelen_coden = es.Keyword(multi=True)
 
     oppervlakte = es.Integer()
-    bouwblok = es.Keyword(index='not_analyzed')
-    gebruik = es.Keyword(index='not_analyzed')
-    panden = es.Keyword(index='not_analyzed', multi=True)
+    bouwblok = es.Keyword()
+    gebruik = es.Keyword()
+    panden = es.Keyword(multi=True)
 
     class Meta:
         doc_type = 'nummeraanduiding'
