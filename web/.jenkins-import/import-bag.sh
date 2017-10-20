@@ -19,7 +19,7 @@ dc build
 rm -rf ${DIR}/backups/
 mkdir -p ${DIR}/backups/elasticsearch
 
-source get_bag_tables.sh
+source ${DIR}/get_bag_tables.sh
 
 #dc build --pull
 #

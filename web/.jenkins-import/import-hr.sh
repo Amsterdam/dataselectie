@@ -23,7 +23,7 @@ mkdir -p ${DIR}/backups
 dc up -d database elasticsearch
 dc run --rm importer bash /app/docker-wait.sh
 
-source get_bag_tables.sh
+source ${DIR}/get_bag_tables.sh
 
 dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
 
