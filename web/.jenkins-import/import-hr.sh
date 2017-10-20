@@ -10,7 +10,8 @@ dc() {
 }
 
 # remove old stuff.
-dc down
+trap 'dc kill ; dc rm -f -v' EXIT
+
 dc rm -f
 
 dc pull
