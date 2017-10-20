@@ -25,8 +25,8 @@ def health(request):
         status = 500
         return HttpResponse(message, content_type='text/plain', status=status)
 
-    return HttpResponse(message, content_type='text/plain', status=status)
-    #return check_data(request)
+    # return HttpResponse(message, content_type='text/plain', status=status)
+    return check_data(request)
 
 
 def check_data(request):
