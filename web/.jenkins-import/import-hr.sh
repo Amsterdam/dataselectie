@@ -28,7 +28,7 @@ source ${DIR}/get_bag_tables.sh
 dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
 
 dc run --rm importer python manage.py migrate contenttypes
-dc run --rm importer python manage.py elastic_indices --recreate
+dc run --rm importer python manage.py elastic_indices --recreate hr
 
 # create dataselectie HR indexes
 

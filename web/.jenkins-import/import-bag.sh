@@ -28,7 +28,7 @@ dc run --rm importer bash /app/docker-wait.sh
 
 #
 dc run --rm importer python manage.py migrate contenttypes
-dc run --rm importer python manage.py elastic_indices --recreate
+dc run --rm importer python manage.py elastic_indices --recreate bag
 
 # create dataselectie BAG indexes
 
