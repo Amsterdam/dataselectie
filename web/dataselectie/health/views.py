@@ -10,20 +10,10 @@ from elasticsearch_dsl import Search
 log = logging.getLogger(__name__)
 
 
-def health(_request):
+def health(request):
     # check database
     message = ''
     status = 200
-
-    #try:
-    #    with connection.cursor() as cursor:
-    #        cursor.execute("select 1")
-    #        assert cursor.fetchone()
-    #except:
-    #    log.exception("Database connectivity failed")
-    #    message += "\nDatabase connectivity failed."
-    #    status = 500
-    #    return HttpResponse(message, content_type='text/plain', status=status)
 
     # check elasticsearch
     try:
@@ -35,44 +25,34 @@ def health(_request):
         status = 500
         return HttpResponse(message, content_type='text/plain', status=status)
 
-    if not message:
-        message = "Connectivity OK"
-
-    return HttpResponse(message, content_type='text/plain', status=status)
+    return check_data(request)
 
 
 def check_data(request):
-    # check bag / hr
-    message = None
+    # check bag / hr documents in elastic
+    message = ''
     status = 200
 
     # check elastic
     try:
         client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
         for index in settings.ELASTIC_INDICES.keys():
-            assert (
+            # check that we have some documents in index.
+            es_index = settings.ELASTIC_INDICES[index]
+            count = (
                 Search()
                 .using(client)
-                .index(settings.ELASTIC_INDICES[index])
-                .query("match_all", size=0)
-            )
+                .index(es_index)
+                .query("match_all").count())
+            log.debug('%s -  %s', es_index, count)
+            assert count
+
     except:
-        message += "\nElastic data missing."
+        message += "Elastic data missing."
         log.exception(message)
         status = 500
 
     if not message:
-        message = "Data Ok"
+        message = "Data OK"
 
     return HttpResponse(message, content_type='text/plain', status=status)
-
-
-def checknrs(obj_count: int, min_required: int, dataset: str) -> (int, str):
-    message = ''
-    status = 200
-    if obj_count < min_required:
-        msg = "Database connects, but {} has too few rows".format(dataset)
-        log.exception(msg)
-        message += "\n" + msg
-        status = 500
-    return status, message
