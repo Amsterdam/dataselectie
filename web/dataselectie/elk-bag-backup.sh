@@ -6,7 +6,7 @@ set -e   # stop on any error
 
 curl -s -v -f -XPUT http://elasticsearch:9200/_snapshot/backup -d '
 {
-	"type": "fs",
+  "type": "fs",
   "settings": {
       "location": "/tmp/backups" }
 }'
