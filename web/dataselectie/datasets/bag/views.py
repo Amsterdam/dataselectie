@@ -32,9 +32,11 @@ def create_geometry_dict(item):
             'geometrie_rd_x': int(geom[0]),
             'geometrie_rd_y': int(geom[1]),
             'geometrie_wgs_lat': (
-                '{:.7f}'.format(geom_wgs[1], 7)).replace('.', ','),
+                '{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+
             'geometrie_wgs_lon': (
-                '{:.7f}'.format(geom_wgs[0], 7)).replace('.', ',')
+                '{:.7f}'.format(geom_wgs[0])).replace('.', ',')
+
         }
         item.update(res)
 
@@ -56,7 +58,7 @@ class BagBase(object):
     keyword_mapping = {
         'openbare_ruimte': 'naam',
     }
-    raw_fields = ['naam', '_openbare_ruimte_naam']
+    raw_fields = []
 
 
 class BagGeoLocationSearch(BagBase, GeoLocationSearchView):
