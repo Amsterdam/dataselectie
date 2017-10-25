@@ -55,34 +55,32 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
         response = self.client.get('/dataselectie/hr/export/', **self.headers)
         self.assertEqual(response.status_code, 401)
 
-        for token in (self.token_employee, self.token_scope_hr_r):
-            self.headers = {AUTH_HEADER: f'Bearer {token}'}
-            response = self.client.get('/dataselectie/hr/export/', **self.headers)
+        self.headers = {AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}
+        response = self.client.get('/dataselectie/hr/export/', **self.headers)
 
-            self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 200)
 
-            res = (b''.join(response.streaming_content)).decode('utf-8').strip()
-            res = res.split('\r\n')
-            # 6 lines: headers + 5 items
-            self.assertEqual(len(res), 6)
-            # check columns lenght
-            row2 = res[2].split(';')
-            self.assertEqual(len(row2), 27)
+        res = (b''.join(response.streaming_content)).decode('utf-8').strip()
+        res = res.split('\r\n')
+        # 6 lines: headers + 5 items
+        self.assertEqual(len(res), 6)
+        # check columns lenght
+        row2 = res[2].split(';')
+        self.assertEqual(len(row2), 27)
 
     def test_export_hr_subcategorie(self):
-        for token in (self.token_employee, self.token_scope_hr_r):
-            self.headers = {AUTH_HEADER: f'Bearer {token}'}
-            q = {
-                'page': 1,
-                'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)'  # noqa
-            }
-            response = self.client.get(
-                '/dataselectie/hr/export/?{}'.format(urlencode(q)), **self.headers)
-            # assert that response status is 200
-            self.assertEqual(response.status_code, 200)
+        self.headers = {AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}
+        q = {
+            'page': 1,
+            'subcategorie': 'groothandel (verkoop aan andere ondernemingen, niet zelf vervaardigd)'  # noqa
+        }
+        response = self.client.get(
+            '/dataselectie/hr/export/?{}'.format(urlencode(q)), **self.headers)
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
 
-            res = (b''.join(response.streaming_content)).decode('utf-8').strip()
+        res = (b''.join(response.streaming_content)).decode('utf-8').strip()
 
-            res = res.split('\r\n')
-            # 2 lines: headers + 1 items
-            self.assertEqual(len(res), 2)
+        res = res.split('\r\n')
+        # 2 lines: headers + 1 items
+        self.assertEqual(len(res), 2)
