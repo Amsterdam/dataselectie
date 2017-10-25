@@ -20,61 +20,53 @@ class Nummeraanduiding(es.DocType):
     The link with any data that is being used here is
     the bag_id.
     """
-    nummeraanduiding_id = es.String(index='not_analyzed')
-    landelijk_id = es.String(index='not_analyzed')
+    nummeraanduiding_id = es.Keyword()
+    landelijk_id = es.Keyword()
 
-    _openbare_ruimte_naam = es.String(
-        fields={'raw': es.String(index='not_analyzed')}
-    )
-    naam = es.String(
-        analyzer=analyzers.adres,
-        fields={
-            'raw': es.String(index='not_analyzed'),
-            'ngram_edge': es.String(
-                analyzer=analyzers.autocomplete, search_analyzer='standard'
-            ),
-            'keyword': es.String(analyzer=analyzers.subtype),
-        }
-    )
-    huisnummer = es.Integer(index='not_analyzed')
-    huisnummer_toevoeging = es.String(index='not_analyzed')
-    huisletter = es.String(index='not_analyzed')
-    postcode = es.String(index='not_analyzed')
-    woonplaats = es.String(index='not_analyzed')
+    _openbare_ruimte_naam = es.Keyword()
+    naam = es.Keyword()
+    huisnummer = es.Integer()
+    huisnummer_toevoeging = es.Keyword()
+    huisletter = es.Keyword()
+    postcode = es.Keyword()
+    woonplaats = es.Keyword()
 
-    buurt_code = es.String(index='not_analyzed')
-    buurt_naam = es.String(index='not_analyzed')
-    buurtcombinatie_code = es.String(index='not_analyzed')
-    buurtcombinatie_naam = es.String(index='not_analyzed')
-    ggw_code = es.String(index='not_analyzed')
-    ggw_naam = es.String(index='not_analyzed')
+    buurt_code = es.Keyword()
+    buurt_naam = es.Keyword()
+    buurtcombinatie_code = es.Keyword()
+    buurtcombinatie_naam = es.Keyword()
+    ggw_code = es.Keyword()
+    ggw_naam = es.Keyword()
 
-    gsg_naam = es.String(index='not_analyzed')
+    gsg_naam = es.Keyword()
 
-    stadsdeel_code = es.String(index='not_analyzed')
-    stadsdeel_naam = es.String(index='not_analyzed')
+    stadsdeel_code = es.Keyword()
+    stadsdeel_naam = es.Keyword()
 
     # Extended information
     centroid = es.GeoPoint()
-    status = es.String(index='not_analyzed')
-    type_desc = es.String(index='not_analyzed')
-    hoofdadres = es.String(index='not_analyzed')  # Is there a choice option?
+    status = es.Keyword()
+    type_desc = es.Keyword()
+    hoofdadres = es.Keyword()  # Is there a choice option?
     # Landelijke codes
-    openbare_ruimte_landelijk_id = es.String(index='not_analyzed')
-    verblijfsobject = es.String(index='not_analyzed')
-    ligplaats = es.String(index='not_analyzed')
-    standplaats = es.String(index='not_analyzed')
+    openbare_ruimte_landelijk_id = es.Keyword()
+    verblijfsobject = es.Keyword()
+    ligplaats = es.Keyword()
+    standplaats = es.Keyword()
 
     # Verblijfsobject specific data
-    gebruiksdoel_omschrijving = es.String(index='not_analyzed')
+    gebruiksdoelen_omschrijvingen = es.Keyword(
+        index='not_analyzed', multi=True)
+    gebruiksdoelen_coden = es.Keyword(multi=True)
+
     oppervlakte = es.Integer()
-    bouwblok = es.String(index='not_analyzed')
-    gebruik = es.String(index='not_analyzed')
-    panden = es.String(index='not_analyzed', multi=True)
+    bouwblok = es.Keyword()
+    gebruik = es.Keyword()
+    panden = es.Keyword(multi=True)
 
     class Meta:
         doc_type = 'nummeraanduiding'
-        index = settings.ELASTIC_INDICES['DS_INDEX']
+        index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
 
 
 def update_doc_with_adresseerbaar_object(doc, item):
@@ -90,7 +82,7 @@ def update_doc_with_adresseerbaar_object(doc, item):
     try:
         doc.centroid = (
             adresseerbaar_object
-                .geometrie.centroid.transform('wgs84', clone=True).coords)
+            .geometrie.centroid.transform('wgs84', clone=True).coords)
     except AttributeError:
         batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
@@ -143,26 +135,29 @@ def update_doc_from_param_list(target: Nummeraanduiding, source: object, mapping
             pass
 
 
-def add_verblijfsobject_data(doc, obj):
+def add_verblijfsobject_data(doc, vbo):
     """
     vbo gerelateerde data
     """
     verblijfsobject_extra = [
         ('verblijfsobject', 'landelijk_id'),
-        ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
+        # ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
         ('oppervlakte', 'oppervlakte'),
         ('bouwblok', 'bouwblok.code'),
         ('gebruik', 'gebruik.omschrijving')
     ]
-    update_doc_from_param_list(doc, obj, verblijfsobject_extra)
+    update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
-    try:
-        doc.panden = [i.landelijk_id for i in obj.panden.all()]
-    except:
-        pass
+    doc.panden = [i.landelijk_id for i in vbo.panden.all()]
+
+    doc.gebruiksdoelen_code = [gd.code for gd in vbo.gebruiksdoelen.all()]
+
+    doc.gebruiksdoelen_omschrijving = [
+        gd.omschrijving for gd in vbo.gebruiksdoelen.all()]
 
 
-def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding:
+def doc_from_nummeraanduiding(
+        item: models.Nummeraanduiding) -> Nummeraanduiding:
     """
     Van een Nummeraanduiding bak een dataselectie document
     met bag informatie en hr informatie
@@ -170,7 +165,7 @@ def doc_from_nummeraanduiding(item: models.Nummeraanduiding) -> Nummeraanduiding
 
     batch.statistics.add('BAG Nummeraanduiding', total=False)
 
-    start = time.time()
+    # start = time.time()
 
     doc = Nummeraanduiding(_id=item.landelijk_id)
     parameters = [

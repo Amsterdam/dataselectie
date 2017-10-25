@@ -2,7 +2,6 @@
 from django.contrib.gis.geos import Polygon, Point
 
 from datasets.bag import models
-from datasets.hr.tests import factories as hr_factories
 
 
 def create_stadsdeel_fixtures():
@@ -13,7 +12,8 @@ def create_stadsdeel_fixtures():
     return [
         models.Stadsdeel.objects.get_or_create(
             id="03630000000018", code="A", naam="Centrum", vervallen=False,
-            gemeente_id="03630000000000")
+            gemeente_id="03630000000000"
+        )
     ]
 
 
@@ -56,8 +56,10 @@ def create_buurt_combinaties():
                   vollcode="A04", stadsdeel_id="03630000000018"),
         create_bc(id="3630012052034", naam="Grachtengordel-Zuid", code="03",
                   vollcode="A03", stadsdeel_id="03630000000018"),
-        create_bc(id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01",
-                  vollcode="A01", stadsdeel_id="03630000000018"),
+        create_bc(
+            id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01",
+            vollcode="A01", stadsdeel_id="03630000000018"),
+
         create_bc(id="3630012052037", naam="Jordaan", code="06",
                   vollcode="A06", stadsdeel_id="03630000000018"),
     ]
@@ -129,12 +131,17 @@ def create_status_fixtures():
     :return:
     """
     return [
-        models.Status.objects.get_or_create(code='33',
-                                            omschrijving='Ligplaats aangewezen'),
-        models.Status.objects.get_or_create(code='35',
-                                            omschrijving='Naamgeving uitgegeven'),
-        models.Status.objects.get_or_create(code='37',
-                                            omschrijving='Standplaats toegewezen'),
+        models.Status.objects.get_or_create(
+            code='33',
+            omschrijving='Ligplaats aangewezen'),
+
+        models.Status.objects.get_or_create(
+            code='35',
+            omschrijving='Naamgeving uitgegeven'),
+
+        models.Status.objects.get_or_create(
+            code='37',
+            omschrijving='Standplaats toegewezen'),
     ]
 
 
@@ -144,10 +151,11 @@ def create_gemeente_fixture():
     :return: returns a list with a gemeente fixture
     """
     return [
-        models.Gemeente.objects.get_or_create(id='03630000000000', code='0363',
-                                              naam='Amsterdam',
-                                              verzorgingsgebied=True,
-                                              vervallen=False)]
+        models.Gemeente.objects.get_or_create(
+            id='03630000000000', code='0363',
+            naam='Amsterdam',
+            verzorgingsgebied=True,
+            vervallen=False)]
 
 
 def create_woonplaats_fixture():
@@ -156,12 +164,14 @@ def create_woonplaats_fixture():
 
     :return: List with woonplaats fixture
     """
-    return [models.Woonplaats.objects.get_or_create(id='03630022796658',
-                                                    landelijk_id='3594',
-                                                    naam='Amsterdam',
-                                                    naam_ptt='AMSTERDAM',
-                                                    gemeente_id='03630000000000',
-                                                    vervallen=False)]
+    return [
+        models.Woonplaats.objects.get_or_create(
+            id='03630022796658',
+            landelijk_id='3594',
+            naam='Amsterdam',
+            naam_ptt='AMSTERDAM',
+            gemeente_id='03630000000000',
+            vervallen=False)]
 
 
 def create_openbare_ruimte_fixtures():
@@ -173,198 +183,209 @@ def create_openbare_ruimte_fixtures():
     create_woonplaats_fixture()
 
     return [
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000001',
-                                                    landelijk_id='0363000000000001',
-                                                    code='01011',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Kanaalstraat',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000002',
-                                                    landelijk_id='0363000000000002',
-                                                    code='01012',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Leidsestraat',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000003',
-                                                    landelijk_id='0363000000000003',
-                                                    code='01013',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Hobbemakade',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000004',
-                                                    landelijk_id='0363000000000004',
-                                                    code='01014',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Delflandplein',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000005',
-                                                    landelijk_id='0363000000000005',
-                                                    code='01015',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Vriesseveem',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000006',
-                                                    landelijk_id='0363000000000006',
-                                                    code='01016',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Hoofddorplein',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000007',
-                                                    landelijk_id='0363000000000007',
-                                                    code='01017',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Prinsengracht',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000008',
-                                                    landelijk_id='0363000000000008',
-                                                    code='01018',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Weteringschans',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000009',
-                                                    landelijk_id='0363000000000009',
-                                                    code='01019',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Stapels',
-                                                    status_id='35'),
-        models.OpenbareRuimte.objects.get_or_create(id='03630000000010',
-                                                    landelijk_id='0363000000000010',
-                                                    code='01020',
-                                                    woonplaats_id='03630022796658',
-                                                    naam='Delflandplein',
-                                                    status_id='35')]
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000001',
+            landelijk_id='0363000000000001',
+            code='01011',
+            woonplaats_id='03630022796658',
+            naam='Kanaalstraat',
+            status_id='35'),
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000002',
+            landelijk_id='0363000000000002',
+            code='01012',
+            woonplaats_id='03630022796658',
+            naam='Leidsestraat',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000003',
+            landelijk_id='0363000000000003',
+            code='01013',
+            woonplaats_id='03630022796658',
+            naam='Hobbemakade',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000004',
+            landelijk_id='0363000000000004',
+            code='01014',
+            woonplaats_id='03630022796658',
+            naam='Delflandplein',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000005',
+            landelijk_id='0363000000000005',
+            code='01015',
+            woonplaats_id='03630022796658',
+            naam='Vriesseveem',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000006',
+            landelijk_id='0363000000000006',
+            code='01016',
+            woonplaats_id='03630022796658',
+            naam='Hoofddorplein',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000007',
+            landelijk_id='0363000000000007',
+            code='01017',
+            woonplaats_id='03630022796658',
+            naam='Prinsengracht',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000008',
+            landelijk_id='0363000000000008',
+            code='01018',
+            woonplaats_id='03630022796658',
+            naam='Weteringschans',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000009',
+            landelijk_id='0363000000000009',
+            code='01019',
+            woonplaats_id='03630022796658',
+            naam='Stapels',
+            status_id='35'),
+
+        models.OpenbareRuimte.objects.get_or_create(
+            id='03630000000010',
+            landelijk_id='0363000000000010',
+            code='01020',
+            woonplaats_id='03630022796658',
+            naam='Delflandplein',
+            status_id='35')]
 
 
 def create_verblijfsobject_fixtures():
     create_buurt_fixtures()
+    # create_gebruiksdoelen
 
-    return [
-        models.Verblijfsobject.objects.get_or_create(id="03630000543292",
-                                                     landelijk_id="0363010000543292",
-                                                     gebruiksdoel_code="0800",
-                                                     gebruiksdoel_omschrijving="BEST-winkelfunctie",
-                                                     oppervlakte=30,
-                                                     bouwlaag_toegang=0,
-                                                     woningvoorraad=False,
-                                                     aantal_kamers=0,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
-                                                     _huisnummer=1,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="H",
-                                                     buurt_id="1",
-                                                     geometrie=Point(1000,
-                                                                     1000)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543293",
-                                                     landelijk_id="0363010000543293",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=32,
-                                                     bouwlaag_toegang=1,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Kanaalstraat",
-                                                     _huisnummer=1,
-                                                     _huisletter='A',
-                                                     _huisnummer_toevoeging='BIS',
-                                                     buurt_id="1",
-                                                     geometrie=Point(3, 3)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543294",
-                                                     landelijk_id="0363010000543294",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=48,
-                                                     bouwlaag_toegang=2,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Leidsestraat",
-                                                     _huisnummer=15,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="",
-                                                     buurt_id="2",
-                                                     geometrie=Point(100, 150)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543295",
-                                                     landelijk_id="0363010000543295",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=48,
-                                                     bouwlaag_toegang=2,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Leidsestraat",
-                                                     _huisnummer=15,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="",
-                                                     buurt_id="2",
-                                                     geometrie=Point(150, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543296",
-                                                     landelijk_id="0363010000543296",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=32,
-                                                     bouwlaag_toegang=1,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Hobbemakade",
-                                                     _huisnummer=12,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="",
-                                                     buurt_id="3",
-                                                     geometrie=Point(100, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543297",
-                                                     landelijk_id="0363010000543297",
-                                                     gebruiksdoel_code="0800",
-                                                     gebruiksdoel_omschrijving="BEST-winkelfunctie",
-                                                     oppervlakte=30,
-                                                     bouwlaag_toegang=0,
-                                                     woningvoorraad=False,
-                                                     aantal_kamers=0,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
-                                                     _huisnummer=1,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="H",
-                                                     buurt_id="4",
-                                                     geometrie=Point(100, 100)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543298",
-                                                     landelijk_id="0363010000543298",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=32,
-                                                     bouwlaag_toegang=1,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
-                                                     _huisnummer=1,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="1",
-                                                     buurt_id="5",
-                                                     geometrie=Point(20, 30)),
-        models.Verblijfsobject.objects.get_or_create(id="03630000543299",
-                                                     landelijk_id="0363010000543299",
-                                                     gebruiksdoel_code="1010",
-                                                     gebruiksdoel_omschrijving="BEST-woning",
-                                                     oppervlakte=48,
-                                                     bouwlaag_toegang=2,
-                                                     woningvoorraad=True,
-                                                     aantal_kamers=2,
-                                                     vervallen=0,
-                                                     _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
-                                                     _huisnummer=1,
-                                                     _huisletter='',
-                                                     _huisnummer_toevoeging="2",
-                                                     buurt_id="6",
-                                                     geometrie=Point(100, 100)),
+    verblijfsobjecten = [
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543292",
+            landelijk_id="0363010000543292",
+            oppervlakte=30,
+            bouwlaag_toegang=0,
+            woningvoorraad=False,
+            aantal_kamers=0,
+            vervallen=0,
+            _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
+            _huisnummer=1,
+            _huisletter='',
+            _huisnummer_toevoeging="H",
+            buurt_id="1",
+            geometrie=Point(1000, 1000)),
+
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543293",
+            landelijk_id="0363010000543293",
+            oppervlakte=32,
+            bouwlaag_toegang=1,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Kanaalstraat",
+            _huisnummer=1,
+            _huisletter='A',
+            _huisnummer_toevoeging='BIS',
+            buurt_id="1",
+            geometrie=Point(3, 3)),
+
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543294",
+            landelijk_id="0363010000543294",
+            oppervlakte=48,
+            bouwlaag_toegang=2,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Leidsestraat",
+            _huisnummer=15,
+            _huisletter='',
+            _huisnummer_toevoeging="",
+            buurt_id="2",
+            geometrie=Point(100, 150)),
+
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543295",
+            landelijk_id="0363010000543295",
+            oppervlakte=48,
+            bouwlaag_toegang=2,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Leidsestraat",
+            _huisnummer=15,
+            _huisletter='',
+            _huisnummer_toevoeging="",
+            buurt_id="2",
+            geometrie=Point(150, 100)),
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543296",
+            landelijk_id="0363010000543296",
+            oppervlakte=32,
+            bouwlaag_toegang=1,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Hobbemakade",
+            _huisnummer=12,
+            _huisletter='',
+            _huisnummer_toevoeging="",
+            buurt_id="3",
+            geometrie=Point(100, 100)),
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543297",
+            landelijk_id="0363010000543297",
+            oppervlakte=30,
+            bouwlaag_toegang=0,
+            woningvoorraad=False,
+            aantal_kamers=0,
+            vervallen=0,
+            _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
+            _huisnummer=1,
+            _huisletter='',
+            _huisnummer_toevoeging="H",
+            buurt_id="4",
+            geometrie=Point(100, 100)),
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543298",
+            landelijk_id="0363010000543298",
+            oppervlakte=32,
+            bouwlaag_toegang=1,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
+            _huisnummer=1,
+            _huisletter='',
+            _huisnummer_toevoeging="1",
+            buurt_id="5",
+            geometrie=Point(20, 30)),
+        models.Verblijfsobject.objects.get_or_create(
+            id="03630000543299",
+            landelijk_id="0363010000543299",
+            oppervlakte=48,
+            bouwlaag_toegang=2,
+            woningvoorraad=True,
+            aantal_kamers=2,
+            vervallen=0,
+            _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
+            _huisnummer=1,
+            _huisletter='',
+            _huisnummer_toevoeging="2",
+            buurt_id="6",
+            geometrie=Point(100, 100)),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543291",
             landelijk_id="0363010000543291",
-            gebruiksdoel_code="1010",
-            gebruiksdoel_omschrijving="BEST-woning",
             oppervlakte=32,
             bouwlaag_toegang=1,
             woningvoorraad=True,
@@ -375,7 +396,29 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="1",
             buurt_id="7",
-            geometrie=Point(30, 20))]
+            geometrie=Point(30, 20))
+    ]
+
+    gebruiksdoelen = [
+        ("1010", "BEST-woning"),
+        ("0800", "BEST-winkelfunctie"),
+        ("0800", "BEST-winkelfunctie"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+        ("1010", "BEST-woning"),
+    ]
+
+    for (vbo, _), gbd in zip(verblijfsobjecten, gebruiksdoelen):
+        models.Gebruiksdoel.objects.get_or_create(
+            verblijfsobject=vbo,
+            code=gbd[0],
+            omschrijving=gbd[1]
+        )
+
+    return verblijfsobjecten
 
 
 def create_ligplaats_fixtures():
@@ -454,7 +497,9 @@ def create_standplaats_fixtures():
 
 def create_nummeraanduiding_fixtures():
     """
-    depends on openbare_ruimte_fixtures, verblijfsobject_fixtures, standplaats_fixtures and ligplaats_fixtures
+    depends on openbare_ruimte_fixtures,
+    verblijfsobject_fixtures, standplaats_fixtures and
+    ligplaats_fixtures
     :return: a list of nummeraanduiding objects
     """
 
@@ -505,7 +550,8 @@ def create_nummeraanduiding_fixtures():
             verblijfsobject_id='03630000543295',
             _openbare_ruimte_naam='Hobbemakade')[0],
 
-        models.Nummeraanduiding.objects.get_or_create(huisnummer=15,
+        models.Nummeraanduiding.objects.get_or_create(
+            huisnummer=15,
             huisletter='C',
             huisnummer_toevoeging='2',
             postcode='1012AB',

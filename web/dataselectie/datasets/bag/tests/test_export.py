@@ -19,14 +19,16 @@ class ESTestCase(TestCase):
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
         call_command(
-            'elastic_indices', '--recreate', verbosity=0, interactive=False)
+            'elastic_indices', '--recreate', 'bag', verbosity=0, interactive=False)
         call_command(
-            'elastic_indices', '--build', verbosity=0, interactive=False)
+            'elastic_indices',
+            '--build', 'bag', verbosity=0, interactive=False)
         es.cluster.health(
             wait_for_status='yellow',
             wait_for_active_shards=0,
             timeout="320s"
         )
+        #time.sleep(3)
 
 
 class DataselectieExportTest(ESTestCase):

@@ -20,22 +20,23 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.verbosity = 2
         self.unmanaged_models = []
 
-    def setup_test_environment(self, *args, **kwargs):
-        datasets = ['bag']  # update when new datasets are introdiced
-        for dataset in datasets:
-            self.unmanaged_models.extend(
-                [model for _, model in apps.all_models[dataset].items() if
-                 not model._meta.managed]
-            )
-        for m in self.unmanaged_models:
-            m._meta.managed = True
-        super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
+    #def setup_test_environment(self, *args, **kwargs):
+    #    datasets = ['bag', 'hr']  # update when new datasets are introdiced
+    #    # datasets = []  # update when new datasets are introdiced
+    #    for dataset in datasets:
+    #        self.unmanaged_models.extend(
+    #            [model for _, model in apps.all_models[dataset].items() if
+    #             not model._meta.managed]
+    #        )
+    #    for m in self.unmanaged_models:
+    #        m._meta.managed = True
+    #    super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
 
-    def teardown_test_environment(self, *args, **kwargs):
-        super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
-        # reset unmanaged models
-        for m in self.unmanaged_models:
-            m._meta.managed = False
+    #def teardown_test_environment(self, *args, **kwargs):
+    #    super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
+    #    # reset unmanaged models
+    #    for m in self.unmanaged_models:
+    #        m._meta.managed = False
 
 
 def get_docker_host():
@@ -100,8 +101,9 @@ def get_variable(varname, docker_default: str, sa_default: str = None):
     return os.getenv(varname, docker_default if in_docker() else sa_default)
 
 
-def get_db_settings(db: str, docker_host: str,
-                    localport: str) -> Dict[str, str]:
+def get_db_settings(
+        db: str, docker_host: str,
+        localport: str, user: str = '') -> Dict[str, str]:
     """
     Get the complete settings for a given database. Taking all possible
     environments into account.
@@ -113,9 +115,13 @@ def get_db_settings(db: str, docker_host: str,
     :return: A dict containing all settings:
              'username', 'password', 'host', 'port' and 'db'
     """
+
+    if not user:
+        user = db
+
     return {
         'username': get_db_variable(
-            db=db, varname='user', docker_default=db),
+            db=db, varname='user', docker_default=user),
         'password': get_db_variable(
             db=db, varname='password',
             docker_default='insecure'),

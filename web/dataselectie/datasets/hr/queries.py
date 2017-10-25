@@ -96,10 +96,58 @@ def create_aggs() -> dict:
                     'order': {'_term': 'asc'},
                 }
             },
+            'bijzondere_rechtstoestand': {
+                'terms': {
+                    'field': 'bijzondere_rechtstoestand',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_l1': {
+                'terms': {
+                    'field': 'sbi_l1',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_l2': {
+                'terms': {
+                    'field': 'sbi_l2',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_l3': {
+                'terms': {
+                    'field': 'sbi_l3',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_l4': {
+                'terms': {
+                    'field': 'sbi_l4',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_code': {
+                'terms': {
+                    'field': 'sbi_code',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            }
         }
     }
 
     count_aggs = {}
+
     for key, aggregatie in aggs['aggs'].items():
         count_aggs[f'{key}_count'] = {
             'cardinality': {
@@ -107,6 +155,7 @@ def create_aggs() -> dict:
                 'precision_threshold': 1000
             }
         }
+
     aggs['aggs'].update(count_aggs)
 
     return aggs

@@ -3,7 +3,7 @@ import string
 
 from factory import DjangoModelFactory, fuzzy
 from factory.declarations import SubFactory, LazyAttribute
-from faker import Factory 
+from faker import Factory
 from django.contrib.gis.geos import Point
 
 from datasets.bag import models
@@ -56,7 +56,6 @@ class GebruikFactory(DjangoModelFactory):
 
     code = fuzzy.FuzzyText(length=4)
     omschrijving = fuzzy.FuzzyText(length=50)
-
 
 class LiggingFactory(DjangoModelFactory):
     class Meta:

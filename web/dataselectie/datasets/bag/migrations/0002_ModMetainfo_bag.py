@@ -112,4 +112,9 @@ class Migration(migrations.Migration):
             name='woonplaats',
             options={'managed': False, 'verbose_name': 'Woonplaats', 'verbose_name_plural': 'Woonplaatsen'},
         ),
+        migrations.AlterModelOptions(
+            name='gebruiksdoel',
+            options={'managed': False},
+        ),
+
     ]

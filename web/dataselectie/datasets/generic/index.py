@@ -3,13 +3,15 @@ import logging
 import time
 # Packages
 from django.conf import settings
+from django.db.models.functions import Cast
+from django.db.models import F
+from django.db.models import BigIntegerField
+
 import elasticsearch
 from elasticsearch import helpers
 from elasticsearch.exceptions import NotFoundError
 import elasticsearch_dsl as es
 from elasticsearch_dsl.connections import connections
-
-from batch import batch
 
 log = logging.getLogger(__name__)
 
@@ -69,8 +71,54 @@ class CreateDocTypeTask(object):
 
         for dt in self.doc_types:
             idx.doc_type(dt)
-
         idx.create()
+
+
+def return_qs_parts(qs, modulo, modulo_value):
+    """
+    build qs
+
+    modulo and modulo_value determin which chuncks
+    are teturned.
+
+    if partial = 1/3
+
+    then this function only returns chuncks index i for which
+    modulo i % 3 == 1
+    """
+
+    if modulo != 1:
+        qs_s = (
+            qs
+            .annotate(intid=Cast('id', BigIntegerField()))
+            .annotate(idmod=F('intid') % modulo)
+            .filter(idmod=modulo_value)
+        )
+    else:
+        qs_s = qs
+
+    qs_count = qs_s.count()
+
+    log.debug('PART %d/%d Count: %d', modulo, modulo_value, qs.count())
+
+    if not qs_count:
+        raise StopIteration
+
+    log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
+
+    batch_size = 200
+    for i in range(0, qs_count+batch_size, batch_size):
+
+        if i > qs_count:
+            qs_ss = qs_s[i:]
+        else:
+            qs_ss = qs_s[i:i+batch_size]
+
+        log.debug('Batch %4d %4d', i, i + batch_size)
+
+        yield qs_ss, i/qs_count
+
+    raise StopIteration
 
 
 class ImportIndexTask(object):
@@ -78,14 +126,13 @@ class ImportIndexTask(object):
 
     client = elasticsearch.Elasticsearch(
         hosts=settings.ELASTIC_SEARCH_HOSTS,
-        # sniff_on_start=True,
         retry_on_timeout=True,
-        refresh=True
     )
+
+    index = None
 
     def get_queryset(self):
         return self.queryset.order_by('id')
-        # return self.queryset.iterator()
 
     def convert(self, obj):
         raise NotImplementedError()
@@ -98,58 +145,38 @@ class ImportIndexTask(object):
         Usage:
             # Make sure to order your querset!
             article_qs = Article.objects.order_by('id')
-            for start, end, total, qs in batch_qs(article_qs):
-                print "Now processing %s - %s of %s" % (start + 1, end, total)
+            for qs in batch_qs(article_qs):
                 for article in qs:
                     print article.body
         """
         qs = self.get_queryset()
 
-        batch_size = settings.BATCH_SETTINGS['batch_size']
+        log.info('ITEMS %d', qs.count())
+
+        # batch_size = settings.BATCH_SETTINGS['batch_size']
         numerator = settings.PARTIAL_IMPORT['numerator']
         denominator = settings.PARTIAL_IMPORT['denominator']
 
         log.info("PART: %s OF %s", numerator + 1, denominator)
 
-        end_part = count = total = qs.count()
-        chunk_size = total
-
-        start_index = 0
-
-        # Do partial import
-        if denominator > 1:
-            chunk_size = int(total / denominator)
-            start_index = numerator * chunk_size
-            # for the last part do not change end_part
-            if denominator > numerator+1:
-                end_part = (numerator + 1) * chunk_size
-            total = end_part - start_index
-
-        log.info(f'START: {start_index} END {end_part} COUNT: {chunk_size} CHUNK {batch_size} TOTAL_COUNT: {count}')  # noqa
-        # total batches in this (partial) bacth job
-        total_batches = chunk_size / batch_size
-        for i, start in enumerate(range(start_index, end_part, batch_size)):
-            end = min(start + batch_size, end_part)
-            yield (i + 1, total_batches + 1, start, end, total, qs[start: end])
+        for qs_p, progres in return_qs_parts(qs, denominator, numerator):
+            yield qs_p, progres
 
     def execute(self):
         """
         Index data of specified queryset
         """
         start_time = time.time()
-        loop_time = elapsed = time.time() - start_time
-        loop_times = [1]
 
-        for batch_i, total_batches, start, end, total, qs in self.batch_qs():
+        for qs, progress in self.batch_qs():
 
-            loop_start = time.time()
-            avg_loop_time = sum(loop_times) / float(len(loop_times))
-            total_left = ((total_batches - batch_i) * avg_loop_time) + 1 / 60
+            elapsed = time.time() - start_time
+
+            total_left = (1 / (progress + 0.001)) * elapsed - elapsed
 
             progres_msg = \
-                '%s of %.1f : %8s %8s %8s duration: %.2f left: %.2f batchtime %.2f' % (    # noqa
-                    batch_i, total_batches, start, end, total, elapsed,
-                    total_left, avg_loop_time
+                '%.3f : duration: %.2f left: %.2f' % (
+                    progress, elapsed, total_left
                 )
 
             log.info(progres_msg)
@@ -158,14 +185,9 @@ class ImportIndexTask(object):
                 self.client,
                 (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
-                refresh=True
             )
 
-            elapsed = time.time() - start_time
-            loop_time = time.time() - loop_start
-            loop_times.append(loop_time)
-
-            if len(loop_times) > 15:
-                loop_times.pop(0)
-
-        batch.statistics.report()
+        if settings.IN_TEST_MODE and self.index:
+            idx = es.Index(self.index)
+            # refresh index, make sure its ready for queries
+            idx.refresh()

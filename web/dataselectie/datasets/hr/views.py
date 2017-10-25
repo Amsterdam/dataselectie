@@ -15,7 +15,7 @@ class HrBase(object):
     """
     Base class mixing for data settings
     """
-    index = 'DS_INDEX'
+    index = 'DS_HR_INDEX'
 
     nonmail_msg = 'Non-mailing-indicatie actief'
     restricted_msg = 'Afgeschermd'
@@ -25,7 +25,8 @@ class HrBase(object):
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
         'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam',
-        'openbare_ruimte'
+        'openbare_ruimte',
+        'bijzondere_rechtstoestand',
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
@@ -41,6 +42,7 @@ class HrBase(object):
 
 
 class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
+
     def elastic_query(self, query):
         return meta_q(query, True)
 
@@ -50,7 +52,7 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
         :param request:
         :return: true when the user
         """
-        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
 
 class HrSearch(HrBase, TableSearchView):
@@ -61,13 +63,13 @@ class HrSearch(HrBase, TableSearchView):
         :param request:
         :return: true when the user
         """
-        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
     def elastic_query(self, query: dict) -> dict:
         return meta_q(query, True)
 
     def filter_data(self, elastic_data, request):
-        if request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE):
+        if request.is_authorized_for(authorization_levels.SCOPE_HR_R):
             return elastic_data
 
         for doc in elastic_data['object_list']:
@@ -160,11 +162,11 @@ class HrCSV(HrBase, CSVExportView):
         :param request:
         :return: true when the user
         """
-        return request.is_authorized_for(authorization_levels.LEVEL_EMPLOYEE)
+        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
-    def paginate(self, offset, q: dict) -> dict:
+    def paginate(self, _offset, q: dict) -> dict:
         if 'size' in q:
-            del (q['size'])
+            del q['size']
         return q
 
     def item_data_update(self, item, request):
@@ -175,8 +177,7 @@ class HrCSV(HrBase, CSVExportView):
         hide_bezoekadres = item.get('bezoekadres_afgeschermd', False)
         hide_postadres = item.get('postadres_afgeschermd', False)
 
-        not_authorized = not request.is_authorized_for(
-            authorization_levels.LEVEL_EMPLOYEE)
+        not_authorized = not request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
         remove_ba = not_authorized and (hide_bezoekadres or non_mailing)
         remove_pa = not_authorized and (hide_postadres or non_mailing)

@@ -50,6 +50,10 @@ class AuthorizationSetup(object):
         token_employee_plus = jwt.encode({
             'authz': authorization_levels.LEVEL_EMPLOYEE_PLUS,
             'iat': now, 'exp': expiry}, key, algorithm=algorithm)
+        token_scope_hr_r = jwt.encode({
+            'scopes':[authorization_levels.SCOPE_HR_R],
+            'iat': now, 'exp': expiry}, key, algorithm=algorithm)
+
 
         self.token_default = str(token_default, 'utf-8')
         self.header_auth_default = {AUTH_HEADER: f'Bearer {self.token_default}'}
@@ -61,3 +65,7 @@ class AuthorizationSetup(object):
         self.token_employee_plus = str(token_employee_plus, 'utf-8')
         self.header_auth_employee_plus = {
             AUTH_HEADER: f'Bearer {self.token_employee_plus}'}
+
+        self.token_scope_hr_r = str(token_scope_hr_r, 'utf-8')
+        self.header_auth_scope_hr_r = {
+            AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}

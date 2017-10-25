@@ -11,13 +11,6 @@ do
 done
 
 # wait for postgres BAG
-while ! nc -z database_BAG 5432
-do
-	echo "Waiting for postgres..."
-	sleep 2
-done
-
-# wait for postgres dataselectie
 while ! nc -z database 5432
 do
 	echo "Waiting for postgres..."

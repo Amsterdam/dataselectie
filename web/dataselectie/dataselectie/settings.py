@@ -15,7 +15,8 @@ import sys
 
 import os
 
-from dataselectie.utils import get_db_settings, get_variable
+from dataselectie.utils import get_variable
+from dataselectie.utils import get_db_settings
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,15 +38,18 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
-    #'django_extensions',
+    # 'django_extensions',
+
     'dataselectie',
     'batch',
     'api',
 
     # Datasets
+
     'datasets.hr',
     'datasets.bag'
 ]
+
 
 # set to True for local development.
 LOCAL = False
@@ -53,7 +57,6 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
     'authorization_django.authorization_middleware',
-    'django.middleware.common.CommonMiddleware',
 ]
 
 if LOCAL:
@@ -89,9 +92,16 @@ DS_DATASELECTIE = get_db_settings(
     localport='5435')
 
 DS_BAG = get_db_settings(
-    db='atlas',
-    docker_host='database_BAG',
-    localport='5436')
+    db='dataselectie',
+    user='handelsregister',
+    docker_host='127.0.0.1',
+    localport='5406')
+
+DS_HR = get_db_settings(
+    db='handelsregister',
+    docker_host='127.0.0.1',
+    localport='5406')
+
 
 DATABASES = {
     'default': {
@@ -104,19 +114,31 @@ DATABASES = {
         'CONN_MAX_AGE': 60,
     },
 
-    'bag': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_BAG['db'],
-        'USER': DS_BAG['username'],
-        'PASSWORD': DS_BAG['password'],
-        'HOST': DS_BAG['host'],
-        'PORT': DS_BAG['port'],
-        'CONN_MAX_AGE': 60,
-    },
+    #'bag': {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': DS_BAG['db'],
+    #    'USER': DS_BAG['username'],
+    #    'PASSWORD': DS_BAG['password'],
+    #    'HOST': DS_BAG['host'],
+    #    'PORT': DS_BAG['port'],
+    #    'CONN_MAX_AGE': 60,
+    #},
+
+    #'hr': {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': DS_HR['db'],
+    #    'USER': DS_HR['username'],
+    #    'PASSWORD': DS_HR['password'],
+    #    'HOST': DS_HR['host'],
+    #    'PORT': DS_HR['port'],
+    #    'CONN_MAX_AGE': 60,
+    #},
 }
 
+USE_I18N = True
+
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
-LOGSTASH_PORT = os.getenv('LOGSTASH_GELF_UDP_PORT', 12201)
+LOGSTASH_PORT = int(os.getenv('LOGSTASH_GELF_UDP_PORT', 12201))
 
 LOGGING = {
     'version': 1,
@@ -176,18 +198,25 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
+        'urllib3.util': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+
     },
 }
 
-# DB routing
-DATABASE_ROUTERS = ['datasets.generic.dbroute.DatasetsRouter', ]
+IN_TEST_MODE = 'test' in sys.argv
+
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),
     get_variable('ELASTIC_PORT_OVERRIDE', '9200'))]
 
 ELASTIC_INDICES = {
-    'DS_INDEX': 'ds_index'
+    'DS_BAG_INDEX': 'ds_bag_index',
+    'DS_HR_INDEX': 'ds_hr_index'
 }
 
 MAX_SEARCH_ITEMS = 10000
@@ -263,4 +292,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 
 # Db routing goes haywire without this
-IN_TEST_MODE = 'test' in sys.argv

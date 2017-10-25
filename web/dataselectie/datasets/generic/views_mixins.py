@@ -274,7 +274,7 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     # attributes:
     # ---------------------
     # The name of the index to search in
-    index = 'DS_INDEX'
+    index = None  # 'DS_INDEX'
     # A set of optional keywords to filter the results further
     keywords = None
     # The name of the index to search in
@@ -383,6 +383,7 @@ class GeoLocationSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
 
     @staticmethod
     def build_response(response):
+
         resp = {
             'object_count': response['hits']['total'],
             'object_list': response['hits']['hits']
@@ -466,7 +467,7 @@ class CSVExportView(TableSearchView):
             for item_hit in es_generator:
                 item = item_hit['_source']
                 item_count += 1
-                # Allowing for custom updates
+                # Allowing for custompdates
                 item = self.item_data_update(item, request)
                 # Making sure all the data is in string form
                 self.sanitize_fields(item, self.field_names)

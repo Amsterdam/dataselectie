@@ -4,7 +4,7 @@ from django.db import models
 from datasets.generic import model_mixins as mixins
 
 
-# class Bron(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
+#class Bron(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
 #           models.Model):
 #    class Meta:
 #        verbose_name = "Bron"
@@ -14,6 +14,7 @@ from datasets.generic import model_mixins as mixins
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
              models.Model):
     class Meta:
+        managed = False
         verbose_name = "Status"
         verbose_name_plural = "Status"
 
@@ -747,8 +748,8 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
-    gebruiksdoel_code = models.CharField(max_length=4, null=True)
-    gebruiksdoel_omschrijving = models.CharField(max_length=150, null=True)
+    # gebruiksdoel_code = models.CharField(max_length=4, null=True)
+    # gebruiksdoel_omschrijving = models.CharField(max_length=150, null=True)
     oppervlakte = models.PositiveIntegerField(null=True)
     bouwlaag_toegang = models.IntegerField(null=True)
     status_coordinaat_code = models.CharField(max_length=3, null=True)
@@ -993,3 +994,15 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
     def __str__(self):
         return "{}".format(self.naam)
+
+
+class Gebruiksdoel(models.Model):
+    verblijfsobject = models.ForeignKey(
+        Verblijfsobject, max_length=16, related_name='gebruiksdoelen')
+    code = models.CharField(max_length=4)
+    omschrijving = models.CharField(max_length=150)
+    code_plus = models.CharField(max_length=4, null=True)
+    omschrijving_plus = models.CharField(max_length=150, null=True)
+
+    class Meta(object):
+        managed = False

@@ -21,12 +21,13 @@ def meta_q(query: str, add_aggs=True, sort=True) -> dict:
         aggs = None
     sort = {
         'sort': {
-            '_openbare_ruimte_naam.raw': { "order": "asc" },
-            'huisnummer': { "order": "asc" },
-            'huisletter': { "order": "asc" },
-            'huisnummer_toevoeging': { "order": "asc" }
+            '_openbare_ruimte_naam': {"order": "asc"},
+            'huisnummer': {"order": "asc"},
+            'huisletter': {"order": "asc"},
+            'huisnummer_toevoeging': {"order": "asc"}
         }
     }
+
     return create_query(query, aggs, sort, qtype='nummeraanduiding')
 
 
@@ -43,7 +44,7 @@ def create_aggs():
             },
             'openbare_ruimte': {
                 'terms': {
-                    'field': 'naam.raw',
+                    'field': 'naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
