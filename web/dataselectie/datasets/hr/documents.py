@@ -256,9 +256,11 @@ def set_eigenaar_to_doc(doc, eigenaar):
     doc.eigenaar_id = eigenaar.get('id', '')
 
     if eigenaar.get('faillissement'):
-        doc.bijzondere_rechtstoestand = 'Failliet'
+        doc.bijzondere_rechtstoestand = 'Faillissement'
     elif eigenaar.get('status', ''):
-        doc.bijzondere_rechtstoestand = 'Surseance'
+        # YES status is a bad variable name..
+        # any text in status means 'in Surseance'
+        doc.bijzondere_rechtstoestand = 'Surseance van betaling'
     else:
         # The 'geen' categorie.
         doc.bijzondere_rechtstoestand = ''
