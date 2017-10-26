@@ -146,7 +146,7 @@ class HrCSV(HrBase, CSVExportView):
         ('sbi_omschrijving', 'SBI-omschrijving'),
         ('sbi_code', 'SBI-code'),
         ('datum_aanvang', 'Datum aanvang'),
-        ('datum_einde', 'Datum einde'),
+        # ('datum_einde', 'Datum einde'),
         ('eigenaar_naam', 'Naam eigenaar(en)')
     )
 

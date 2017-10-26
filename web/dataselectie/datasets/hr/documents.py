@@ -18,7 +18,6 @@ class Vestiging(es.DocType):
     kvk_nummer = es.Keyword()
     handelsnaam = es.Keyword()
     datum_aanvang = es.Date()
-    datum_einde = es.Date()
     eigenaar_naam = es.Keyword()
     eigenaar_id = es.Keyword()
     non_mailing = es.Boolean()
@@ -287,9 +286,10 @@ def vestiging_from_hrdataselectie(
     doc.vestiging_id = ves_data['vestigingsnummer']
     # Maatschapelijke activiteit
     mac = ves_data['maatschappelijke_activiteit']
+
     for attrib in (
             'kvk_nummer', 'datum_aanvang',
-            'datum_einde', 'eigenaar_naam',
+            'eigenaar_naam',
             'eigenaar_id', 'non_mailing'):
         setattr(doc, attrib, mac.get(attrib, ''))
 
