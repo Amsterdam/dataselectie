@@ -260,6 +260,9 @@ def set_eigenaar_to_doc(doc, eigenaar):
         doc.bijzondere_rechtstoestand = 'Failliet'
     elif eigenaar.get('status', ''):
         doc.bijzondere_rechtstoestand = 'Surseance'
+    else:
+        # The 'geen' categorie.
+        doc.bijzondere_rechtstoestand = ''
 
     # bijzondere rechtstoestand
     # doc.reden_insolvatie = eigenaar.get('reden_insolvatie', '')
