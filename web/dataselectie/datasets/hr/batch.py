@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 HR_DOC_TYPES = (
-    documents.Vestiging,
+    documents.Inschrijving,
 )
 
 
@@ -49,7 +49,9 @@ class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
-    queryset = models.DataSelectie.objects.filter(
+    db = settings.HR_IMPORT_DB
+
+    queryset = models.DataSelectie.objects.using(db).filter(
         bag_numid__isnull=False).order_by('id')
 
     def convert(self, obj):
@@ -59,7 +61,7 @@ class IndexHrTask(index.ImportIndexTask):
                 landelijk_id=vestiging.bag_numid)
         except bag_models.Nummeraanduiding.DoesNotExist:
             bag_obj = None
-        return documents.vestiging_from_hrdataselectie(vestiging, bag_obj)
+        return documents.inschrijving_from_hrdataselectie(vestiging, bag_obj)
 
 
 class BuildIndexHrJob(object):

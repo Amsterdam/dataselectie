@@ -97,6 +97,7 @@ DS_BAG = get_db_settings(
     docker_host='127.0.0.1',
     localport='5406')
 
+# These are the handelsregister docker db settings
 DS_HR = get_db_settings(
     db='handelsregister',
     docker_host='127.0.0.1',
@@ -124,16 +125,21 @@ DATABASES = {
     #    'CONN_MAX_AGE': 60,
     #},
 
-    #'hr': {
-    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #    'NAME': DS_HR['db'],
-    #    'USER': DS_HR['username'],
-    #    'PASSWORD': DS_HR['password'],
-    #    'HOST': DS_HR['host'],
-    #    'PORT': DS_HR['port'],
-    #    'CONN_MAX_AGE': 60,
-    #},
+    'hr': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': DS_HR['db'],
+        'USER': DS_HR['username'],
+        'PASSWORD': DS_HR['password'],
+        'HOST': DS_HR['host'],
+        'PORT': DS_HR['port'],
+        'CONN_MAX_AGE': 60,
+    },
 }
+
+# to use hr database directly
+# handy for development
+# HR_IMPORT_DB = 'hr'
+HR_IMPORT_DB = 'default'
 
 USE_I18N = True
 

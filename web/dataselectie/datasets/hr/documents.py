@@ -10,11 +10,16 @@ from datasets.hr.models import DataSelectie
 log = logging.getLogger(__name__)
 
 
-class Vestiging(es.DocType):
+class Inschrijving(es.DocType):
     """
-    Elastic data for vestigingen of handelsregister
+    Elastic data of 'vestigingen' or 'mac'
+    from handelsregister
     """
+    maatschappelijke_activiteit_id = es.Keyword()
     vestiging_id = es.Keyword()
+
+    dataset = es.Keyword()
+
     kvk_nummer = es.Keyword()
     handelsnaam = es.Keyword()
     datum_aanvang = es.Date()
@@ -275,19 +280,14 @@ def jsonpprint(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
 
-def vestiging_from_hrdataselectie(
-        ves: DataSelectie, bag_item: Nummeraanduiding) -> Vestiging:
-    doc = Vestiging(_id=ves.id)  # HR is added to prevent id collisions
-    """
-    Create vestiging document from vesitiging json data.
-    """
-    doc.bag_numid = ves.bag_numid
-    # Working with the json
-    ves_data = ves.api_json
-    # jsonpprint(ves_data)
-    doc.vestiging_id = ves_data['vestigingsnummer']
-    # Maatschapelijke activiteit
-    mac = ves_data['maatschappelijke_activiteit']
+def handle_mac_information(doc, inschrijving):
+
+    # Maatschapelijke activiteit in case of ves
+    mac = inschrijving.get('maatschappelijke_activiteit')
+
+    if not mac:
+        # inschr == mac
+        mac = inschrijving
 
     for attrib in (
             'kvk_nummer', 'datum_aanvang',
@@ -295,14 +295,38 @@ def vestiging_from_hrdataselectie(
             'eigenaar_id', 'non_mailing'):
         setattr(doc, attrib, mac.get(attrib, ''))
 
-    set_eigenaar_to_doc(doc, mac['eigenaar'])
 
-    # Using Vestiging name, otherwise,
-    # maatschappelijke_activiteit name, otherwise empty
-    doc.handelsnaam = ves_data.get('naam', mac.get('naam', ''))
+def inschrijving_from_hrdataselectie(
+        ds_record: DataSelectie,
+        bag_item: Nummeraanduiding) -> Inschrijving:
+    """
+    Create inschrijving document dataselectie json data.
+    """
 
-    add_adres_to_doc(doc, ves_data)
-    add_sbi_to_doc(doc, ves_data)
+    inschrijving = ds_record.api_json
+    _id = inschrijving.get('id') or inschrijving['vestigingsnummer']
+    dataset = inschrijving['dataset']
+    doc = Inschrijving(_id=f"{dataset}{_id}")
+    doc.dataset = dataset
+    doc.bag_numid = ds_record.bag_numid
+
+    # Working with the json
+    doc.vestiging_id = inschrijving.get('vestigingsnummer', '')
+
+    handle_mac_information(doc, inschrijving)
+    if dataset == 'ves':
+        mac = inschrijving['maatschappelijke_activiteit']
+        set_eigenaar_to_doc(doc, mac['eigenaar'])
+        # Using Vestiging name, otherwise,
+        # maatschappelijke_activiteit name, otherwise empty
+        doc.handelsnaam = inschrijving.get('naam', mac.get('naam', ''))
+    else:
+        set_eigenaar_to_doc(doc, inschrijving)
+        doc.maatschappelijke_activiteit_id = inschrijving.get('id', '')
+        doc.handelsnaam = inschrijving.get('naam', '')
+
+    add_adres_to_doc(doc, inschrijving)
+    add_sbi_to_doc(doc, inschrijving)
 
     if bag_item:
         add_bag_info(doc, bag_item)
