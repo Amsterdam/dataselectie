@@ -49,10 +49,12 @@ class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
-    db = settings.HR_IMPORT_DB
+    db = settings.HR_DATABASE
 
     queryset = models.DataSelectie.objects.using(db).filter(
         bag_numid__isnull=False).order_by('id')
+
+    print(queryset.count())
 
     def convert(self, obj):
         vestiging = obj

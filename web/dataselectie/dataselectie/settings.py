@@ -136,12 +136,11 @@ DATABASES = {
     },
 }
 
-# to use hr database directly
-# handy for development
-# HR_IMPORT_DB = 'hr'
-HR_IMPORT_DB = 'default'
-
 USE_I18N = True
+# to use docker hr database directly
+# handy for development
+#HR_DATABASE = 'default'
+HR_DATABASE = 'hr'
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
 LOGSTASH_PORT = int(os.getenv('LOGSTASH_GELF_UDP_PORT', 12201))
