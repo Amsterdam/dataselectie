@@ -1,5 +1,6 @@
 JSON = [
     {
+        "dataset": "ves",
         "activiteiten": [
             {
                 "hoofdactiviteit": True,
@@ -117,6 +118,7 @@ JSON = [
     },
 
     {
+        "dataset": "ves",
         "activiteiten": [
             {
                 "hoofdactiviteit": True,
@@ -333,6 +335,7 @@ JSON = [
     },
 
     {
+        "dataset": "ves",
         "activiteiten": [
             {
                 "hoofdactiviteit": True,
@@ -517,6 +520,7 @@ JSON = [
     },
 
     {
+        "dataset": "ves",
         "activiteiten": [
             {
                 "hoofdactiviteit": True,
@@ -667,6 +671,7 @@ JSON = [
     },
 
     {
+        "dataset": "ves",
         "activiteiten": [
             {
                 "hoofdactiviteit": True,
