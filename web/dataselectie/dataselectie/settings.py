@@ -125,15 +125,15 @@ DATABASES = {
     #    'CONN_MAX_AGE': 60,
     #},
 
-    'hr': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_HR['db'],
-        'USER': DS_HR['username'],
-        'PASSWORD': DS_HR['password'],
-        'HOST': DS_HR['host'],
-        'PORT': DS_HR['port'],
-        'CONN_MAX_AGE': 60,
-    },
+    #'hr': {
+    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
+    #    'NAME': DS_HR['db'],
+    #    'USER': DS_HR['username'],
+    #    'PASSWORD': DS_HR['password'],
+    #    'HOST': DS_HR['host'],
+    #    'PORT': DS_HR['port'],
+    #    'CONN_MAX_AGE': 60,
+    #},
 }
 
 USE_I18N = True
