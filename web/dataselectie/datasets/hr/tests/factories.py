@@ -6,9 +6,15 @@ from datasets.hr.models import DataSelectie
 
 def dataselectie_hr_factory(nummeraanduiding_obj, from_nr, to_nr):
     for json in fixture_utils.JSON[from_nr:to_nr]:
-        id = json['vestigingsnummer']
+        dataset = json['dataset']
+
+        if dataset == 'ves':
+            uid = f'v{json["vestigingsnummer"]}'
+        else:
+            uid = f'm{json["id"]}'
+
         DataSelectie.objects.get_or_create(
-            id=id,
+            uid=uid,
             api_json=json,
             bag_numid=nummeraanduiding_obj.landelijk_id)
 

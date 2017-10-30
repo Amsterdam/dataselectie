@@ -72,6 +72,15 @@ JSON = [
             "updated_at": None,
             "volledig_adres": "Hoekenrode 8 1102BR Amsterdam"
         },
+
+        "commerciele_vestiging": {
+            "export_activiteit": False,
+            "fulltime_werkzame_personen": 0,
+            "import_activiteit": False,
+            "parttime_werkzame_personen": 0,
+            "totaal_werkzame_personen": 0
+        },
+
         "handelsnamen": [],
         "hoofdvestiging": True,
         "maatschappelijke_activiteit": {
@@ -281,6 +290,15 @@ JSON = [
             "updated_at": None,
             "volledig_adres": "Bellamydwarsstraat 8 H 1053BD Amsterdam"
         },
+
+        "commerciele_vestiging": {
+            "export_activiteit": False,
+            "fulltime_werkzame_personen": 0,
+            "import_activiteit": False,
+            "parttime_werkzame_personen": 0,
+            "totaal_werkzame_personen": 0
+        },
+
         "handelsnamen": [
             "Armada Producties",
         ],
@@ -793,6 +811,102 @@ JSON = [
         "vestigingsnummer": "000018657486"
     },
 
+    # MAC test case
 
+    {
+        "activiteiten": [
+            {
+                "hoofdactiviteit": True,
+                "sbi_code": "4110",
+                "sbi_code_tree": {
+                    "code": "4110",
+                    "qa_tree": {
+                        "q1": "overige niet hierboven genoemd",
+                        "q2": "overige",
+                        "q3": "Projectontwikkeling"
+                    },
+                    "sbi_tree": {
+                        "l1": [
+                            "F",
+                            "BOUWNIJVERHEID"
+                        ],
+                        "l2": [
+                            "41",
+                            "Algemene burgerlijke en utiliteitsbouw en projectontwikkeling"
+                        ],
+                        "l3": [
+                            "411",
+                            "Projectontwikkeling"
+                        ],
+                        "l4": [
+                            "4110",
+                            "Projectontwikkeling"
+                        ]
+                    },
+                    "title": "Projectontwikkeling"
+                },
+                "sbi_omschrijving": "Projectontwikkeling"
+            }
+        ],
+        "bezoekadres": {
+            "afgeschermd": False,
+            "bag_adresseerbaar_object": "https://api.data.amsterdam.nl/bag/verblijfsobject/0363010012105492/",
+            "bag_numid": "0363200012107098",
+            "bag_nummeraanduiding": "https://api.data.amsterdam.nl/bag/nummeraanduiding/0363200012107098/",
+            "bag_vbid": "0363010012105492",
+            "correctie": None,
+            "correctie_level": None,
+            "geometrie": {
+                "coordinates": [
+                    119705.0,
+                    483294.0
+                ],
+                "type": "Point"
+            },
+            "huisletter": "",
+            "huisnummer": "1025",
+            "huisnummertoevoeging": "",
+            "land": None,
+            "plaats": "Amsterdam",
+            "postbus_nummer": None,
+            "postcode": "1082MK",
+            "postcode_woonplaats": None,
+            "query_string": None,
+            "regio": None,
+            "straat_huisnummer": None,
+            "straatnaam": "Gustav Mahlerlaan",
+            "toevoeging_adres": None,
+            "toevoegingadres": None,
+            "updated_at": None,
+            "volledig_adres": "Gustav Mahlerlaan 1025 1082MK Amsterdam"
+        },
+        "dataset": "mac",
+        "datum_aanvang": "1994-10-19",
+        "eigenaar": {
+            "duur": None,
+            "faillissement": False,
+            "id": "100000000005581530",
+            "naam": None,
+            "rechtsvorm": "BeslotenVennootschap",
+            "reden_insolvatie": None,
+            "status": None,
+            "volledige_naam": "Multi-Veste 90 B.V. in liquidatie"
+        },
+        "eigenaar_mks_id": None,
+        "id": "100000000001576476",
+        "kvk_nummer": "29042399",
+        "naam": "Multi-Veste 90 B.V. in liquidatie",
+        "non_mailing": False,
+        "onderneming": {
+            "fulltime_werkzame_personen": 0,
+            "handelsnamen": [
+                {
+                    "handelsnaam": "Multi-Veste 90 B.V."
+                }
+            ],
+            "parttime_werkzame_personen": 0,
+            "totaal_werkzame_personen": 0
+        },
+    }
 
 ]

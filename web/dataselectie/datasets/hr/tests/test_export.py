@@ -63,7 +63,7 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
         res = (b''.join(response.streaming_content)).decode('utf-8').strip()
         res = res.split('\r\n')
         # 6 lines: headers + 5 items
-        self.assertEqual(len(res), 6)
+        self.assertEqual(len(res), 7)
         # check columns lenght
         row2 = res[2].split(';')
         self.assertEqual(len(row2), 26)

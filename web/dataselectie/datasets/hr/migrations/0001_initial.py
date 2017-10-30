@@ -10,15 +10,15 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [ ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
             name='DataSelectie',
             fields=[
-                ('id', models.CharField(max_length=20, primary_key=True, serialize=False)),
-                ('bag_numid', models.CharField(blank=True, db_index=True, max_length=16, null=True)),
-                ('bag_vbid', models.CharField(blank=True, max_length=16, null=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('uid', models.CharField(db_index=True, max_length=21, unique=True)),
+                ('bag_numid', models.CharField(blank=True, max_length=16, null=True)),
                 ('api_json', django.contrib.postgres.fields.jsonb.JSONField()),
             ],
             options={

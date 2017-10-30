@@ -27,6 +27,9 @@ class Inschrijving(es.DocType):
     eigenaar_id = es.Keyword()
     non_mailing = es.Boolean()
 
+    aantal_werkzame_personen = es.Integer()
+    rechtsvorm = es.Keyword()
+
     # Address information
     bezoekadres_volledig_adres = es.Keyword()
     bezoekadres_correctie = es.Boolean()
@@ -161,11 +164,11 @@ def add_bag_info(doc, ves):
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
 
 
-def add_adres_to_doc(doc, ves_data):
+def add_adres_to_doc(doc, inschrijving):
 
     # Address
     for address_type in ('bezoekadres', 'postadres'):
-        adres = ves_data[address_type]
+        adres = inschrijving.get(address_type)
         if isinstance(adres, dict):
             for attrib in (
                     'volledig_adres', 'correctie', 'huisnummer',
@@ -259,6 +262,7 @@ def set_eigenaar_to_doc(doc, eigenaar):
 
     doc.eigenaar_naam = eigenaar.get('volledige_naam', '')
     doc.eigenaar_id = eigenaar.get('id', '')
+    doc.rechtsvorm = eigenaar.get('rechtsvorm', '')
 
     if eigenaar.get('faillissement'):
         doc.bijzondere_rechtstoestand = 'Faillissement'
@@ -280,20 +284,68 @@ def jsonpprint(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
 
-def handle_mac_information(doc, inschrijving):
-
-    # Maatschapelijke activiteit in case of ves
-    mac = inschrijving.get('maatschappelijke_activiteit')
-
-    if not mac:
-        # inschr == mac
-        mac = inschrijving
-
+def _handle_mac_information(doc, mac):
     for attrib in (
             'kvk_nummer', 'datum_aanvang',
             'eigenaar_naam',
             'eigenaar_id', 'non_mailing'):
         setattr(doc, attrib, mac.get(attrib, ''))
+
+
+def _handle_onderneming(doc, inschrijving):
+    """
+    extract werkzame personen
+    """
+
+    onderneming = inschrijving.get('ondernemeing')
+
+    if onderneming:
+        doc.aantal_werkzame_personen = onderneming.get(
+            'totaal_werkzame_personen')
+
+
+def _handle_commerciele_vestiging(doc, inschrijving):
+    """
+    extract werkzame personen
+    """
+
+    com_ves = inschrijving.get('commerciele_vestiging')
+
+    if com_ves:
+        doc.aantal_werkzame_personen = com_ves.get(
+            'totaal_werkzame_personen')
+
+
+def _handle_ves_fields(doc, inschrijving):
+
+    if not doc.dataset == 'ves':
+        return
+
+    mac = inschrijving['maatschappelijke_activiteit']
+    set_eigenaar_to_doc(doc, mac['eigenaar'])
+    # Using Vestiging name, otherwise,
+    # maatschappelijke_activiteit name, otherwise empty
+    doc.handelsnaam = inschrijving.get('naam', mac.get('naam', ''))
+
+    # Maatschapelijke activiteit in case of ves
+    mac = inschrijving.get('maatschappelijke_activiteit')
+    _handle_mac_information(doc, mac)
+
+    _handle_commerciele_vestiging(doc, inschrijving)
+
+
+def _handle_mac_fields(doc, inschrijving):
+
+    if not doc.dataset == 'mac':
+        return
+
+    set_eigenaar_to_doc(doc, inschrijving)
+    doc.maatschappelijke_activiteit_id = inschrijving.get('id', '')
+    doc.handelsnaam = inschrijving.get('naam', '')
+    # Maatschapelijke activiteit in case of mac
+    _handle_mac_information(doc, inschrijving)
+
+    _handle_onderneming(doc, inschrijving)
 
 
 def inschrijving_from_hrdataselectie(
@@ -313,17 +365,8 @@ def inschrijving_from_hrdataselectie(
     # Working with the json
     doc.vestiging_id = inschrijving.get('vestigingsnummer', '')
 
-    handle_mac_information(doc, inschrijving)
-    if dataset == 'ves':
-        mac = inschrijving['maatschappelijke_activiteit']
-        set_eigenaar_to_doc(doc, mac['eigenaar'])
-        # Using Vestiging name, otherwise,
-        # maatschappelijke_activiteit name, otherwise empty
-        doc.handelsnaam = inschrijving.get('naam', mac.get('naam', ''))
-    else:
-        set_eigenaar_to_doc(doc, inschrijving)
-        doc.maatschappelijke_activiteit_id = inschrijving.get('id', '')
-        doc.handelsnaam = inschrijving.get('naam', '')
+    _handle_ves_fields(doc, inschrijving)
+    _handle_mac_fields(doc, inschrijving)
 
     add_adres_to_doc(doc, inschrijving)
     add_sbi_to_doc(doc, inschrijving)

@@ -72,10 +72,10 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(response.status_code, 200)
 
         res = response.json()
-        self.assertEqual(len(res['object_list']), 5)
+        self.assertEqual(len(res['object_list']), 6)
         self.assertEqual(res['page_count'], 1)
         self.assertIn('aggs_list', res)
-        self.assertEqual(res['object_count'], 5)
+        self.assertEqual(res['object_count'], 6)
         self.assertIn('hoofdcategorie', res['aggs_list'])
 
         testcats = {
@@ -85,7 +85,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             'bouw': 1,
             'zakelijke dienstverlening': 3,
             'informatie, telecommunicatie': 1,
-            'overige niet hierboven genoemd': 1,
+            'overige niet hierboven genoemd': 2,
         }
 
         self.assertIn('buckets', res['aggs_list']['hoofdcategorie'])
@@ -278,7 +278,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
         res = response.json()
         self.assertEqual(
-            res['object_count'], 5)
+            res['object_count'], 6)
         self.assertNotIn('aggs_list', res)
 
     def test_get_dataselectiehr_geolocation_no_auth(self):
@@ -293,13 +293,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         q = {
             'shape': '[[3.315526,47.9757],[3.315527,47.9757],[3.315527,47.9758],[3.315526,47.9758]]'}  # noqa
 
-        response = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
-                                   **self.header_auth_scope_hr_r)
+        response = self.client.get(
+            HR_BASE_QUERY.format(urlencode(q)),
+            **self.header_auth_scope_hr_r)
 
         self.assertEqual(response.status_code, 200)
 
         res = response.json()
-        self.assertEqual(res['object_count'], 1)
+        self.assertEqual(res['object_count'], 2)
 
     def test_get_dataselectiehr_geolocation2(self):
         """
@@ -316,7 +317,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
         res = response.json()
         self.assertEqual(
-            res['object_count'], 1)
+            res['object_count'], 2)
         self.assertNotIn('aggs_list', res)
 
     # Following tests also check auth by definition of the hiding rules:
