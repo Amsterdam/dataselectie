@@ -20,6 +20,7 @@ def meta_q(query, add_aggs=False, sort=True):
         aggs = None
     sort = {
         'sort': {
+            'handelsnaam': {"order": "asc"},
             'bezoekadres_openbare_ruimte': {"order": "asc"},
             'bezoekadres_huisnummer': {"order": "asc"},
             'bezoekadres_huisletter': {"order": "asc"},
