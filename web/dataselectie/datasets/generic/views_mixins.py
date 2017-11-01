@@ -171,15 +171,24 @@ class ElasticSearchMixin(object):
 
         filters.append({'bool': {"should": terms}})
 
+    def _convert_value_to_list(self, value):
+        """
+        Convert value safely to Python literal structures:
+        strings, numbers, tuples, lists, dicts, booleans, and None.
+        """
+        try:
+            value = ast.literal_eval(value)
+            return value
+        except (SyntaxError, ValueError):
+            pass
+
+        return value
+
     def _build_filter(self, filters, filter_keyword, value):
         """
         Build term / bool filter for keyword
         """
-        # Convert value safely to
-        # Python literal structures:
-        # strings, numbers, tuples, lists,
-        # dicts, booleans, and None.
-        value = ast.literal_eval(value)
+        value = self._convert_value_to_list(value)
 
         if isinstance(value, list):
             self._bool_query(filters, filter_keyword, value)
