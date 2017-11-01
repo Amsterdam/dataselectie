@@ -96,7 +96,7 @@ JSON = [
             "naam": "Windpark Mariapolder II B.V.",
             "non_mailing": False
         },
-        "naam": "Windpark Mariapolder II B.V.",
+        "naam": "ZWindpark Mariapolder II B.V.",
         "postadres": {
             "afgeschermd": False,
             "bag_adresseerbaar_object": None,

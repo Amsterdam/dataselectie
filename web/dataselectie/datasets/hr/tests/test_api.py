@@ -1,3 +1,4 @@
+import logging
 # Python
 from urllib.parse import urlencode
 
@@ -13,6 +14,8 @@ from .factories import create_hr_data
 
 HR_BASE_QUERY = '/dataselectie/hr/?{}'
 HR_GEO_QUERY = '/dataselectie/hr/geolocation/?{}'
+
+log = logging.getLogger(__name__)
 
 
 class ESTestCase(TestCase):
@@ -106,6 +109,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertIn('buckets', res['aggs_list']['buurt_naam'])
         self.assertIn('buurtcombinatie_naam', res['aggs_list'])
         self.assertIn('buckets', res['aggs_list']['buurtcombinatie_naam'])
+
+        # test sorting
+        names = [obj['handelsnaam'] for obj in res['object_list']]
+        names2 = list(names)
+        names2.sort()
+        log.info(names)
+        log.info(names2)
+        self.assertEqual(names, names2, 'sort error')
 
     def test_get_dataselectie_invalidparm(self):
         """
