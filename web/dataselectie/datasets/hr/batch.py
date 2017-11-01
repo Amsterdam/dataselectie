@@ -54,8 +54,6 @@ class IndexHrTask(index.ImportIndexTask):
     queryset = models.DataSelectie.objects.using(db).filter(
         bag_numid__isnull=False).order_by('id')
 
-    print(queryset.count())
-
     def convert(self, obj):
         vestiging = obj
         try:
