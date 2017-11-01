@@ -20,12 +20,13 @@ class HrBase(object):
     nonmail_msg = 'Non-mailing-indicatie actief'
     restricted_msg = 'Afgeschermd'
 
-    raw_fields = []
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',
         'stadsdeel_naam', 'postcode', '_openbare_ruimte_naam',
         'openbare_ruimte',
+        'rechtsvorm', 'aantal_werkzame_personen',
+        'dataset',
         'bijzondere_rechtstoestand',
     ]
     keyword_mapping = {
@@ -147,7 +148,9 @@ class HrCSV(HrBase, CSVExportView):
         ('sbi_code', 'SBI-code'),
         ('datum_aanvang', 'Datum aanvang'),
         # ('datum_einde', 'Datum einde'),
-        ('eigenaar_naam', 'Naam eigenaar(en)')
+        ('eigenaar_naam', 'Naam eigenaar(en)'),
+        ('rechtsvorm', 'Rechtsvorm (HR MAC)'),
+        ('aantal_werkzame_personen', 'Werkzame personen'),
     )
 
     field_names = [h[0] for h in fields_and_headers]

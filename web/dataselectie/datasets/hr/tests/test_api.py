@@ -138,6 +138,28 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertIn('35111', res['object_list'][0]['sbi_code'])
         self.assertEqual(res['page_count'], 1)
 
+    def test_get_dataselectie_hr_multiple_sbi_code(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
+        q = {'page': 1, 'sbi_code': '[35111,9002]'}
+
+        response = self.client.get(
+            HR_BASE_QUERY.format(urlencode(q)),
+            **self.header_auth_scope_hr_r)
+
+        self.assertEqual(response.status_code, 200)
+        res = response.json()
+
+        self.assertEqual(len(res['object_list']), 2)
+        collect_codes = list(res['object_list'][0]['sbi_code'])
+        collect_codes.extend(res['object_list'][1]['sbi_code'])
+
+        self.assertIn('35111', collect_codes)
+        self.assertIn('9002', collect_codes)
+
+        self.assertEqual(res['page_count'], 1)
+
     def test_get_dataselectie_hr_sbi_code2(self):
         """
 

@@ -2,7 +2,7 @@ version: '3.0'
 services:
   elasticsearch:
     image: build.datapunt.amsterdam.nl:5000/atlas/elasticsearch5:latest
-    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1 -Epath.repo=/tmp
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
     ports:
       - "9200:9200"
       - "9300:9300"

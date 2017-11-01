@@ -1,4 +1,5 @@
 # Python
+import ast
 import codecs
 import csv
 import io
@@ -115,7 +116,6 @@ class ElasticSearchMixin(object):
     geo_fields = {
         'shape': ['centroid', 'geo_polygon'],
     }
-    raw_fields = []
     keyword_mapping = {}
     request = None
 
@@ -158,17 +158,49 @@ class ElasticSearchMixin(object):
 
         return self.handle_query_size_offset(query)
 
+    def _bool_query(self, filters: list, filter_keyword: str, values: list):
+        """
+        Deal with Multi value filter.
+        """
+        terms = []
+
+        for xvalue in values:
+            terms.append({
+                'term': self.get_term_and_value(
+                    filter_keyword, xvalue)})
+
+        filters.append({'bool': {"should": terms}})
+
+    def _build_filter(self, filters, filter_keyword, value):
+        """
+        Build term / bool filter for keyword
+        """
+        # Convert value safely to
+        # Python literal structures:
+        # strings, numbers, tuples, lists,
+        # dicts, booleans, and None.
+        value = ast.literal_eval(value)
+
+        if isinstance(value, list):
+            self._bool_query(filters, filter_keyword, value)
+            return
+
+        filters.append({
+            'term': self.get_term_and_value(
+                filter_keyword, value)})
+
     def _add_keyword_filters(self, request_parameters, filters):
         """add keyword filters"""
 
         # Checking for known keyword filters
         for filter_keyword in self.keywords:
-            val = request_parameters.get(filter_keyword, None)
+            value = request_parameters.get(filter_keyword, None)
             # Since a parameter can be 0, which evalutes to False, a check
             # is actually made that the value is not None
-            if val is not None:
-                filters.append(
-                    {'term': self.get_term_and_value(filter_keyword, val)})
+            if value is None:
+                continue
+
+            self._build_filter(filters, filter_keyword, value)
 
     def _add_geo_filters(self, request_parameters, filters):
         """ Adding geo filters """
@@ -241,11 +273,9 @@ class ElasticSearchMixin(object):
                  to use in the ES search.
         """
         # checking for keyword mapping to the actual elastic name
-        filter_keyword = self.keyword_mapping.get(filter_keyword,
-                                                  filter_keyword)
-        # Checking if a raw field is needed
-        if filter_keyword in self.raw_fields:
-            filter_keyword = "{}.raw".format(filter_keyword)
+        filter_keyword = self.keyword_mapping.get(
+            filter_keyword, filter_keyword)
+
         return {filter_keyword: val}
 
     @staticmethod
@@ -278,7 +308,6 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
     # A set of optional keywords to filter the results further
     keywords = None
     # The name of the index to search in
-    raw_fields = None
     # mapping keywords from parameters to elastic fields
     keyword_mapping = {}
     # request parameters
