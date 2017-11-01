@@ -136,6 +136,55 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         """
         Test elastic querying on field `sbi_code` top-down
         """
+        q = {'page': 1, 'sbi_code': '4'}
+
+        response = self.client.get(
+            HR_BASE_QUERY.format(urlencode(q)),
+            **self.header_auth_scope_hr_r)
+
+        self.assertEqual(response.status_code, 200)
+        res = response.json()
+
+        self.assertEqual(len(res['object_list']), 4)
+
+        sbis = [o['sbi_code'] for o in res['object_list']]
+        log.info(sbis)
+        sbis = sum(sbis, [])
+        log.info(sbis)
+
+        self.assertIn('47544', sbis)
+        self.assertIn('46471', sbis)
+        self.assertIn('4110', sbis)
+        self.assertIn('4120', sbis)
+
+    def test_get_dataselectie_hr_multi_sbi_code(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
+        q = {'page': 1, 'sbi_code': '[41,351]'}
+
+        response = self.client.get(
+            HR_BASE_QUERY.format(urlencode(q)),
+            **self.header_auth_scope_hr_r)
+
+        self.assertEqual(response.status_code, 200)
+        res = response.json()
+
+        self.assertEqual(len(res['object_list']), 3)
+
+        sbis = [o['sbi_code'] for o in res['object_list']]
+        log.info(sbis)
+        sbis = sum(sbis, [])
+        log.info(sbis)
+
+        self.assertIn('35111', sbis)
+        self.assertIn('4110', sbis)
+        self.assertIn('4120', sbis)
+
+    def test_get_dataselectie_hr_match_sbi_code(self):
+        """
+        Test elastic querying on field `sbi_code` top-down
+        """
         q = {'page': 1, 'sbi_code': '35111'}
 
         response = self.client.get(

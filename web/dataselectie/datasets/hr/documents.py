@@ -2,12 +2,30 @@
 import logging
 
 import elasticsearch_dsl as es
+from elasticsearch_dsl import analysis
+
 from django.conf import settings
 
 from datasets.bag.models import Nummeraanduiding
 from datasets.hr.models import DataSelectie
 
 log = logging.getLogger(__name__)
+
+
+edge_ngram_filter = analysis.token_filter(
+    'edge_ngram_filter',
+    type='edge_ngram',
+    min_gram=1,
+    max_gram=15
+)
+
+
+autocomplete = es.analyzer(
+    'autocomplete',
+    tokenizer='standard',
+    filter=['lowercase', edge_ngram_filter]
+)
+
 
 
 class Inschrijving(es.DocType):
@@ -68,8 +86,14 @@ class Inschrijving(es.DocType):
     # Categores
     hoofdcategorie = es.Keyword(multi=True)
     subcategorie = es.Keyword(multi=True)
+
     # SBI codes
-    sbi_code = es.Keyword(multi=True)
+    sbi_code = es.String(
+        multi=True,
+        fielddata=True,
+        analyzer=autocomplete,
+    )
+
     sbi_omschrijving = es.Keyword(multi=True)
 
     sbi_l1 = es.Keyword(multi=True)
@@ -325,7 +349,7 @@ def _handle_ves_fields(doc, inschrijving):
     set_eigenaar_to_doc(doc, mac['eigenaar'])
     # Using Vestiging name, otherwise,
     # maatschappelijke_activiteit name, otherwise empty
-    doc.handelsnaam = inschrijving.get('naam', mac.get('naam', ''))
+    doc.handelsnaam = inschrijving.get('naam', mac.get('naam', '')).strip()
 
     # Maatschapelijke activiteit in case of ves
     mac = inschrijving.get('maatschappelijke_activiteit')
@@ -341,7 +365,7 @@ def _handle_mac_fields(doc, inschrijving):
 
     set_eigenaar_to_doc(doc, inschrijving)
     doc.maatschappelijke_activiteit_id = inschrijving.get('id', '')
-    doc.handelsnaam = inschrijving.get('naam', '')
+    doc.handelsnaam = inschrijving.get('naam', '').strip()
     # Maatschapelijke activiteit in case of mac
     _handle_mac_information(doc, inschrijving)
 

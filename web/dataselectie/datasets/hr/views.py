@@ -180,7 +180,8 @@ class HrCSV(HrBase, CSVExportView):
         hide_bezoekadres = item.get('bezoekadres_afgeschermd', False)
         hide_postadres = item.get('postadres_afgeschermd', False)
 
-        not_authorized = not request.is_authorized_for(authorization_levels.SCOPE_HR_R)
+        not_authorized = not request.is_authorized_for(
+            authorization_levels.SCOPE_HR_R)
 
         remove_ba = not_authorized and (hide_bezoekadres or non_mailing)
         remove_pa = not_authorized and (hide_postadres or non_mailing)
