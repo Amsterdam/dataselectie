@@ -66,7 +66,7 @@ class DataselectieExportTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(res), 7)
         # check columns lenght
         row2 = res[2].split(';')
-        self.assertEqual(len(row2), 28)
+        self.assertEqual(len(row2), 27)
 
     def test_export_hr_subcategorie(self):
         self.headers = {AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}
