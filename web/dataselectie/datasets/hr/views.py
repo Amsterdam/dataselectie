@@ -134,11 +134,13 @@ class HrSearch(HrBase, TableSearchView):
 
         sbi_codes = self._convert_value_to_list(sbi_codes)
 
-        # make sure we get a list of strings
+        if not sbi_codes:
+            return []
 
+        # make sure we get a list of strings
         if not isinstance(sbi_codes, list):
             sbi_codes = [sbi_codes, ]
-
+        # make sure everything is string
         sbi_codes = list(map(str, sbi_codes))
         return sbi_codes
 
