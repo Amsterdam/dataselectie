@@ -31,12 +31,12 @@ class ESTestCase(TestCase):
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
 
         call_command(
-            'elastic_indices', '--recreate', verbosity=0,
+            'elastic_indices', '--recreate', 'hr', verbosity=0,
             interactive=False
         )
 
         call_command(
-            'elastic_indices', '--build', verbosity=0,
+            'elastic_indices', '--build', 'hr', verbosity=0,
             interactive=False)
 
         es.cluster.health(
@@ -199,6 +199,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(res['page_count'], 1)
 
         sbi_bucket = res['aggs_list']['sbi_code']['buckets']
+        sbi_bucket2 = res['aggs_list']['sbi_l2']['buckets']
+        sbi_bucket3 = res['aggs_list']['sbi_l3']['buckets']
+        sbi_bucket4 = res['aggs_list']['sbi_l4']['buckets']
+
+        self.assertTrue(len(sbi_bucket2) > 0)
+        self.assertTrue(len(sbi_bucket3) > 0)
+        self.assertTrue(len(sbi_bucket4) > 0)
+
         for agg_key_count in sbi_bucket:
             key = agg_key_count['key']
             self.assertTrue('35111'.startswith(key))
@@ -226,6 +234,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(res['page_count'], 1)
 
         sbi_bucket = res['aggs_list']['sbi_code']['buckets']
+        self.assertTrue(len(sbi_bucket) > 0)
         for agg_key_count in sbi_bucket:
             key = agg_key_count['key']
             self.assertTrue(

@@ -168,9 +168,12 @@ class HrSearch(HrBase, TableSearchView):
         def is_selected(bkey: dict):
             # first part is number
             skey = bkey['key'].split('-')[0]
+            skey = skey.split(': ')[0]
             # compare bucket key with input sbi_codes
             for input_code in sbi_codes:
                 if skey.startswith(input_code):
+                    return True
+                if input_code.startswith(skey):
                     return True
 
         # loop over all sbi_ aggs
