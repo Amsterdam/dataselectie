@@ -224,6 +224,15 @@ ELASTIC_INDICES = {
     'DS_HR_INDEX': 'ds_hr_index'
 }
 
+# Setting test prefix on index names in test
+if IN_TEST_MODE:
+    MIN_BAG_NR = 0
+    MIN_HR_NR = 0
+
+    for k, v in ELASTIC_INDICES.items():
+        ELASTIC_INDICES[k] = 'test_{}'.format(v)
+
+
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000
 MIN_HR_NR = 1000

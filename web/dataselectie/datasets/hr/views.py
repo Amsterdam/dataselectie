@@ -139,7 +139,8 @@ class HrSearch(HrBase, TableSearchView):
         if not isinstance(sbi_codes, list):
             sbi_codes = [sbi_codes, ]
 
-        sbi_codes = map(str, sbi_codes)
+        sbi_codes = list(map(str, sbi_codes))
+        return sbi_codes
 
     def custom_aggs(self, elastic_data, request):
         """
