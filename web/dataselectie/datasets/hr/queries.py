@@ -106,13 +106,14 @@ def create_aggs() -> dict:
                 }
             },
 
-            'sbi_l1': {
-                'terms': {
-                    'field': 'sbi_l1',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
+            # A tm Z listing we do not use (yet)
+            #  'sbi_l1': {
+            #    'terms': {
+            #        'field': 'sbi_l1',
+            #        'size': agg_size,
+            #        'order': {'_term': 'asc'},
+            #    }
+            # },
 
             'sbi_l2': {
                 'terms': {
@@ -133,6 +134,14 @@ def create_aggs() -> dict:
             'sbi_l4': {
                 'terms': {
                     'field': 'sbi_l4',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+
+            'sbi_l5': {
+                'terms': {
+                    'field': 'sbi_l5',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }

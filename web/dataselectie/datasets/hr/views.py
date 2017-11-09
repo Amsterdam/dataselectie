@@ -1,5 +1,6 @@
 # Python
 # Packages
+from django.conf import settings
 
 from authorization_django import levels as authorization_levels
 
@@ -53,6 +54,9 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
         :param request:
         :return: true when the user
         """
+        if settings.DISABLE_AUTH:
+            return True
+
         return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
 
@@ -64,52 +68,125 @@ class HrSearch(HrBase, TableSearchView):
         :param request:
         :return: true when the user
         """
+        if settings.DISABLE_AUTH:
+            return True
+
         return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
     def elastic_query(self, query: dict) -> dict:
-        return meta_q(query, True)
+        return meta_q(query, add_aggs=True, sort=True)
+
+    def _filter_doc(self, doc):
+        """
+        Remove fields depening on Authorization
+        """
+        non_mailing = doc.get('non_mailing', False)
+        hide_bezoekadres = doc.get('bezoekadres_afgeschermd', False)
+        hide_postadres = doc.get('postadres_afgeschermd', False)
+
+        remove_ba = hide_bezoekadres or non_mailing
+        remove_pa = hide_postadres or non_mailing
+
+        if remove_ba:
+            keystoremove = list(key for key in doc.keys()
+                                if key.startswith('bezoekadres'))
+            for key in keystoremove:
+                del doc[key]
+
+        if remove_pa:
+            keystoremove = list(key for key in doc.keys()
+                                if key.startswith('postadres'))
+            for key in keystoremove:
+                del doc[key]
+
+        public_fields = [
+            'handelsnaam',
+            'hoofdcategorie',
+            'sbi_code',
+            'sbi_omschrijving',
+            'subcategorie',
+            'ggw_naam',
+            'buurt_naam',
+            # 'openbare_ruimte', ?
+        ]
+
+        # remove non public keys
+        for key in list(doc.keys()):
+            if key not in public_fields:
+                del doc[key]
 
     def filter_data(self, elastic_data, request):
         if request.is_authorized_for(authorization_levels.SCOPE_HR_R):
+            # no filtering needed.
             return elastic_data
 
         for doc in elastic_data['object_list']:
-            non_mailing = doc.get('non_mailing', False)
-            hide_bezoekadres = doc.get('bezoekadres_afgeschermd', False)
-            hide_postadres = doc.get('postadres_afgeschermd', False)
-
-            remove_ba = hide_bezoekadres or non_mailing
-            remove_pa = hide_postadres or non_mailing
-
-            if remove_ba:
-                keystoremove = list(key for key in doc.keys()
-                                    if key.startswith('bezoekadres'))
-                for key in keystoremove:
-                    del doc[key]
-
-            if remove_pa:
-                keystoremove = list(key for key in doc.keys()
-                                    if key.startswith('postadres'))
-                for key in keystoremove:
-                    del doc[key]
-
-            public_fields = [
-                'handelsnaam',
-                'hoofdcategorie',
-                'sbi_code',
-                'sbi_omschrijving',
-                'subcategorie',
-                'ggw_naam',
-                'buurt_naam',
-                # 'openbare_ruimte', ?
-            ]
-
-            # remove non public keys
-            for key in list(doc.keys()):
-                if key not in public_fields:
-                    del doc[key]
+            # filter each doc
+            self._filter_doc(doc)
 
         return elastic_data
+
+    def _prepare_sbi_param(self, request):
+        # Retrieving the request parameters
+        request_parameters = getattr(request, self.request.method)
+        #
+        sbi_codes = request_parameters.get('sbi_code', None)
+
+        sbi_codes = self._convert_value_to_list(sbi_codes)
+
+        # make sure we get a list of strings
+
+        if not isinstance(sbi_codes, list):
+            sbi_codes = [sbi_codes, ]
+
+        sbi_codes = map(str, sbi_codes)
+
+    def custom_aggs(self, elastic_data, request):
+        """
+        We want to filter out sbi code's aggs not being selected.
+
+        if user selects: ?sbi_code=['01', '02']
+
+        then we only want to return sbi codes that macht these
+        paterns.
+        Since Vestigingen can have multiple sbi_code way more
+        sbi codes are returend. We do not want those extra codes
+        they are 'correct' but confusing for endusers who made a specific
+        selection
+        """
+        # Determine sbicodes
+        sbi_codes = self._prepare_sbi_param(request)
+
+        if not sbi_codes:
+            return
+
+        aggs_list = elastic_data['aggs_list']
+
+        def is_selected(bkey: dict):
+            # first part is number
+            skey = bkey['key'].split('-')[0]
+            # compare bucket key with input sbi_codes
+            for code in sbi_codes:
+                if code.startswith(skey):
+                    return True
+
+        # loop over all sbi_ aggs
+        for key, value in aggs_list.items():
+            # find sbi keys
+            if not key.startswith('sbi_'):
+                continue
+
+            bucketlist = value['buckets']
+            newbucket = []
+            # check if we want this sbi bucket key
+            for bkey in bucketlist:
+                if not is_selected(bkey):
+                    continue
+                # add to new sbi selection
+                newbucket.append(bkey)
+
+            # replace bucket list with cleaned up version
+            value['buckets'] = newbucket
 
 
 class HrCSV(HrBase, CSVExportView):
@@ -142,14 +219,15 @@ class HrCSV(HrBase, CSVExportView):
          'Huisnummertoevoeging postadres (BAG)'),
         ('postadres_postcode', 'Postcode postadres (BAG)'),
         ('postadres_plaats', 'Woonplaats postadres (BAG)'),
-        ('hoofdcategorie', 'Hoofdcategorie'),
-        ('subcategorie', 'Subcategorie'),
+        # ('hoofdcategorie', 'Hoofdcategorie'),
+        # ('subcategorie', 'Subcategorie'),
         ('sbi_omschrijving', 'SBI-omschrijving'),
         ('sbi_code', 'SBI-code'),
         ('datum_aanvang', 'Datum aanvang'),
         # ('datum_einde', 'Datum einde'),
+        ('bijzondere_rechtstoestand', 'Bijzondere rechtstoestand'),
         ('eigenaar_naam', 'Naam eigenaar(en)'),
-        ('rechtsvorm', 'Rechtsvorm (HR MAC)'),
+        ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
     )
 
@@ -165,6 +243,9 @@ class HrCSV(HrBase, CSVExportView):
         :param request:
         :return: true when the user
         """
+        if settings.DISABLE_AUTH:
+            return True
+
         return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
 
     def paginate(self, _offset, q: dict) -> dict:

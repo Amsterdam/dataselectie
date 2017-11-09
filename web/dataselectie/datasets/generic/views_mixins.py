@@ -261,7 +261,7 @@ class ElasticSearchMixin(object):
             'object_list': [item['_source'] for item in
                             response['hits']['hits']],
             'object_count': response['hits']['total']}
-        # Add total count
+
         try:
             elastic_data.update(
                 self.add_page_counters(int(elastic_data['object_count'])))
@@ -287,22 +287,25 @@ class ElasticSearchMixin(object):
 
         return {filter_keyword: val}
 
-    @staticmethod
-    def process_aggs(aggs):
+    def process_aggs(self, aggs):
         """
         Process the aggregation create by elastic.
-        It seaches for agg_name and agg_name_count and then adds its
+        It seaches for agg_name and agg_name_count
+        and then adds its
         value to the agg_name, removing the agg_name count
 
         This creates a unified aggregation for the front end
         to work with
         """
-        count_keys = [key for key in aggs.keys() if
-                      key.endswith('_count') and key[0:-6] in aggs]
+        count_keys = [
+            key for key in aggs.keys() if
+            key.endswith('_count') and key[0:-6] in aggs]
+
         for key in count_keys:
             aggs[key[0:-6]]['doc_count'] = aggs[key]['value']
             # Removing the individual count aggregation
             del aggs[key]
+
         return aggs
 
 
@@ -332,10 +335,17 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
         )
 
     def handle_request(self, request, *args, **kwargs):
-        elastic_data = self.load_from_elastic()  # See method for details
+        elastic_data = self.load_from_elastic()
+        # customize agg filters results for frontend
+        self.custom_aggs(elastic_data, request)
+        # See method for details
         return self.filter_data(elastic_data, request)
 
-    # Tableview methods
+    def custom_aggs(self, elastic_data, request):
+        """
+        Allow custom filtering on aggs
+        """
+        pass
 
     def paginate(self, offset: int, q: dict) -> dict:
         # Sanity check to make sure we do not pass 10000
