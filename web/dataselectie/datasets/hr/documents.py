@@ -269,7 +269,7 @@ def add_sbi_to_doc(doc, ves_data):
             level_omschrijving = sbi_tree.get(key, [])
             if not level_omschrijving:
                 continue
-            bucket.append("-".join(level_omschrijving))
+            bucket.append(": ".join(level_omschrijving))
 
     for key, datalist in codes.items():
         setattr(doc, key, datalist)

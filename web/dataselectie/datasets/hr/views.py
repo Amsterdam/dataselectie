@@ -169,8 +169,8 @@ class HrSearch(HrBase, TableSearchView):
             # first part is number
             skey = bkey['key'].split('-')[0]
             # compare bucket key with input sbi_codes
-            for code in sbi_codes:
-                if code.startswith(skey):
+            for input_code in sbi_codes:
+                if skey.startswith(input_code):
                     return True
 
         # loop over all sbi_ aggs
