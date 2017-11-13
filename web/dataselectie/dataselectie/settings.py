@@ -257,7 +257,8 @@ PARTIAL_IMPORT = {
 
 # Security
 DATAPUNT_AUTHZ = {
-    'JWT_SECRET_KEY': os.getenv('JWT_SHARED_SECRET_KEY'),
+    'JWT_SECRET_KEY': os.getenv(
+        'JWT_SHARED_SECRET_KEY', 'heelerginsecure16'),
     'JWT_ALGORITHM': 'HS256'
 }
 
@@ -267,6 +268,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 # For local development set TRUE
 DISABLE_AUTH = False
+#DISABLE_AUTH = True
 
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',

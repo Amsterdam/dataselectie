@@ -211,6 +211,9 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             key = agg_key_count['key']
             self.assertTrue('35111'.startswith(key))
 
+        l2_count = res['aggs_list']['sbi_l2']['doc_count']
+        self.assertEqual(l2_count, len(sbi_bucket2))
+
     def test_get_dataselectie_hr_multiple_sbi_code(self):
         """
         Test elastic querying on field `sbi_code` top-down
@@ -235,6 +238,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
         sbi_bucket = res['aggs_list']['sbi_code']['buckets']
         self.assertTrue(len(sbi_bucket) > 0)
+
         for agg_key_count in sbi_bucket:
             key = agg_key_count['key']
             self.assertTrue(

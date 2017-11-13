@@ -165,17 +165,6 @@ class HrSearch(HrBase, TableSearchView):
 
         aggs_list = elastic_data['aggs_list']
 
-        def is_selected(bkey: dict):
-            # first part is number
-            skey = bkey['key'].split('-')[0]
-            skey = skey.split(': ')[0]
-            # compare bucket key with input sbi_codes
-            for input_code in sbi_codes:
-                if skey.startswith(input_code):
-                    return True
-                if input_code.startswith(skey):
-                    return True
-
         # loop over all sbi_ aggs
         for key, value in aggs_list.items():
             # find sbi keys
@@ -186,13 +175,28 @@ class HrSearch(HrBase, TableSearchView):
             newbucket = []
             # check if we want this sbi bucket key
             for bkey in bucketlist:
-                if not is_selected(bkey):
+                if not _is_selected(bkey, sbi_codes):
                     continue
                 # add to new sbi selection
                 newbucket.append(bkey)
 
             # replace bucket list with cleaned up version
+            value['doc_count'] = len(newbucket)
             value['buckets'] = newbucket
+
+
+def _is_selected(bkey: dict, sbi_codes: list) -> bool:
+    """
+    """
+    # first part is number
+    skey = bkey['key'].split(': ')[0]
+    # compare bucket key with input sbi_codes
+    for input_code in sbi_codes:
+        if skey.startswith(input_code):
+            return True
+        if input_code.startswith(skey):
+            return True
+    return False
 
 
 class HrCSV(HrBase, CSVExportView):
