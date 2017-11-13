@@ -194,8 +194,8 @@ def _is_selected(bkey: dict, sbi_codes: list) -> bool:
     for input_code in sbi_codes:
         if skey.startswith(input_code):
             return True
-        if input_code.startswith(skey):
-            return True
+        # if input_code.startswith(skey):
+        #    return True
     return False
 
 

@@ -199,20 +199,21 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(res['page_count'], 1)
 
         sbi_bucket = res['aggs_list']['sbi_code']['buckets']
-        sbi_bucket2 = res['aggs_list']['sbi_l2']['buckets']
-        sbi_bucket3 = res['aggs_list']['sbi_l3']['buckets']
-        sbi_bucket4 = res['aggs_list']['sbi_l4']['buckets']
+        #sbi_bucket2 = res['aggs_list']['sbi_l2']['buckets']
+        #sbi_bucket3 = res['aggs_list']['sbi_l3']['buckets']
+        #sbi_bucket4 = res['aggs_list']['sbi_l4']['buckets']
+        sbi_bucket5 = res['aggs_list']['sbi_l5']['buckets']
 
-        self.assertTrue(len(sbi_bucket2) > 0)
-        self.assertTrue(len(sbi_bucket3) > 0)
-        self.assertTrue(len(sbi_bucket4) > 0)
+        #self.assertTrue(len(sbi_bucket2) > 0)
+        #self.assertTrue(len(sbi_bucket3) > 0)
+        self.assertTrue(len(sbi_bucket5) > 0)
 
         for agg_key_count in sbi_bucket:
             key = agg_key_count['key']
             self.assertTrue('35111'.startswith(key))
 
-        l2_count = res['aggs_list']['sbi_l2']['doc_count']
-        self.assertEqual(l2_count, len(sbi_bucket2))
+        l2_count = res['aggs_list']['sbi_l5']['doc_count']
+        self.assertEqual(l2_count, len(sbi_bucket5))
 
     def test_get_dataselectie_hr_multiple_sbi_code(self):
         """
