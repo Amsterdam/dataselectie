@@ -115,7 +115,7 @@ class HrSearch(HrBase, TableSearchView):
             if key not in public_fields:
                 del doc[key]
 
-    def filter_data(self, elastic_data, request):
+    def filter_data(self, elastic_data: dict, request) -> dict:
         if request.is_authorized_for(authorization_levels.SCOPE_HR_R):
             # no filtering needed.
             return elastic_data
@@ -126,7 +126,7 @@ class HrSearch(HrBase, TableSearchView):
 
         return elastic_data
 
-    def _prepare_sbi_param(self, request):
+    def _prepare_sbi_param(self, request) -> list:
         # Retrieving the request parameters
         request_parameters = getattr(request, self.request.method)
         #
@@ -144,7 +144,7 @@ class HrSearch(HrBase, TableSearchView):
         sbi_codes = list(map(str, sbi_codes))
         return sbi_codes
 
-    def custom_aggs(self, elastic_data, request):
+    def custom_aggs(self, elastic_data: dict, request) -> None:
         """
         We want to filter out sbi code's aggs not being selected.
 
