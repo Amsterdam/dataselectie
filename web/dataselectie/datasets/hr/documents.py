@@ -27,7 +27,6 @@ autocomplete = es.analyzer(
 )
 
 
-
 class Inschrijving(es.DocType):
     """
     Elastic data of 'vestigingen' or 'mac'

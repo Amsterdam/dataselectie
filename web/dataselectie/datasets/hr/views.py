@@ -193,12 +193,12 @@ def _is_selected(bkey: dict, sbi_codes: list) -> bool:
     """
     """
     # first part is number
-    skey = bkey['key'].split(': ')[0]
+    b_key = bkey['key'].split(': ')[0]
     # compare bucket key with input sbi_codes
     for input_code in sbi_codes:
-        if skey.startswith(input_code):
+        if b_key.startswith(input_code):
             return True
-        # if input_code.startswith(skey):
+        # if input_code.startswith(b_key):
         #    return True
     return False
 
