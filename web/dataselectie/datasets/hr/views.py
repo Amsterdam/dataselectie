@@ -2,7 +2,7 @@
 # Packages
 from django.conf import settings
 
-from authorization_django import levels as authorization_levels
+import authorization_levels
 
 from datasets.generic.views_mixins import CSVExportView
 from datasets.generic.views_mixins import GeoLocationSearchView
