@@ -21,6 +21,10 @@ class HrBase(object):
     nonmail_msg = 'Non-mailing-indicatie actief'
     restricted_msg = 'Afgeschermd'
 
+    filters = {
+        #'dataset': 'ves',
+    }
+
     keywords = [
         'subcategorie', 'hoofdcategorie', 'handelsnaam', 'sbi_code',
         'sbi_omschrijving', 'buurt_naam', 'buurtcombinatie_naam', 'ggw_naam',

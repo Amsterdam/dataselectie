@@ -111,6 +111,8 @@ class ElasticSearchMixin(object):
 
     """
 
+    # optional manual filters
+    filters = {}
     # A set of optional keywords to filter the results further
     keywords = ()
     geo_fields = {
@@ -209,6 +211,10 @@ class ElasticSearchMixin(object):
             if value is None:
                 continue
 
+            self._build_filter(filters, filter_keyword, value)
+
+        # add custom filter
+        for filter_keyword, value in self.filters.items():
             self._build_filter(filters, filter_keyword, value)
 
     def _add_geo_filters(self, request_parameters, filters):
