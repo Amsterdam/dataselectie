@@ -1,5 +1,7 @@
 # Python
 # Packages
+from dateutil.parser import parse
+
 from django.conf import settings
 
 import authorization_levels
@@ -269,11 +271,17 @@ class HrCSV(HrBase, CSVExportView):
 
     def item_data_update(self, item, request):
         """
-        Remove field if needed
+        - Remove field if needed auth / non-mailing
+
+        - Datum aanvang with no timestamp.
         """
         non_mailing = item.get('non_mailing', False)
         hide_bezoekadres = item.get('bezoekadres_afgeschermd', False)
         hide_postadres = item.get('postadres_afgeschermd', False)
+
+        # strip time from date.
+        date = parse(item.get('datum_aanvang'))
+        item['datum_aanvang'] = date.strftime('%Y-%m-%d')
 
         not_authorized = not request.is_authorized_for(
             authorization_levels.SCOPE_HR_R)
