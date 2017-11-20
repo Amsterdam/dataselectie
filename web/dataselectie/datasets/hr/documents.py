@@ -310,8 +310,7 @@ def jsonpprint(data):
 def _handle_mac_information(doc, mac):
     for attrib in (
             'kvk_nummer', 'datum_aanvang',
-            'eigenaar_naam',
-            'eigenaar_id', 'non_mailing'):
+            'non_mailing'):
         setattr(doc, attrib, mac.get(attrib, ''))
 
 

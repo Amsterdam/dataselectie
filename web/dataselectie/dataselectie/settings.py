@@ -256,10 +256,29 @@ PARTIAL_IMPORT = {
 # https://docs.djangoproject.com/en/1.9/ref/settings/#auth-password-validators
 
 # Security
+# The following JWKS data was obtained in the authz project :  jwkgen -create -alg ES256
+# This is a test public/private key def and added for testing.
+JWKS_TEST_KEY = """
+    {
+        "keys": [
+            {
+                "kty": "EC",
+                "key_ops": [
+                    "verify",
+                    "sign"
+                ],
+                "kid": "2aedafba-8170-4064-b704-ce92b7c89cc6",
+                "crv": "P-256",
+                "x": "6r8PYwqfZbq_QzoMA4tzJJsYUIIXdeyPA27qTgEJCDw=",
+                "y": "Cf2clfAfFuuCB06NMfIat9ultkMyrMQO9Hd2H7O9ZVE=",
+                "d": "N1vu0UQUp0vLfaNeM0EDbl4quvvL6m_ltjoAXXzkI3U="
+            }
+        ]
+    }
+"""
+
 DATAPUNT_AUTHZ = {
-    'JWT_SECRET_KEY': os.getenv(
-        'JWT_SHARED_SECRET_KEY', 'heelerginsecure16'),
-    'JWT_ALGORITHM': 'HS256'
+    'JWKS': os.getenv('PUB_JWKS', JWKS_TEST_KEY)
 }
 
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -269,25 +288,6 @@ X_FRAME_OPTIONS = 'DENY'
 # For local development set TRUE
 DISABLE_AUTH = False
 #DISABLE_AUTH = True
-
-JWT_AUTH = {
-    'JWT_ENCODE_HANDLER': 'rest_framework_jwt.utils.jwt_encode_handler',
-    'JWT_DECODE_HANDLER': 'rest_framework_jwt.utils.jwt_decode_handler',
-    'JWT_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_payload_handler',
-    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'rest_framework_jwt.utils.jwt_get_user_id_from_payload_handler',  # noqa
-    'JWT_RESPONSE_PAYLOAD_HANDLER': 'rest_framework_jwt.utils.jwt_response_payload_handler',             # noqa
-    'JWT_SECRET_KEY': os.getenv('JWT_SHARED_SECRET_KEY', 'some_shared_secret'),
-    'JWT_ALGORITHM': 'HS256',
-    'JWT_VERIFY': True,
-    'JWT_VERIFY_EXPIRATION': True,
-    'JWT_LEEWAY': 0,
-    'JWT_EXPIRATION_DELTA': datetime.timedelta(seconds=300),
-    'JWT_AUDIENCE': None,
-    'JWT_ISSUER': None,
-    'JWT_ALLOW_REFRESH': False,
-    'JWT_REFRESH_EXPIRATION_DELTA': datetime.timedelta(days=7),
-    'JWT_AUTH_HEADER_PREFIX': 'JWT',
-}
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
