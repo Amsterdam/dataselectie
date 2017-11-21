@@ -148,6 +148,15 @@ def add_bag_info(doc, ves):
     # If there is no adresseerbaar_object there is no
     # point to continue
     if not adresseerbaar_object:
+        doc.bezoekadres_ggw_code = ''
+        doc.bezoekadres_ggw_naam = ''
+        doc.bezoekadres_gsg_naam = ''
+        doc.bezoekadres_buurt_code = ''
+        doc.bezoekadres_buurt_naam = ''
+        doc.bezoekadres_buurtcombinatie_code = ''
+        doc.bezoekadres_buurtcombinatie_naam = ''
+        doc.bezoekadres_stadsdeel_naam = ''
+        doc.bezoekadres_stadsdeel_code = ''
         return
 
     # Adding geolocation
