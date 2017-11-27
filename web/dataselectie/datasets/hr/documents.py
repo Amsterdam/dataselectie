@@ -171,16 +171,11 @@ def add_bag_info(doc, ves):
     if ggw:
         doc.bezoekadres_ggw_code = ggw.code
         doc.bezoekadres_ggw_naam = ggw.naam
-    else:
-        doc.bezoekadres_ggw_code = ''
-        doc.bezoekadres_ggw_naam = ''
 
     # Grootstedelijk ontbreekt nog
     gsg = adresseerbaar_object._grootstedelijkgebied
     if gsg:
         doc.bezoekadres_gsg_naam = gsg.naam
-    else:
-        doc.bezoekadres_gsg_naam = ''
 
     buurt = adresseerbaar_object.buurt
     if buurt:
@@ -199,13 +194,6 @@ def add_bag_info(doc, ves):
         # Stadsdeel
         doc.bezoekadres_stadsdeel_naam = buurt.stadsdeel.naam
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
-    else:
-        doc.bezoekadres_buurt_code = ''
-        doc.bezoekadres_buurt_naam = ''
-        doc.bezoekadres_buurtcombinatie_code = ''
-        doc.bezoekadres_buurtcombinatie_naam = ''
-        doc.bezoekadres_stadsdeel_naam = ''
-        doc.bezoekadres_stadsdeel_code = ''
 
 
 def add_adres_to_doc(doc, inschrijving):
