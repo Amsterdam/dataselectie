@@ -15,70 +15,31 @@ import sys
 
 import os
 
+from dataselectie.settings_common import * # noqa F403
+from dataselectie.settings_common import INSTALLED_APPS, DEBUG, LOCAL
+from dataselectie.settings_databases import LocationKey, \
+    get_docker_host, \
+    get_database_key, \
+    OVERRIDE_HOST_ENV_VAR, \
+    OVERRIDE_PORT_ENV_VAR
+
 from dataselectie.utils import get_variable
 from dataselectie.utils import get_db_settings
 
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-insecure_key = 'insecure'
-SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
-
-DEBUG = SECRET_KEY == insecure_key
-
-ALLOWED_HOSTS = ['*']
 
 # Application definition
 
-INSTALLED_APPS = [
-    'django.contrib.contenttypes',
-    'django.contrib.staticfiles',
-
+INSTALLED_APPS += [
     'dataselectie',
     'batch',
     'api',
 
     # Datasets
-
     'datasets.hr',
     'datasets.bag'
 ]
 
-
-# set to True for local development.
-LOCAL = False
-CORS_ORIGIN_ALLOW_ALL = True
-
-MIDDLEWARE = [
-    'authorization_django.authorization_middleware',
-]
-
-if LOCAL:
-    INSTALLED_APPS += ('corsheaders',)
-    MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
-
-
 ROOT_URLCONF = 'dataselectie.urls'
-
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': ['{}/datasets/generic/templates'.format(BASE_DIR)],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = 'dataselectie.wsgi.application'
 
@@ -89,109 +50,36 @@ DS_DATASELECTIE = get_db_settings(
     docker_host='database',
     localport='5435')
 
-DS_BAG = get_db_settings(
-    db='dataselectie',
-    user='handelsregister',
-    docker_host='127.0.0.1',
-    localport='5406')
-
-# These are the handelsregister docker db settings
-DS_HR = get_db_settings(
-    db='handelsregister',
-    docker_host='127.0.0.1',
-    localport='5406')
-
+DATABASE_OPTIONS = {
+    LocationKey.docker: {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('DATABASE_NAME', 'dataselectie'),
+        'USER': os.getenv('DATABASE_USER', 'dataselectie'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
+        'HOST': 'database',
+        'PORT': '5432'
+    },
+    LocationKey.local: {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('DATABASE_NAME', 'dataselectie'),
+        'USER': os.getenv('DATABASE_USER', 'dataselectie'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
+        'HOST': get_docker_host(),
+        'PORT': '5435'
+    },
+    LocationKey.override: {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': os.getenv('DATABASE_NAME', 'dataselectie'),
+        'USER': os.getenv('DATABASE_USER', 'dataselectie'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD', 'insecure'),
+        'HOST': os.getenv(OVERRIDE_HOST_ENV_VAR),
+        'PORT': os.getenv(OVERRIDE_PORT_ENV_VAR, '5432')
+    },
+}
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.postgis',
-        'NAME': DS_DATASELECTIE['db'],
-        'USER': DS_DATASELECTIE['username'],
-        'PASSWORD': DS_DATASELECTIE['password'],
-        'HOST': DS_DATASELECTIE['host'],
-        'PORT': DS_DATASELECTIE['port'],
-        'CONN_MAX_AGE': 60,
-    },
+    'default': DATABASE_OPTIONS[get_database_key()]
 }
-
-USE_I18N = True
-# to use docker hr database directly
-# handy for development
-HR_DATABASE = 'default'
-# HR_DATABASE = 'hr'
-
-LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
-LOGSTASH_PORT = int(os.getenv('LOGSTASH_GELF_UDP_PORT', 12201))
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-
-    'formatters': {
-        'slack': {
-            'format': '%(message)s',
-        },
-        'console': {
-            'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        },
-    },
-
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'console',
-        },
-
-        'graypy': {
-            'level': 'ERROR',
-            'class': 'graypy.GELFHandler',
-            'host': LOGSTASH_HOST,
-            'port': LOGSTASH_PORT,
-        },
-    },
-
-    'root': {
-        'level': 'INFO',
-        'handlers': ['console', 'graypy'],
-    },
-
-    'loggers': {
-        # Debug all batch jobs
-        'batch': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-
-        'search': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-        'elasticsearch': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-        'urllib3.connectionpool': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-        'urllib3.util': {
-            'handlers': ['console'],
-            'level': 'ERROR',
-            'propagate': False,
-        },
-
-    },
-}
-
-IN_TEST_MODE = 'test' in sys.argv
-
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),
@@ -202,18 +90,16 @@ ELASTIC_INDICES = {
     'DS_HR_INDEX': 'ds_hr_index'
 }
 
-# Setting test prefix on index names in test
-if IN_TEST_MODE:
-    MIN_BAG_NR = 0
-    MIN_HR_NR = 0
-
-    for k, v in ELASTIC_INDICES.items():
-        ELASTIC_INDICES[k] = 'test_{}'.format(v)
-
-
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000
 MIN_HR_NR = 1000
+
+# Setting test prefix on index names in test
+if TESTING:
+    MIN_BAG_NR = 0
+    MIN_HR_NR = 0
+    for k, v in ELASTIC_INDICES.items():
+        ELASTIC_INDICES[k] = 'test_{}'.format(v)
 
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
@@ -265,20 +151,11 @@ X_FRAME_OPTIONS = 'DENY'
 
 # For local development set TRUE
 DISABLE_AUTH = False
-#DISABLE_AUTH = True
-
-# Internationalization
-# https://docs.djangoproject.com/en/1.9/topics/i18n/
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-
-USE_I18N = True
-USE_L10N = True
-USE_TZ = True
+if LOCAL:
+    DISABLE_AUTH = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-
 
 STATIC_URL = '/static/'
 
