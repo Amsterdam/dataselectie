@@ -38,8 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
 
-    # 'django_extensions',
-
     'dataselectie',
     'batch',
     'api',
@@ -114,26 +112,6 @@ DATABASES = {
         'PORT': DS_DATASELECTIE['port'],
         'CONN_MAX_AGE': 60,
     },
-
-    #'bag': {
-    #    'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #    'NAME': DS_BAG['db'],
-    #    'USER': DS_BAG['username'],
-    #    'PASSWORD': DS_BAG['password'],
-    #    'HOST': DS_BAG['host'],
-    #    'PORT': DS_BAG['port'],
-    #    'CONN_MAX_AGE': 60,
-    #},
-
-    # 'hr': {
-    #     'ENGINE': 'django.contrib.gis.db.backends.postgis',
-    #     'NAME': DS_HR['db'],
-    #     'USER': DS_HR['username'],
-    #     'PASSWORD': DS_HR['password'],
-    #     'HOST': DS_HR['host'],
-    #     'PORT': DS_HR['port'],
-    #     'CONN_MAX_AGE': 60,
-    # },
 }
 
 USE_I18N = True

@@ -13,14 +13,11 @@ services:
       POSTGRES_USER: dataselectie
       POSTGRES_DB: dataselectie
       POSTGRES_PASSWORD: insecure
-      #volumes:
-      #vo- databasevolume:/tmp
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
 
   importer:
     image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
-    # build: ../
     links:
       - elasticsearch:elasticsearch
       - database:database

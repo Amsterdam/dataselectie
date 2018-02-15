@@ -31,17 +31,17 @@ Lokale setup voor dataselectie
 
 ```
 $ docker-compose up -d
-$ docker-compose exec database_BAG update-db.sh bag
-
-$ docker-compose exec database update-table.sh handelsregister hr_dataselectie public dataselectie
-
+$ docker-compose exec database update-db.sh bag <your username>
+$ docker-compose exec database update-table.sh handelsregister hr_dataselectie public dataselectie  <your username>
 $ docker-compose exec dataselectie python manage.py migrate
 
-$ docker-compose exec elasticsearch update-el.sh atlas bag brk nummeraanduiding
-$ docker-compose exec elasticsearch update-el.sh ds_index ds_index
+$ docker-compose exec elasticsearch update-el.sh bag <your username>
+$ docker-compose exec elasticsearch update-el.sh ds_bag_index <your username>
+$ docker-compose exec elasticsearch update-el.sh ds_hr_index <your username>
 ```
 
-`Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim zes uur in beslag neemt`
+Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim zes uur in beslag neemt
+
 ```
 $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 ```

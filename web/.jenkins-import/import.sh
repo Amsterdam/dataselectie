@@ -13,19 +13,11 @@ dc() {
 	docker-compose -f ${DIR}/docker-compose.yml $*
 }
 
-
-# trap 'dc kill ; dc rm -f' EXIT
-
 dc pull
-
-#rm -rf ${DIR}/backups
-#mkdir -p ${DIR}/backups
 
 dc build --pull
 
 dc up -d database
-
-#sleep 5 # waiting for postgres to start
 
 declare  -a bag_tables=(
 	"bag_bouwblok"
@@ -62,11 +54,9 @@ do
 dc exec -T database update-table.sh bag $tablename public dataselectie
 done
 
-
 dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
 
 dc run --rm importer
-
 
 dc exec importer bash -c "/app/docker-wait.sh \ && python manage.py elastic_indices bag --partial=1/3 --build" &
 dc exec importer bash -c "python manage.py elastic_indices bag --partial=2/3 --build" &
