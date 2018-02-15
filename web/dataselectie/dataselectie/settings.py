@@ -81,6 +81,8 @@ DATABASES = {
     'default': DATABASE_OPTIONS[get_database_key()]
 }
 
+HR_DATABASE = 'default'
+
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),
     get_variable('ELASTIC_PORT_OVERRIDE', '9200'))]

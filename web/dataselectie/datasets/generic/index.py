@@ -187,7 +187,7 @@ class ImportIndexTask(object):
                 raise_on_error=True,
             )
 
-        if settings.IN_TEST_MODE and self.index:
+        if settings.TESTING and self.index:
             idx = es.Index(self.index)
             # refresh index, make sure its ready for queries
             idx.refresh()

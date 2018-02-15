@@ -33,7 +33,7 @@ class DatasetsRouter(object):
         """
         if self._model_in_datasets(model._meta.app_label):
             # Only allow writing in testing
-            if settings.IN_TEST_MODE:
+            if settings.TESTING:
                 return model._meta.app_label
             return False
         # Not a dataset app.
@@ -47,7 +47,7 @@ class DatasetsRouter(object):
         Do Not allowe migration of datasets. This should already be handled by
         managed=False, but just to be sure
         """
-        if settings.IN_TEST_MODE:
+        if settings.TESTING:
             return True
         elif self._model_in_datasets(app_label) and db != app_label:
             return False

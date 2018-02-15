@@ -9,6 +9,7 @@ from elasticsearch import Elasticsearch
 
 from datasets.bag import models, views
 from datasets.bag.tests import fixture_utils
+from datasets.hr.tests.factories import create_hr_data
 
 
 class ESTestCase(TestCase):
@@ -36,6 +37,7 @@ class DataselectieApiTest(ESTestCase):
     @classmethod
     def setUpTestData(cls):
         super(ESTestCase, cls).setUpTestData()
+        create_hr_data()
         fixture_utils.create_nummeraanduiding_fixtures()
         cls.rebuild_elastic_index()
 
