@@ -150,7 +150,7 @@ def add_verblijfsobject_data(doc, vbo):
     doc.panden = [i.landelijk_id for i in vbo.panden.all()]
 
     gebruiksdoelen_omschrijving = [gd.omschrijving for gd in vbo.gebruiksdoelen.all()]
-    doc.gebruiksdoelen = " - ".join(gebruiksdoelen_omschrijving)
+    doc.gebruiksdoelen = " | ".join(gebruiksdoelen_omschrijving)
 
 
 def doc_from_nummeraanduiding(
