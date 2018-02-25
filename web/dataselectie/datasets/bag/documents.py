@@ -141,7 +141,6 @@ def add_verblijfsobject_data(doc, vbo):
     """
     verblijfsobject_extra = [
         ('verblijfsobject', 'landelijk_id'),
-        # ('gebruiksdoel_omschrijving', 'gebruiksdoel_omschrijving'),
         ('oppervlakte', 'oppervlakte'),
         ('bouwblok', 'bouwblok.code'),
         ('gebruik', 'gebruik.omschrijving')
@@ -150,10 +149,8 @@ def add_verblijfsobject_data(doc, vbo):
 
     doc.panden = [i.landelijk_id for i in vbo.panden.all()]
 
-    doc.gebruiksdoelen_code = [gd.code for gd in vbo.gebruiksdoelen.all()]
-
-    doc.gebruiksdoelen_omschrijving = [
-        gd.omschrijving for gd in vbo.gebruiksdoelen.all()]
+    gebruiksdoelen_omschrijving = [gd.omschrijving for gd in vbo.gebruiksdoelen.all()]
+    doc.gebruiksdoelen = " - ".join(gebruiksdoelen_omschrijving)
 
 
 def doc_from_nummeraanduiding(

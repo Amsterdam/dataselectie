@@ -3,8 +3,6 @@ services:
   elasticsearch:
     image: amsterdam/elasticsearch5
     command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
-    environment:
-      LOCAL: "$LOCAL"
     ports:
       - "9200:9200"
       - "9300:9300"

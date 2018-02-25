@@ -4,7 +4,6 @@ from datasets.bag.tests import fixture_utils as bag_factory
 from datasets.hr.models import DataSelectie
 from django.db import connection
 
-
 create_hr_table = """--
 -- PostgreSQL database dump
 --

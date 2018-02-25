@@ -49,9 +49,9 @@ class IndexHrTask(index.ImportIndexTask):
     name = "index hr data"
     index = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
-    db = settings.HR_DATABASE
+    #db = settings.HR_DATABASE
 
-    queryset = models.DataSelectie.objects.using(db).filter(
+    queryset = models.DataSelectie.objects.filter(
         bag_numid__isnull=False).order_by('id')
 
     def convert(self, obj):

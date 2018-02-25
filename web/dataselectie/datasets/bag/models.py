@@ -748,8 +748,6 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
-    # gebruiksdoel_code = models.CharField(max_length=4, null=True)
-    # gebruiksdoel_omschrijving = models.CharField(max_length=150, null=True)
     oppervlakte = models.PositiveIntegerField(null=True)
     bouwlaag_toegang = models.IntegerField(null=True)
     status_coordinaat_code = models.CharField(max_length=3, null=True)
