@@ -1,13 +1,11 @@
 # Python
 import logging
-import time
 
 import elasticsearch_dsl as es
 from django.conf import settings
 
 from batch import batch
 from datasets.bag import models
-from datasets.generic import analyzers
 
 log = logging.getLogger(__name__)
 
@@ -62,7 +60,7 @@ class Nummeraanduiding(es.DocType):
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
     gebruik = es.Keyword()
-    panden = es.Keyword(multi=True)
+    panden = es.Keyword()
 
     class Meta:
         doc_type = 'nummeraanduiding'
@@ -147,10 +145,14 @@ def add_verblijfsobject_data(doc, vbo):
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
-    doc.panden = [i.landelijk_id for i in vbo.panden.all()]
+    panden_ids = [i.landelijk_id for i in vbo.panden.all()]
+    doc.panden = " | ".join(panden_ids)
 
-    gebruiksdoelen_omschrijving = [gd.omschrijving for gd in vbo.gebruiksdoelen.all()]
-    doc.gebruiksdoelen = " | ".join(gebruiksdoelen_omschrijving)
+    omschrijving_from_gebruiksdoel = lambda gd: gd.omschrijving + \
+        (f": {gd.omschrijving_plus}" if gd.omschrijving_plus else "")
+    gebruiksdoelen_omschrijvingen = [omschrijving_from_gebruiksdoel(gd)
+                                   for gd in vbo.gebruiksdoelen.all()]
+    doc.gebruiksdoelen = " | ".join(gebruiksdoelen_omschrijvingen)
 
 
 def doc_from_nummeraanduiding(
@@ -180,6 +182,7 @@ def doc_from_nummeraanduiding(
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
+        ('hoofdadres', 'hoofdadres'),
 
         # Landelijke IDs
         ('openbare_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
