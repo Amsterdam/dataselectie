@@ -6,6 +6,7 @@ from django.conf import settings
 
 from batch import batch
 from datasets.bag import models
+from datasets.generic.views_mixins import stringify_item_value
 
 log = logging.getLogger(__name__)
 
@@ -45,7 +46,8 @@ class Nummeraanduiding(es.DocType):
     centroid = es.GeoPoint()
     status = es.Keyword()
     type_desc = es.Keyword()
-    hoofdadres = es.Keyword()  # Is there a choice option?
+    hoofdadres = es.Keyword(index='not_analyzed')
+
     # Landelijke codes
     openbare_ruimte_landelijk_id = es.Keyword()
     verblijfsobject = es.Keyword()
@@ -182,7 +184,6 @@ def doc_from_nummeraanduiding(
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
-        ('hoofdadres', 'hoofdadres'),
 
         # Landelijke IDs
         ('openbare_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
@@ -192,6 +193,7 @@ def doc_from_nummeraanduiding(
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
+    setattr(doc, 'hoofdadres', stringify_item_value(item.hoofdadres))
 
     # defaults
     doc.centroid = None
