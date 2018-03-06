@@ -46,7 +46,7 @@ class Nummeraanduiding(es.DocType):
     centroid = es.GeoPoint()
     status = es.Keyword()
     type_desc = es.Keyword()
-    hoofdadres = es.Keyword(index='not_analyzed')
+    hoofdadres = es.Keyword()
 
     # Landelijke codes
     openbare_ruimte_landelijk_id = es.Keyword()
