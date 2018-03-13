@@ -36,7 +36,8 @@ INSTALLED_APPS += [
 
     # Datasets
     'datasets.hr',
-    'datasets.bag'
+    'datasets.bag',
+    'datasets.brk',
 ]
 
 ROOT_URLCONF = 'dataselectie.urls'

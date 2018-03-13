@@ -5,6 +5,7 @@ from django.core.management import BaseCommand
 
 import datasets.bag.batch as bagbatch
 import datasets.hr.batch as hrbatch
+import datasets.brk.batch as brkbatch
 
 from batch import batch
 
@@ -19,7 +20,8 @@ class Command(BaseCommand):
 
     recreate_indexes = {
         'bag': (bagbatch.ReBuildIndexDsBAGJob,),
-        'hr': (hrbatch.ReBuildIndexDsHRJob,)
+        'hr': (hrbatch.ReBuildIndexDsHRJob,),
+        'brk': (brkbatch.ReBuildIndexDsBRKJob,)
     }
 
     def add_arguments(self, parser):

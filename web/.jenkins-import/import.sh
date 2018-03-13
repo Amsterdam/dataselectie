@@ -47,6 +47,10 @@ declare  -a bag_tables=(
 	"bag_verblijfsobject"
 	"bag_verblijfsobjectpandrelatie"
 	"bag_woonplaats"
+	"brk_eigendommen"
+	"brk_kadastraalobject"
+	"brk_kadastraalsubject"
+	"brk_zakelijkrechtverblijfsobjectrelatie"
 )
 
 for tablename in "${bag_tables[@]}"
