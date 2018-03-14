@@ -3,7 +3,6 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-
 declare  -a bag_tables=(
 	"bag_bouwblok"
 	"bag_bron"
@@ -32,6 +31,13 @@ declare  -a bag_tables=(
 	"bag_verblijfsobject"
 	"bag_verblijfsobjectpandrelatie"
 	"bag_woonplaats"
+	"brk_eigendommen"
+	"brk_eigendommen_categorie"
+	"brk_kadastraalobject"
+	"brk_eigenaren"
+	"brk_eigenaren_categorie"
+	"brk_zakelijkrecht"
+	"brk_zakelijkrechtverblijfsobjectrelatie"
 )
 
 for tablename in "${bag_tables[@]}"
@@ -39,9 +45,4 @@ do
 	echo $tablename
 	dc exec -T database update-table.sh bag $tablename public dataselectie
 done
-
-#
-dc run --rm importer python manage.py import --bagdbindexes
-dc run --rm importer python manage.py import --bagdbconstraints
-
 

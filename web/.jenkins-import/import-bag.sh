@@ -26,15 +26,13 @@ dc run --rm importer bash /app/docker-wait.sh
 
 source ${DIR}/get_bag_tables.sh
 
-#dc build --pull
-#
+dc run --rm importer python manage.py import --bagdbindexes
+dc run --rm importer python manage.py import --bagdbconstraints
 
-#
 dc run --rm importer python manage.py migrate contenttypes
 dc run --rm importer python manage.py elastic_indices --recreate bag
 
 # create dataselectie BAG indexes
-
 dc run --rm importer bash docker-index-bag.sh
 
 dc run --rm elasticsearch chmod -R 777 /tmp/backups
@@ -42,6 +40,5 @@ dc run --rm elasticsearch chmod -R 777 /tmp/backups
 dc run importer /app/elk-bag-backup.sh
 
 dc run --rm elasticsearch chmod -R 777 /tmp/backups
-
 
 dc down

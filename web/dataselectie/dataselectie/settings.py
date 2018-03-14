@@ -36,7 +36,8 @@ INSTALLED_APPS += [
 
     # Datasets
     'datasets.hr',
-    'datasets.bag'
+    'datasets.bag',
+    'datasets.brk',
 ]
 
 ROOT_URLCONF = 'dataselectie.urls'
@@ -87,7 +88,8 @@ ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
 
 ELASTIC_INDICES = {
     'DS_BAG_INDEX': 'ds_bag_index',
-    'DS_HR_INDEX': 'ds_hr_index'
+    'DS_HR_INDEX': 'ds_hr_index',
+    'DS_BRK_INDEX': 'ds_brk_index'
 }
 
 MAX_SEARCH_ITEMS = 10000
