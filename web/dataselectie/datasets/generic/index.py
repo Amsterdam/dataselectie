@@ -79,7 +79,7 @@ def return_qs_parts(qs, modulo, modulo_value):
     build qs
 
     modulo and modulo_value determin which chuncks
-    are teturned.
+    are returned.
 
     if partial = 1/3
 

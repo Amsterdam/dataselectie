@@ -48,18 +48,13 @@ class IndexBrkTask(index.ImportIndexTask):
     name = "index brk data"
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
-    queryset = models.KadastraalObject.objects.filter.order_by('id')
+    queryset = models.KadastraalObject.objects.prefetch_related('rechten')
+
+    def get_queryset(self):
+        return self.queryset.order_by('id')
 
     def convert(self, obj):
-        kadastraalobject = obj
-        try:
-            bag_obj = bag_models.Nummeraanduiding.objects.get(
-                landelijk_id=vestiging.bag_numid)
-        except bag_models.Nummeraanduiding.DoesNotExist:
-            bag_obj = None
-        return documents.KadastraalObject(
-
-        )
+        return documents.doc_from_kadastraalobject(obj)
 
 
 class BuildIndexBRKJob(object):

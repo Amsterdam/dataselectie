@@ -1,36 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
-declare  -a bag_tables=(
-	"bag_bouwblok"
-	"bag_bron"
-	"bag_buurt"
-	"bag_buurtcombinatie"
-	"bag_eigendomsverhouding"
-	"bag_financieringswijze"
-	"bag_gebiedsgerichtwerken"
-	"bag_gebruik"
-	"bag_gebruiksdoel"
-	"bag_gemeente"
-	"bag_grootstedelijkgebied"
-	"bag_ligging"
-	"bag_ligplaats"
-	"bag_locatieingang"
-	"bag_nummeraanduiding"
-	"bag_openbareruimte"
-	"bag_pand"
-	"bag_redenafvoer"
-	"bag_redenopvoer"
-	"bag_stadsdeel"
-	"bag_standplaats"
-	"bag_status"
-	"bag_toegang"
-	"bag_unesco"
-	"bag_verblijfsobject"
-	"bag_verblijfsobjectpandrelatie"
-	"bag_woonplaats"
-)
+dc() {
+	docker-compose -f $(dirname $0)/docker-compose.yml $*
+}
 
-for tablename in "${bag_tables[@]}"
-do
-	docker-compose exec -T database update-table.sh bag $tablename public dataselectie
-done
+source $(dirname $0)/web/.jenkins-import/get_bag_tables.sh
