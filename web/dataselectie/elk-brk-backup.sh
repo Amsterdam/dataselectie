@@ -11,6 +11,6 @@ curl -s -v -f -XPUT http://elasticsearch:9200/_snapshot/backup -d '
       "location": "/tmp/backups" }
 }'
 
-curl -s -v -f -XPUT http://elasticsearch:9200/_snapshot/backup/ds_bkr_index?wait_for_completion=true -d '
-{ "indices": "ds_bkr_index" }'
+curl -s -v -f -XPUT http://elasticsearch:9200/_snapshot/backup/ds_brk_index?wait_for_completion=true -d '
+{ "indices": "ds_brk_index" }'
 

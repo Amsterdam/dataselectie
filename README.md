@@ -41,7 +41,7 @@ $ docker-compose exec elasticsearch clean-el.sh
 $ docker-compose exec elasticsearch update-el.sh bag <your username>
 $ docker-compose exec elasticsearch update-el.sh ds_bag_index <your username>
 $ docker-compose exec elasticsearch update-el.sh ds_hr_index <your username>
-$ docker-compose exec elasticsearch update-el.sh ds_bkr_index <your username>
+$ docker-compose exec elasticsearch update-el.sh ds_brk_index <your username>
 ```
 
 Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim zes uur in beslag neemt
