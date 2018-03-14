@@ -37,7 +37,8 @@ def check_data(request):
     # check elastic
     try:
         client = Elasticsearch(settings.ELASTIC_SEARCH_HOSTS)
-        for index in settings.ELASTIC_INDICES.keys():
+        keys = [key for key in settings.ELASTIC_INDICES.keys() if key != 'DS_BRK_INDEX']
+        for index in keys:
             # check that we have some documents in index.
             es_index = settings.ELASTIC_INDICES[index]
             count = (
