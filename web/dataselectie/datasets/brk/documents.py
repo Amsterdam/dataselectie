@@ -1,4 +1,5 @@
 import logging
+import json
 
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
@@ -41,9 +42,11 @@ def doc_from_kadastraalobject(kadastraalobject):
     doc = KadastraalObject()
     doc.kadastraal_object_id = kadastraalobject.id
     if kadastraalobject.point_geom:
-        doc.geo_point = kadastraalobject.point_geom.transform('wgs84', clone=True).geojson
+        doc.geo_point = kadastraalobject.point_geom.transform('wgs84', clone=True).coords
     if kadastraalobject.poly_geom:
-        doc.geo_poly = kadastraalobject.poly_geom.transform('wgs84', clone=True).geojson
+        multipolygon_wgs84 = kadastraalobject.poly_geom.transform('wgs84', clone=True)
+        # geoshape expects a dict with 'type' and 'coords'
+        doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
     doc.eigenaar_cat = [str(eigendom.eigenaren_categorie.cat_id) for eigendom in eigendommen]
     doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]

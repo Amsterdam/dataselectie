@@ -2,7 +2,6 @@ import logging
 
 from django.conf import settings
 
-from datasets.bag import models as bag_models
 from datasets.brk import models
 
 from . import documents
@@ -13,6 +12,11 @@ log = logging.getLogger(__name__)
 BRK_DOC_TYPES = (
     documents.KadastraalObject,
 )
+
+
+class DeleteDsBRKIndexTask(index.DeleteIndexTask):
+    index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
+    doc_types = BRK_DOC_TYPES
 
 
 class RebuildDocTaskBRK(index.CreateDocTypeTask):
@@ -37,11 +41,6 @@ class DeleteIndexDsBRKJob(object):
     @staticmethod
     def tasks():
         return [DeleteDsBRKIndexTask()]
-
-
-class DeleteDsBRKIndexTask(index.DeleteIndexTask):
-    index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
-    doc_types = BRK_DOC_TYPES
 
 
 class IndexBrkTask(index.ImportIndexTask):
