@@ -74,7 +74,7 @@ class CreateDocTypeTask(object):
         idx.create()
 
 
-def return_qs_parts(qs, modulo, modulo_value):
+def return_qs_parts(qs, modulo, modulo_value, sequential=False):
     """
     build qs
 
@@ -85,15 +85,28 @@ def return_qs_parts(qs, modulo, modulo_value):
 
     then this function only returns chuncks index i for which
     modulo i % 3 == 1
+
+    The sequential boolean is added to make sure that also querysets with non-integer 'id-s' work
+
     """
 
     if modulo != 1:
-        qs_s = (
-            qs
-            .annotate(intid=Cast('id', BigIntegerField()))
-            .annotate(idmod=F('intid') % modulo)
-            .filter(idmod=modulo_value)
-        )
+        if sequential:
+            total = qs.count()
+            chunk_size = int(total / modulo)
+            start = chunk_size * modulo_value
+            end = chunk_size * (modulo_value + 1)
+            if modulo == (modulo_value + 1):
+                qs_s = qs.all()[start:]
+            else:
+                qs_s = qs.all()[start:end]
+        else:
+            qs_s = (
+                qs
+                .annotate(intid=Cast('id', BigIntegerField()))
+                .annotate(idmod=F('intid') % modulo)
+                .filter(idmod=modulo_value)
+            )
     else:
         qs_s = qs
 
@@ -123,6 +136,7 @@ def return_qs_parts(qs, modulo, modulo_value):
 
 class ImportIndexTask(object):
     queryset = None
+    sequential = False
 
     client = elasticsearch.Elasticsearch(
         hosts=settings.ELASTIC_SEARCH_HOSTS,
@@ -159,7 +173,7 @@ class ImportIndexTask(object):
 
         log.info("PART: %s OF %s", numerator + 1, denominator)
 
-        for qs_p, progres in return_qs_parts(qs, denominator, numerator):
+        for qs_p, progres in return_qs_parts(qs, denominator, numerator, self.sequential):
             yield qs_p, progres
 
     def execute(self):

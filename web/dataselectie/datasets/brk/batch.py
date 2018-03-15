@@ -45,12 +45,12 @@ class DeleteIndexDsBRKJob(object):
 
 class IndexBrkTask(index.ImportIndexTask):
     name = "index brk data"
+    sequential = True
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
-    queryset = models.KadastraalObject.objects.prefetch_related('rechten')
-
-    def get_queryset(self):
-        return self.queryset.order_by('id')
+    queryset = models.KadastraalObject.objects.prefetch_related('eigendommen') \
+                     .filter(eigendommen__isnull=False) \
+                     .order_by('id')
 
     def convert(self, obj):
         return documents.doc_from_kadastraalobject(obj)

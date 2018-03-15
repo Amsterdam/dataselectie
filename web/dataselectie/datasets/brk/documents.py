@@ -1,7 +1,6 @@
 import logging
 import json
 
-from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
 import elasticsearch_dsl as es
@@ -25,19 +24,7 @@ class KadastraalObject(es.DocType):
 
 
 def doc_from_kadastraalobject(kadastraalobject):
-    rechten = kadastraalobject.rechten.all()
-    if rechten.count() == 0:
-        return None
-
-    eigendommen = []
-    for recht in rechten:
-        try:
-            eigendommen.append(recht.eigendommen)
-        except ObjectDoesNotExist:
-            pass
-
-    if len(eigendommen) == 0:
-        return None
+    eigendommen = kadastraalobject.eigendommen.all()
 
     doc = KadastraalObject()
     doc.kadastraal_object_id = kadastraalobject.id
