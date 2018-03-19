@@ -96,10 +96,11 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
             chunk_size = int(total / modulo)
             start = chunk_size * modulo_value
             end = chunk_size * (modulo_value + 1)
-            if modulo == (modulo_value + 1):
-                qs_s = qs.all()[start:]
-            else:
-                qs_s = qs.all()[start:end]
+            start_id = qs.all()[start].id
+            end_id = qs.all()[end].id
+            qs_s = qs.filter(id__gte=start_id)
+            if modulo > modulo_value+1:
+                qs_s = qs_s.filter(id__lt=end_id)
         else:
             qs_s = (
                 qs

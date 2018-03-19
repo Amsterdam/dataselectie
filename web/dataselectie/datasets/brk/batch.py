@@ -49,7 +49,7 @@ class IndexBrkTask(index.ImportIndexTask):
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     queryset = models.KadastraalObject.objects.prefetch_related('eigendommen') \
-                     .filter(eigendommen__isnull=False) \
+                     .filter(id__in=models.Eigendommen.objects.values_list('kadastraal_object_id', flat=True)) \
                      .order_by('id')
 
     def convert(self, obj):
