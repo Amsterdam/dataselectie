@@ -112,7 +112,6 @@ class Adres(models.Model):
     postcode = models.CharField(max_length=6, null=True)
     woonplaats = models.CharField(max_length=80, null=True)
 
-    # todo: apart modelleren?
     postbus_nummer = models.IntegerField(null=True)
     postbus_postcode = models.CharField(max_length=50, null=True)
     postbus_woonplaats = models.CharField(max_length=80, null=True)
@@ -128,15 +127,15 @@ class Adres(models.Model):
         managed = False
 
 
-class Eigenaren_Categorie(models.Model):
-    cat_id = models.IntegerField(primary_key=True)
-    category = models.CharField(max_length=100)
+class EigenaarCategorie(models.Model):
+    id = models.IntegerField(primary_key=True)
+    categorie = models.CharField(max_length=100)
 
     class Meta:
         managed = False
 
 
-class Eigenaren(models.Model):
+class Eigenaar(models.Model):
     """
     Een Eigenaar / Kadastraal Subject is een persoon die
     in de kadastrale registratie voorkomt.
@@ -163,8 +162,8 @@ class Eigenaren(models.Model):
     beschikkingsbevoegdheid = models.ForeignKey(
         Beschikkingsbevoegdheid, null=True, on_delete=models.CASCADE
     )
-    eigenaren_categorie = models.ForeignKey(
-        Eigenaren_Categorie, db_column='cat_id'
+    eigenaar_categorie = models.ForeignKey(
+        EigenaarCategorie, db_column='cat_id'
     )
 
     date_modified = models.DateTimeField(auto_now=True)
@@ -302,7 +301,7 @@ class KadastraalObject(models.Model):
     point_geom = geo.PointField(srid=28992, null=True)
 
     voornaamste_gerechtigde = models.ForeignKey(
-        Eigenaren, null=True, on_delete=models.CASCADE)
+        Eigenaar, null=True, on_delete=models.CASCADE)
 
     verblijfsobjecten = models.ManyToManyField(
         bag.Verblijfsobject,
@@ -365,11 +364,11 @@ class ZakelijkRecht(models.Model):
     aard_zakelijk_recht_akr = models.CharField(max_length=3, null=True)
 
     ontstaan_uit = models.ForeignKey(
-        Eigenaren, null=True, related_name="ontstaan_uit_set",
+        Eigenaar, null=True, related_name="ontstaan_uit_set",
         on_delete=models.CASCADE,
     )
     betrokken_bij = models.ForeignKey(
-        Eigenaren, null=True, related_name="betrokken_bij_set",
+        Eigenaar, null=True, related_name="betrokken_bij_set",
         on_delete=models.CASCADE
     )
 
@@ -382,7 +381,7 @@ class ZakelijkRecht(models.Model):
     )
 
     kadastraal_subject = models.ForeignKey(
-        Eigenaren, related_name="rechten",
+        Eigenaar, related_name="rechten",
         on_delete=models.CASCADE, db_column='kadastraal_subject_id'
     )
 
@@ -427,7 +426,7 @@ class ZakelijkRecht(models.Model):
             self._kadastraal_subject_naam, omschrijving, aandeel)
 
 
-class Eigendommen(models.Model):
+class Eigendom(models.Model):
     zakelijk_recht = models.OneToOneField(
         ZakelijkRecht,
         db_column='id',
@@ -436,7 +435,7 @@ class Eigendommen(models.Model):
     )
 
     kadastraal_subject = models.ForeignKey(
-        Eigenaren,
+        Eigenaar,
         on_delete=models.CASCADE, db_column='kadastraal_subject_id'
     )
 
@@ -447,8 +446,8 @@ class Eigendommen(models.Model):
     )
     aard_zakelijk_recht_akr = models.CharField(max_length=3, null=True)
 
-    eigenaren_categorie = models.ForeignKey(
-        Eigenaren_Categorie, db_column='cat_id'
+    eigenaar_categorie = models.ForeignKey(
+        EigenaarCategorie, db_column='cat_id'
     )
     grondeigenaar = models.BooleanField()
     aanschrijfbaar = models.BooleanField()
@@ -489,7 +488,7 @@ class Aantekening(models.Model):
     )
 
     opgelegd_door = models.ForeignKey(
-        Eigenaren, null=True, related_name="aantekeningen",
+        Eigenaar, null=True, related_name="aantekeningen",
         on_delete=models.CASCADE
     )
 
