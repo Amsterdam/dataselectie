@@ -22,6 +22,11 @@ class KadastraalObject(es.DocType):
     aanschrijfbaar = es.Boolean(multi=True)
     appartementeigenaar = es.Boolean(multi=True)
 
+    buurt = es.Keyword(multi=True)
+    wijk = es.Keyword(multi=True)
+    ggw = es.Keyword(multi=True)
+    stadsdeel = es.Keyword(multi=True)
+
 
 def doc_from_kadastraalobject(kadastraalobject):
     eigendommen = kadastraalobject.eigendommen.all()
@@ -34,9 +39,14 @@ def doc_from_kadastraalobject(kadastraalobject):
         multipolygon_wgs84 = kadastraalobject.poly_geom.transform('wgs84', clone=True)
         # geoshape expects a dict with 'type' and 'coords'
         doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
-    doc.eigenaar_cat = [str(eigendom.eigenaren_categorie.cat_id) for eigendom in eigendommen]
+    doc.eigenaar_cat = [str(eigendom.eigenaar_categorie.id) for eigendom in eigendommen]
     doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
     doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
+
+    doc.buurt = [str(buurt.buurt.id) for buurt in kadastraalobject.buurten.all()]
+    doc.wijk = [str(wijk.buurt_combi.id) for wijk in kadastraalobject.wijken.all()]
+    doc.ggw = [str(ggw.ggw.id) for ggw in kadastraalobject.ggws.all()]
+    doc.stadsdeel = [str(stadsdeel.stadsdeel.id) for stadsdeel in kadastraalobject.stadsdelen.all()]
 
     return doc

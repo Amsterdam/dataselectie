@@ -457,6 +457,82 @@ class Eigendom(models.Model):
         managed = False
 
 
+class EigendomBuurt(models.Model):
+    kadastraal_object = models.ForeignKey(
+        KadastraalObject,
+        on_delete=models.CASCADE,
+        related_name='buurten',
+        primary_key=True
+    )
+
+    buurt = models.ForeignKey(
+        bag.Buurt,
+        related_name='eigendommen',
+        primary_key=True
+    )
+
+    class Meta:
+        managed = False
+        unique_together = ('kadastraal_object', 'buurt')
+
+
+class EigendomWijk(models.Model):
+    kadastraal_object = models.ForeignKey(
+        KadastraalObject,
+        on_delete=models.CASCADE,
+        related_name='wijken',
+        primary_key=True
+    )
+
+    buurt_combi = models.ForeignKey(
+        bag.Buurtcombinatie,
+        related_name='eigendommen',
+        primary_key=True
+    )
+
+    class Meta:
+        managed = False
+        unique_together = ('kadastraal_object', 'buurt_combi')
+
+
+class EigendomGGW(models.Model):
+    kadastraal_object = models.ForeignKey(
+        KadastraalObject,
+        on_delete=models.CASCADE,
+        related_name='ggws',
+        primary_key=True
+    )
+
+    ggw = models.ForeignKey(
+        bag.Gebiedsgerichtwerken,
+        related_name='eigendommen',
+        primary_key=True
+    )
+
+    class Meta:
+        managed = False
+        unique_together = ('kadastraal_object', 'ggw')
+
+
+class EigendomStadsdeel(models.Model):
+    kadastraal_object = models.ForeignKey(
+        KadastraalObject,
+        on_delete=models.CASCADE,
+        related_name='stadsdelen',
+        primary_key=True
+    )
+
+    stadsdeel = models.ForeignKey(
+        bag.Stadsdeel,
+        related_name='eigendommen',
+        primary_key=True
+    )
+
+    class Meta:
+        managed = False
+        unique_together = ('kadastraal_object', 'stadsdeel')
+
+
 class ZakelijkRechtVerblijfsobjectRelatie(models.Model):
     zakelijk_recht = models.ForeignKey(
         ZakelijkRecht, on_delete=models.CASCADE
