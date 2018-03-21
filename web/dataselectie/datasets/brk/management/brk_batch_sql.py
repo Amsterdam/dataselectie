@@ -177,7 +177,7 @@ carto_sql_commands = [
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
                         SELECT st_union(poly_geom) geom, eigendom.cat_id
-                        FROM geo_brk_eigendom_poly
+                        FROM geo_brk_eigendom_poly eigendom
                         GROUP BY eigendom.cat_id
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_eigendom_point USING GIST (geometrie)",
