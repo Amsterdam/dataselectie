@@ -158,12 +158,11 @@ carto_sql_commands = [
     """CREATE TABLE geo_brk_eigendom_point AS (Select
         kpp.poly_kot_id as kadastraal_object_id,
         eigendom.cat_id,
-        kot.poly_geom as poly_geom, 
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal
         from geo_brk_kot_point_in_poly kpp, geo_brk_eigendommen eigendom, brk_kadastraalobject kot 
         where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
-        group by 1, 2, 3)""",
+        group by 1, 2)""",
     "CREATE INDEX ON geo_brk_eigendom_point (kadastraal_object_id)",
     "CREATE INDEX eigendom_point ON geo_brk_eigendom_point USING GIST (geometrie)",
 
