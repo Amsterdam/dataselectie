@@ -146,11 +146,14 @@ carto_sql_commands = [
     #       Table for cartographic layers, grouped polygons (as unnested multipolygons) per categorie
     #       Used for showing lines around grouped counts of point-geom properties
     #           (appartements and the like) per poly-geom (land plots) which have a mixed ownership
-    """CREATE TABLE geo_brk_eigendom_poly AS Select
-    row_number() over () AS id,
-    cat_id,
-    ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
-    FROM (SELECT st_union(poly_geom) geom, cat_id from geo_brk_eigendommen group by cat_id) as subquery""",
+    """CREATE TABLE geo_brk_eigendom_poly AS (Select
+        row_number() over () AS id, 
+        eigendom.kadastraal_object_id,
+        eigendom.cat_id,
+        eigendom.poly_geom 
+        FROM geo_brk_eigendommen eigendom
+        WHERE poly_geom is not null
+        )""",
     "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
@@ -189,7 +192,6 @@ carto_sql_commands = [
             FROM (
                         SELECT st_union(poly_geom) geom, eigendom.cat_id
                         FROM geo_brk_niet_eigendom_poly eigendom
-                        WHERE eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
                         GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_stadsdeel USING GIST (geometrie)",
