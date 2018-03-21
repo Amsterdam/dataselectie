@@ -154,7 +154,7 @@ carto_sql_commands = [
         FROM geo_brk_eigendommen eigendom
         WHERE poly_geom is not null
         )""",
-    "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (geometrie)",
+    "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (poly_geom)",
 
     #   Aggregated table for cartographic layers
     #       Aggregated registry-objects per land plots
@@ -177,8 +177,7 @@ carto_sql_commands = [
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
                         SELECT st_union(poly_geom) geom, eigendom.cat_id
-                        FROM geo_brk_eigendommen eigendom
-                        WHERE poly_geom is not null
+                        FROM geo_brk_eigendom_poly
                         GROUP BY eigendom.cat_id
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_eigendom_point USING GIST (geometrie)",
