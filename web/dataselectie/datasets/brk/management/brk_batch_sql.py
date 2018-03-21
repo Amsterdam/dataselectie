@@ -192,7 +192,7 @@ carto_sql_commands = [
             FROM (
                         SELECT st_union(poly_geom) geom, eigendom.cat_id
                         FROM geo_brk_niet_eigendom_poly eigendom
-                        GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
+                        GROUP BY eigendom.cat_id 
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_stadsdeel USING GIST (geometrie)",
 
