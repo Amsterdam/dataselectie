@@ -1,11 +1,11 @@
 version: '3.0'
 services:
   elasticsearch:
-      image: amsterdam/elasticsearch5
-      user: root
-      volumes:
-        - ./backups/elasticsearch:/tmp/backups
-      command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
+    image: amsterdam/elasticsearch5
+    user: root
+    volumes:
+      - ./backups/elasticsearch:/tmp/backups
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
 
   database:
     image: amsterdam/postgres
@@ -13,6 +13,8 @@ services:
       POSTGRES_USER: dataselectie
       POSTGRES_DB: dataselectie
       POSTGRES_PASSWORD: insecure
+    volumes:
+      - ./backups/database:/tmp/backups
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
 
