@@ -208,7 +208,7 @@ carto_sql_commands = [
                         WHERE poly_geom is not null AND eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
                         GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
                     ) inner_query)""",
-    "CREATE INDEX ON geo_brk_eigendom_point USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_stadsdeel USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons per 'stadsdeel'
