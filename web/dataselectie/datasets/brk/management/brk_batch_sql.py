@@ -180,7 +180,7 @@ carto_sql_commands = [
                         FROM geo_brk_eigendom_poly eigendom
                         GROUP BY eigendom.cat_id
                     ) inner_query)""",
-    "CREATE INDEX ON geo_brk_eigendom_point USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_all USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons
@@ -193,7 +193,7 @@ carto_sql_commands = [
                         FROM geo_brk_niet_eigendom_poly eigendom
                         GROUP BY eigendom.cat_id 
                     ) inner_query)""",
-    "CREATE INDEX ON geo_brk_niet_eigendom_poly_stadsdeel USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots in full ownership, aggregated as unnested multi-polygons per 'stadsdeel'
