@@ -9,6 +9,9 @@ dataselection_sql_commands = [
     "DROP TABLE IF EXISTS brk_eigendomwijk",
     "DROP TABLE IF EXISTS brk_eigendombuurt",
 
+    #
+    #  Indexes on imported tables
+    #
     "CREATE INDEX ON brk_kadastraalobject USING GIST (point_geom)",
     "CREATE INDEX ON brk_kadastraalobject USING GIST (poly_geom)",
     "CREATE INDEX ON bag_buurt USING GIST (geometrie)",
@@ -19,52 +22,60 @@ dataselection_sql_commands = [
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_buurt
     """CREATE TABLE brk_eigendombuurt AS (
-            SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-            FROM brk_kadastraalobject kot, bag_buurt buurt
-            WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, buurt.geometrie) 
-            UNION
-            SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-            FROM brk_kadastraalobject kot, bag_buurt buurt
-            WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, buurt.geometrie)
+            SELECT row_number() over (), kadastraal_object_id, buurt_id FROM (
+                SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
+                FROM brk_kadastraalobject kot, bag_buurt buurt
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, buurt.geometrie) 
+                UNION
+                SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
+                FROM brk_kadastraalobject kot, bag_buurt buurt
+                WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, buurt.geometrie)
+            ) subquery
         )""",
     "CREATE INDEX ON brk_eigendombuurt (kadastraal_object_id, buurt_id)",
 
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_wijk
     """CREATE TABLE brk_eigendomwijk AS (
-            SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-            FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
-            WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, wijk.geometrie) 
-            UNION
-            SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-            FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
-            WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, wijk.geometrie) 
+            SELECT row_number() over (), kadastraal_object_id, buurt_combi_id FROM (
+                SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, wijk.geometrie) 
+                UNION
+                SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, wijk.geometrie) 
+            ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomwijk (kadastraal_object_id, buurt_combi_id)",
 
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_ggw
     """CREATE TABLE brk_eigendomggw AS (
-            SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-            FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
-            WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, ggw.geometrie)
-            UNION
-            SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-            FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
-            WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, ggw.geometrie)
+            SELECT row_number() over (), kadastraal_object_id, ggw_id FROM (
+                SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, ggw.geometrie)
+                UNION
+                SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, ggw.geometrie)
+            ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomggw (kadastraal_object_id, ggw_id)",
 
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_stadsdeel
     """CREATE TABLE brk_eigendomstadsdeel AS (
-            SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-            FROM brk_kadastraalobject kot, bag_stadsdeel sd
-            WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, sd.geometrie) 
-            UNION
-            SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-            FROM brk_kadastraalobject kot, bag_stadsdeel sd
-            WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, sd.geometrie) 
+            SELECT row_number() over (), kadastraal_object_id, stadsdeel_id FROM (
+                SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, sd.geometrie) 
+                UNION
+                SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, sd.geometrie) 
+            ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomstadsdeel (kadastraal_object_id, stadsdeel_id)",
 ]

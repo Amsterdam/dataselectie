@@ -314,6 +314,30 @@ class KadastraalObject(models.Model):
         through_fields=('a_perceel', 'g_perceel'),
         related_name="a_percelen")
 
+    buurten = models.ManyToManyField(
+        bag.Buurt,
+        through='EigendomBuurt',
+        through_fields=('kadastraal_object', 'buurt'),
+        related_name="eigendommen")
+
+    wijken = models.ManyToManyField(
+        bag.Buurtcombinatie,
+        through='EigendomWijk',
+        through_fields=('kadastraal_object', 'buurt_combi'),
+        related_name="eigendommen")
+
+    ggws = models.ManyToManyField(
+        bag.Gebiedsgerichtwerken,
+        through='EigendomGGW',
+        through_fields=('kadastraal_object', 'ggw'),
+        related_name="eigendommen")
+
+    stadsdelen = models.ManyToManyField(
+        bag.Stadsdeel,
+        through='EigendomStadsdeel',
+        through_fields=('kadastraal_object', 'stadsdeel'),
+        related_name="eigendommen")
+
     objects = geo.Manager()
 
     class Meta:
@@ -458,79 +482,69 @@ class Eigendom(models.Model):
 
 
 class EigendomBuurt(models.Model):
+    id = models.IntegerField(primary_key=True)
+
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
         on_delete=models.CASCADE,
-        related_name='buurten',
-        primary_key=True
     )
 
     buurt = models.ForeignKey(
         bag.Buurt,
-        related_name='eigendommen',
-        primary_key=True
     )
 
     class Meta:
         managed = False
-        unique_together = ('kadastraal_object', 'buurt')
+
+
 
 
 class EigendomWijk(models.Model):
+    id = models.IntegerField(primary_key=True)
+
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
         on_delete=models.CASCADE,
-        related_name='wijken',
-        primary_key=True
     )
 
     buurt_combi = models.ForeignKey(
         bag.Buurtcombinatie,
-        related_name='eigendommen',
-        primary_key=True
     )
 
     class Meta:
         managed = False
-        unique_together = ('kadastraal_object', 'buurt_combi')
 
 
 class EigendomGGW(models.Model):
+    id = models.IntegerField(primary_key=True)
+
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
         on_delete=models.CASCADE,
-        related_name='ggws',
-        primary_key=True
     )
 
     ggw = models.ForeignKey(
         bag.Gebiedsgerichtwerken,
-        related_name='eigendommen',
-        primary_key=True
     )
 
     class Meta:
         managed = False
-        unique_together = ('kadastraal_object', 'ggw')
 
 
 class EigendomStadsdeel(models.Model):
+    id = models.IntegerField(primary_key=True)
+
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
         on_delete=models.CASCADE,
-        related_name='stadsdelen',
-        primary_key=True
     )
 
     stadsdeel = models.ForeignKey(
         bag.Stadsdeel,
-        related_name='eigendommen',
-        primary_key=True
     )
 
     class Meta:
         managed = False
-        unique_together = ('kadastraal_object', 'stadsdeel')
 
 
 class ZakelijkRechtVerblijfsobjectRelatie(models.Model):
