@@ -1,3 +1,8 @@
+from django_filters import rest_framework as filters
+from rest_framework import viewsets
+from rest_framework.response import Response
+from rest_framework import serializers
+
 from datasets.brk import models
 from datasets.bag.queries import meta_q
 
@@ -26,9 +31,34 @@ class BrkBase(object):
     raw_fields = []
 
 
-class BrkGeoLocationSearch(BrkBase, GeoLocationSearchView):
+class KadastraalObjectFilter(filters.FilterSet):
+
+    class Meta:
+        model = models.KadastraalObject
+        fields = {
+            'username': ['exact', 'contains'],
+            'last_login': ['exact', 'year__gt'],
+        }
+
+
+class BrkGeoLocationSerializer(serializers.Serializer):
+    pass
+
+
+class BrkGeoLocationSearch(BrkBase, viewsets.ViewSet):
+    queryset = models.KadastraalObject.objects.all()
+    serializer_class = BrkGeoLocationSerializer
+    filter_backends = (filters.DjangoFilterBackend,)
+    filter_fields = ('category', 'in_stock')
+
     def elastic_query(self, query):
         return meta_q(query, False)
+
+
+
+
+
+
 
 
 class BrkSearch(BrkBase, TableSearchView):

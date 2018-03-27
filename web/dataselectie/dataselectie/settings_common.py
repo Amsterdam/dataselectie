@@ -23,6 +23,10 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.staticfiles',
+    'django_filters',
+    'django.contrib.gis',
+    'rest_framework',
+    'rest_framework_gis',
 ]
 
 # set to True for local development.
@@ -73,6 +77,29 @@ TESTING = len(sys.argv) > 1 and sys.argv[1] == 'test'
 
 LOGSTASH_HOST = os.getenv('LOGSTASH_HOST', '127.0.0.1')
 LOGSTASH_PORT = int(os.getenv('LOGSTASH_GELF_UDP_PORT', 12201))
+
+REST_FRAMEWORK = dict(
+    PAGE_SIZE=100,
+    MAX_PAGINATE_BY=100,
+    DEFAULT_PAGINATION_CLASS='rest_framework.pagination.PageNumberPagination',
+
+    UNAUTHENTICATED_USER={},
+    UNAUTHENTICATED_TOKEN={},
+
+    DEFAULT_AUTHENTICATION_CLASSES=(
+    ),
+
+    DEFAULT_RENDERER_CLASSES=(
+        'rest_framework.renderers.JSONRenderer',
+    ),
+
+    DEFAULT_FILTER_BACKENDS=(
+        'django_filters.rest_framework.DjangoFilterBackend',
+
+    ),
+    COERCE_DECIMAL_TO_STRING=True,
+)
+
 
 LOGGING = {
     'version': 1,
