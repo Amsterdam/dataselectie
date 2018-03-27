@@ -4,6 +4,7 @@ DIR="$(dirname $0)"
 
 set -u   # crash on missing env variables
 set -e   # stop on any error
+set -x   # show commands in log
 
 dc() {
 	docker-compose -p ds_brk -f ${DIR}/docker-compose.yml $*
@@ -34,6 +35,8 @@ dc run --rm importer python manage.py migrate contenttypes
 # create dataselectie BKR tables and views
 dc run --rm importer python manage.py brk_tables_views
 dc exec -T database backup-db.sh dataselectie
+
+dc run --rm database chmod -R 777 /tmp/backups
 
 # create dataselectie BKR indexes
 dc run --rm importer python manage.py elastic_indices --recreate brk
