@@ -3,7 +3,9 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
-python manage.py elastic_indices brk --partial=1/10000
+python manage.py elastic_indices brk --partial=1/3 --build &
+python manage.py elastic_indices brk --partial=2/3 --build &
+python manage.py elastic_indices brk --partial=3/3 --build
 
 FAIL=0
 
