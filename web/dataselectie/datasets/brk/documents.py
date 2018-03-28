@@ -44,9 +44,9 @@ def doc_from_kadastraalobject(kadastraalobject):
     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
     doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
 
-    doc.buurt = [str(buurt.buurt.id) for buurt in kadastraalobject.buurten.all()]
-    doc.wijk = [str(wijk.buurt_combi.id) for wijk in kadastraalobject.wijken.all()]
-    doc.ggw = [str(ggw.ggw.id) for ggw in kadastraalobject.ggws.all()]
-    doc.stadsdeel = [str(stadsdeel.stadsdeel.id) for stadsdeel in kadastraalobject.stadsdelen.all()]
+    doc.buurt = [str(buurt.id) for buurt in kadastraalobject.buurten.all()]
+    doc.wijk = [str(wijk.id) for wijk in kadastraalobject.wijken.all()]
+    doc.ggw = [str(ggw.id) for ggw in kadastraalobject.ggws.all()]
+    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in kadastraalobject.stadsdelen.all()]
 
     return doc
