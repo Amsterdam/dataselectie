@@ -4,13 +4,6 @@ from django.db import models
 from datasets.generic import model_mixins as mixins
 
 
-#class Bron(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-#           models.Model):
-#    class Meta:
-#        verbose_name = "Bron"
-#        verbose_name_plural = "Bronnen"
-#
-
 class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
              models.Model):
     class Meta:
@@ -112,7 +105,7 @@ class Woonplaats(
     naam = models.CharField(max_length=80)
     naam_ptt = models.CharField(max_length=18, null=True)
     vervallen = models.NullBooleanField(default=None)
-    gemeente = models.ForeignKey(Gemeente, related_name='woonplaatsen')
+    gemeente = models.ForeignKey(Gemeente, related_name='woonplaatsen', on_delete=models.CASCADE)
 
     class Meta(object):
         managed = False
@@ -134,8 +127,6 @@ class Hoofdklasse(mixins.ImportStatusMixin, models.Model):
 
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
 
-    objects = geo.GeoManager()
-
     class Meta(object):
         managed = False
         abstract = True
@@ -155,7 +146,7 @@ class Stadsdeel(mixins.GeldigheidMixin, Hoofdklasse):
     ingang_cyclus = models.DateField(null=True)
     brondocument_naam = models.CharField(max_length=100, null=True)
     brondocument_datum = models.DateField(null=True)
-    gemeente = models.ForeignKey(Gemeente, related_name='stadsdelen')
+    gemeente = models.ForeignKey(Gemeente, related_name='stadsdelen', on_delete=models.CASCADE)
 
     class Meta(object):
         managed = False
@@ -181,9 +172,9 @@ class Buurt(mixins.GeldigheidMixin, Hoofdklasse):
     ingang_cyclus = models.DateField(null=True)
     brondocument_naam = models.CharField(max_length=100, null=True)
     brondocument_datum = models.DateField(null=True)
-    stadsdeel = models.ForeignKey(Stadsdeel, related_name='buurten')
+    stadsdeel = models.ForeignKey(Stadsdeel, related_name='buurten', on_delete=models.CASCADE)
     buurtcombinatie = models.ForeignKey(
-        'Buurtcombinatie', related_name='buurten', null=True)
+        'Buurtcombinatie', related_name='buurten', null=True, on_delete=models.CASCADE)
 
     class Meta(object):
         managed = False
@@ -211,7 +202,7 @@ class Bouwblok(mixins.GeldigheidMixin, Hoofdklasse):
     """
     id = models.CharField(max_length=14, primary_key=True)
     code = models.CharField(max_length=4, unique=True)  # Bouwbloknummer
-    buurt = models.ForeignKey(Buurt, related_name='bouwblokken', null=True)
+    buurt = models.ForeignKey(Buurt, related_name='bouwblokken', null=True, on_delete=models.CASCADE)
     ingang_cyclus = models.DateField(null=True)
 
     class Meta(object):
@@ -279,11 +270,9 @@ class OpenbareRuimte(mixins.GeldigheidMixin,
     naam_ptt = models.CharField(max_length=17)
     vervallen = models.NullBooleanField(default=None)
     # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True)
-    woonplaats = models.ForeignKey(Woonplaats, related_name="openbare_ruimtes")
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    woonplaats = models.ForeignKey(Woonplaats, related_name="openbare_ruimtes", on_delete=models.CASCADE)
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -329,11 +318,9 @@ class Gebiedsgerichtwerken(mixins.ImportStatusMixin, models.Model):
     code = models.CharField(max_length=4)
     naam = models.CharField(max_length=100)
     stadsdeel = models.ForeignKey(
-        Stadsdeel, related_name='gebiedsgerichtwerken')
+        Stadsdeel, related_name='gebiedsgerichtwerken', on_delete=models.CASCADE)
 
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -357,8 +344,6 @@ class Grootstedelijkgebied(mixins.ImportStatusMixin, models.Model):
     id = models.SlugField(max_length=100, primary_key=True)
     naam = models.CharField(max_length=100)
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -406,17 +391,17 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
     adres_nummer = models.CharField(max_length=10, null=True)
     vervallen = models.NullBooleanField(default=None)
     # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True)
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
     openbare_ruimte = models.ForeignKey(
-        OpenbareRuimte, related_name='adressen')
+        OpenbareRuimte, related_name='adressen', on_delete=models.CASCADE)
 
     ligplaats = models.ForeignKey(
-        'Ligplaats', null=True, related_name='adressen')
+        'Ligplaats', null=True, related_name='adressen', on_delete=models.CASCADE)
     standplaats = models.ForeignKey(
-        'Standplaats', null=True, related_name='adressen')
+        'Standplaats', null=True, related_name='adressen', on_delete=models.CASCADE)
 
     verblijfsobject = models.ForeignKey(
-        'Verblijfsobject', null=True, related_name='adressen')
+        'Verblijfsobject', null=True, related_name='adressen', on_delete=models.CASCADE)
 
     hoofdadres = models.NullBooleanField(default=None)
 
@@ -595,15 +580,14 @@ class Ligplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True)
-    buurt = models.ForeignKey(Buurt, null=True, related_name='ligplaatsen')
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    buurt = models.ForeignKey(Buurt, null=True, related_name='ligplaatsen', on_delete=models.CASCADE)
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='ligplaatsen', null=True)
+        Gebiedsgerichtwerken, related_name='ligplaatsen', null=True, on_delete=models.CASCADE)
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='ligplaatsen', null=True)
+        Grootstedelijkgebied, related_name='ligplaatsen', null=True, on_delete=models.CASCADE)
 
     geometrie = geo.PolygonField(null=True, srid=28992)
 
@@ -612,8 +596,6 @@ class Ligplaats(mixins.GeldigheidMixin,
     _huisnummer = models.IntegerField(null=True)
     _huisletter = models.CharField(max_length=1, null=True)
     _huisnummer_toevoeging = models.CharField(max_length=4, null=True)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -672,15 +654,14 @@ class Standplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True)
-    buurt = models.ForeignKey(Buurt, null=True, related_name='standplaatsen')
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    buurt = models.ForeignKey(Buurt, null=True, related_name='standplaatsen', on_delete=models.CASCADE)
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='standplaatsen', null=True)
+        Gebiedsgerichtwerken, related_name='standplaatsen', null=True, on_delete=models.CASCADE)
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='standplaatsen', null=True)
+        Grootstedelijkgebied, related_name='standplaatsen', null=True, on_delete=models.CASCADE)
 
     geometrie = geo.PolygonField(null=True, srid=28992)
 
@@ -689,8 +670,6 @@ class Standplaats(mixins.GeldigheidMixin,
     _huisnummer = models.IntegerField(null=True)
     _huisletter = models.CharField(max_length=1, null=True)
     _huisnummer_toevoeging = models.CharField(max_length=4, null=True)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -760,18 +739,17 @@ class Verblijfsobject(mixins.GeldigheidMixin,
     woningvoorraad = models.NullBooleanField(default=None)
     aantal_kamers = models.PositiveIntegerField(null=True)
     vervallen = models.PositiveIntegerField(default=False)
-    reden_afvoer = models.ForeignKey(RedenAfvoer, null=True)
-    reden_opvoer = models.ForeignKey(RedenOpvoer, null=True)
-    # bron = models.ForeignKey(Bron, null=True)
-    eigendomsverhouding = models.ForeignKey(Eigendomsverhouding, null=True)
-    financieringswijze = models.ForeignKey(Financieringswijze, null=True)
-    gebruik = models.ForeignKey(Gebruik, null=True)
-    locatie_ingang = models.ForeignKey(LocatieIngang, null=True)
-    ligging = models.ForeignKey(Ligging, null=True)
-    toegang = models.ForeignKey(Toegang, null=True)
-    status = models.ForeignKey(Status, null=True)
+    reden_afvoer = models.ForeignKey(RedenAfvoer, null=True, on_delete=models.CASCADE)
+    reden_opvoer = models.ForeignKey(RedenOpvoer, null=True, on_delete=models.CASCADE)
+    eigendomsverhouding = models.ForeignKey(Eigendomsverhouding, null=True, on_delete=models.CASCADE)
+    financieringswijze = models.ForeignKey(Financieringswijze, null=True, on_delete=models.CASCADE)
+    gebruik = models.ForeignKey(Gebruik, null=True, on_delete=models.CASCADE)
+    locatie_ingang = models.ForeignKey(LocatieIngang, null=True, on_delete=models.CASCADE)
+    ligging = models.ForeignKey(Ligging, null=True, on_delete=models.CASCADE)
+    toegang = models.ForeignKey(Toegang, null=True, on_delete=models.CASCADE)
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
     buurt = models.ForeignKey(
-        Buurt, null=True, related_name='verblijfsobjecten')
+        Buurt, null=True, related_name='verblijfsobjecten', on_delete=models.CASCADE)
 
     panden = models.ManyToManyField(
         'Pand',
@@ -781,18 +759,16 @@ class Verblijfsobject(mixins.GeldigheidMixin,
     geometrie = geo.PointField(null=True, srid=28992)
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='adressen', null=True)
+        Gebiedsgerichtwerken, related_name='adressen', null=True, on_delete=models.CASCADE)
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='adressen', null=True)
+        Grootstedelijkgebied, related_name='adressen', null=True, on_delete=models.CASCADE)
 
     # gedenormaliseerde velden
     _openbare_ruimte_naam = models.CharField(max_length=150, null=True)
     _huisnummer = models.IntegerField(null=True)
     _huisletter = models.CharField(max_length=1, null=True)
     _huisnummer_toevoeging = models.CharField(max_length=4, null=True)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -880,12 +856,10 @@ class Pand(
     hoogste_bouwlaag = models.IntegerField(null=True)
     pandnummer = models.CharField(max_length=10, null=True)
     vervallen = models.NullBooleanField(default=None)
-    status = models.ForeignKey(Status, null=True)
-    bouwblok = models.ForeignKey(Bouwblok, null=True, related_name="panden")
+    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    bouwblok = models.ForeignKey(Bouwblok, null=True, related_name="panden", on_delete=models.CASCADE)
 
     geometrie = geo.PolygonField(null=True, srid=28992)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -914,8 +888,8 @@ class Pand(
 
 class VerblijfsobjectPandRelatie(mixins.ImportStatusMixin, models.Model):
     id = models.CharField(max_length=29, primary_key=True)
-    pand = models.ForeignKey(Pand)
-    verblijfsobject = models.ForeignKey(Verblijfsobject)
+    pand = models.ForeignKey(Pand, on_delete=models.CASCADE)
+    verblijfsobject = models.ForeignKey(Verblijfsobject, on_delete=models.CASCADE)
 
     class Meta(object):
         managed = False
@@ -951,11 +925,9 @@ class Buurtcombinatie(
     brondocument_datum = models.DateField(null=True)
     ingang_cyclus = models.DateField(null=True)
     stadsdeel = models.ForeignKey(
-        Stadsdeel, null=True, related_name="buurtcombinaties")
+        Stadsdeel, null=True, related_name="buurtcombinaties", on_delete=models.CASCADE)
 
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
-
-    objects = geo.GeoManager()
 
     class Meta(object):
         managed = False
@@ -983,8 +955,6 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
     naam = models.CharField(max_length=100)
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
 
-    objects = geo.GeoManager()
-
     class Meta(object):
         managed = False
         verbose_name = "Unesco"
@@ -996,7 +966,7 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
 class Gebruiksdoel(models.Model):
     verblijfsobject = models.ForeignKey(
-        Verblijfsobject, max_length=16, related_name='gebruiksdoelen')
+        Verblijfsobject, max_length=16, related_name='gebruiksdoelen', on_delete=models.CASCADE)
     code = models.CharField(max_length=4)
     omschrijving = models.CharField(max_length=150)
     code_plus = models.CharField(max_length=4, null=True)

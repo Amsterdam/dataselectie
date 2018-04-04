@@ -140,7 +140,8 @@ carto_sql_commands = [
     #       Landplots without outright ownership - encompassing registry-objects with outright ownership
     #       Select plot - category combo if not already exists and within that plot the non-plot - category combo does
     """CREATE TABLE geo_brk_niet_eigendom_poly AS (SELECT
-        row_number() over () AS id, niet_eigendom.kadastraal_object_id, possible_cats.cat_id, niet_eigendom.poly_geom 
+        row_number() over () AS id, niet_eigendom.kadastraal_object_id, 
+        possible_cats.cat_id, niet_eigendom.poly_geom as geometrie
         FROM geo_brk_eigendommen niet_eigendom, 
             (select distinct kpp.poly_kot_id, eigendom.cat_id from geo_brk_eigendommen eigendom, geo_brk_kot_point_in_poly kpp
               where kpp.point_kot_id = eigendom.kadastraal_object_id) possible_cats
@@ -151,7 +152,7 @@ carto_sql_commands = [
             and eigendom.kadastraal_object_id = niet_eigendom.kadastraal_object_id)
         )""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly (kadastraal_object_id)",
-    "CREATE INDEX ON geo_brk_niet_eigendom_poly USING GIST (poly_geom)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly USING GIST (geometrie)",
 
     #   Based on outright ownership categorized base table:
     #       Table for cartographic layers, grouped polygons (as unnested multipolygons) per categorie
@@ -161,11 +162,11 @@ carto_sql_commands = [
         row_number() over () AS id, 
         eigendom.kadastraal_object_id,
         eigendom.cat_id,
-        eigendom.poly_geom 
+        eigendom.poly_geom as geometrie
         FROM geo_brk_eigendommen eigendom
         WHERE poly_geom is not null
         )""",
-    "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (poly_geom)",
+    "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Aggregated registry-objects per land plots
@@ -188,7 +189,7 @@ carto_sql_commands = [
             cat_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(poly_geom) geom, eigendom.cat_id
+                        SELECT st_union(geometrie) geom, eigendom.cat_id
                         FROM geo_brk_eigendom_poly eigendom
                         GROUP BY eigendom.cat_id
                     ) inner_query)""",
@@ -201,7 +202,7 @@ carto_sql_commands = [
             cat_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(poly_geom) geom, eigendom.cat_id
+                        SELECT st_union(geometrie) geom, eigendom.cat_id
                         FROM geo_brk_niet_eigendom_poly eigendom
                         GROUP BY eigendom.cat_id 
                     ) inner_query)""",
@@ -230,7 +231,7 @@ carto_sql_commands = [
             stadsdeel_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(poly_geom) geom, eigendom.cat_id, stadsdeel.stadsdeel_id 
+                        SELECT st_union(geometrie) geom, eigendom.cat_id, stadsdeel.stadsdeel_id 
                         FROM geo_brk_niet_eigendom_poly eigendom, brk_eigendomstadsdeel stadsdeel
                         WHERE eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
                         GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 

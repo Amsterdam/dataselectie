@@ -163,7 +163,7 @@ class Eigenaar(models.Model):
         Beschikkingsbevoegdheid, null=True, on_delete=models.CASCADE
     )
     eigenaar_categorie = models.ForeignKey(
-        EigenaarCategorie, db_column='cat_id'
+        EigenaarCategorie, db_column='cat_id', on_delete=models.CASCADE
     )
 
     date_modified = models.DateTimeField(auto_now=True)
@@ -465,19 +465,20 @@ class Eigendom(models.Model):
 
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
-        on_delete=models.CASCADE,
-        related_name='eigendommen'
+        on_delete=models.CASCADE
     )
     aard_zakelijk_recht_akr = models.CharField(max_length=3, null=True)
 
     eigenaar_categorie = models.ForeignKey(
-        EigenaarCategorie, db_column='cat_id'
+        EigenaarCategorie, db_column='cat_id', on_delete=models.CASCADE
     )
     grondeigenaar = models.BooleanField()
     aanschrijfbaar = models.BooleanField()
     appartementeigenaar = models.BooleanField()
 
     class Meta:
+        verbose_name = "Eigendom"
+        verbose_name_plural = "Eigendommen"
         managed = False
 
 
@@ -490,13 +491,11 @@ class EigendomBuurt(models.Model):
     )
 
     buurt = models.ForeignKey(
-        bag.Buurt,
+        bag.Buurt, on_delete=models.CASCADE
     )
 
     class Meta:
         managed = False
-
-
 
 
 class EigendomWijk(models.Model):
@@ -508,7 +507,7 @@ class EigendomWijk(models.Model):
     )
 
     buurt_combi = models.ForeignKey(
-        bag.Buurtcombinatie,
+        bag.Buurtcombinatie, on_delete=models.CASCADE
     )
 
     class Meta:
@@ -524,7 +523,7 @@ class EigendomGGW(models.Model):
     )
 
     ggw = models.ForeignKey(
-        bag.Gebiedsgerichtwerken,
+        bag.Gebiedsgerichtwerken, on_delete=models.CASCADE
     )
 
     class Meta:
@@ -540,7 +539,7 @@ class EigendomStadsdeel(models.Model):
     )
 
     stadsdeel = models.ForeignKey(
-        bag.Stadsdeel,
+        bag.Stadsdeel, on_delete=models.CASCADE
     )
 
     class Meta:
