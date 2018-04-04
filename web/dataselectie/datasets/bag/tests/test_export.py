@@ -19,10 +19,10 @@ class ESTestCase(TestCase):
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
         call_command(
-            'elastic_indices', '--recreate', 'bag', verbosity=0, interactive=False)
+            'elastic_indices', '--recreate', 'bag', verbosity=0)
         call_command(
             'elastic_indices',
-            '--build', 'bag', verbosity=0, interactive=False)
+            '--build', 'bag', verbosity=0)
         es.cluster.health(
             wait_for_status='yellow',
             wait_for_active_shards=0,

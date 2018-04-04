@@ -87,7 +87,7 @@ class Inschrijving(es.DocType):
     subcategorie = es.Keyword(multi=True)
 
     # SBI codes
-    sbi_code = es.String(
+    sbi_code = es.Text(
         multi=True,
         fielddata=True,
         analyzer=autocomplete,

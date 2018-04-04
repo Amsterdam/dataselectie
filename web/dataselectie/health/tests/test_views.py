@@ -39,8 +39,7 @@ class StatusViewsTest(ESTestCase):
 
         # empty the indexes.
         call_command(
-            'elastic_indices', '--recreate', 'hr', 'bag', verbosity=0,
-            interactive=False)
+            'elastic_indices', '--recreate', 'hr', 'bag', verbosity=0)
 
         response = self.client.get('/status/health')
         # Making sure its a 500

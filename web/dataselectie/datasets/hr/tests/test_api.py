@@ -30,14 +30,9 @@ class ESTestCase(TestCase):
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
 
-        call_command(
-            'elastic_indices', '--recreate', 'hr', verbosity=0,
-            interactive=False
-        )
+        call_command('elastic_indices', '--recreate', 'hr', verbosity=0)
 
-        call_command(
-            'elastic_indices', '--build', 'hr', verbosity=0,
-            interactive=False)
+        call_command('elastic_indices', '--build', 'hr', verbosity=0)
 
         es.cluster.health(
             wait_for_status='yellow',

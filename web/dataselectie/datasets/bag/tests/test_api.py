@@ -23,14 +23,10 @@ class ESTestCase(TestCase):
         Rebuild the elastic search index for tests
         """
         es = Elasticsearch(hosts=settings.ELASTIC_SEARCH_HOSTS)
-        call_command('elastic_indices', '--recreate', 'bag', verbosity=0,
-                     interactive=False)
-        call_command('elastic_indices', '--recreate', 'hr', verbosity=0,
-                     interactive=False)
-        call_command('elastic_indices', '--build', 'bag', verbosity=0,
-                     interactive=False)
-        call_command('elastic_indices', '--build', 'hr', verbosity=0,
-                     interactive=False)
+        call_command('elastic_indices', '--recreate', 'bag', verbosity=0)
+        call_command('elastic_indices', '--recreate', 'hr', verbosity=0)
+        call_command('elastic_indices', '--build', 'bag', verbosity=0)
+        call_command('elastic_indices', '--build', 'hr', verbosity=0)
         es.cluster.health(wait_for_status='yellow',
                           wait_for_active_shards=0,
                           timeout="320s")
