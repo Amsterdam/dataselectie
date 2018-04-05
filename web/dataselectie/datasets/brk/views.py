@@ -1,23 +1,16 @@
-from django.contrib.gis.db.models import Collect
-from django.contrib.gis.geos import Polygon
-from django_filters import rest_framework as filters
-from rest_framework import generics
-from rest_framework import serializers
-from rest_framework.response import Response
-from rest_framework_gis import fields
-from rest_framework_gis.filters import GeometryFilter
-from rest_framework_gis.filterset import GeoFilterSet
-
-from datasets.bag import models as bag_models
 from datasets.bag.queries import meta_q
-from datasets.brk import geo_models
-from datasets.brk import models
+from datasets.brk import models, geo_models, filters, serializers
+
 from datasets.generic.views_mixins import CSVExportView
 from datasets.generic.views_mixins import TableSearchView
 
+from django.contrib.gis.db.models import Collect
+from rest_framework import generics
+from rest_framework.response import Response
+
+
 SRID_WSG84 = 4326
 SRID_RD = 28992
-
 
 class BrkBase(object):
     """
@@ -39,81 +32,6 @@ class BrkBase(object):
     raw_fields = []
 
 
-class BrkGeoFilter(GeoFilterSet):
-    location = GeometryFilter(name='geometrie', lookup_expr='intersects')
-    bbox = filters.CharFilter(method='filter_bbox')
-    categorie = filters.NumberFilter(method='filter_categorie')
-
-    buurt = filters.CharFilter(method='filter_gebied')
-    wijk = filters.CharFilter(method='filter_gebied')
-    ggw = filters.CharFilter(method='filter_gebied')
-    stadsdeel = filters.CharFilter(method='filter_gebied')
-
-    class Meta:
-        fields = ('categorie', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel')
-
-    def filter_categorie(self, queryset, name, value):
-        if value is not None:
-            queryset = queryset.filter(cat_id=value)
-        return queryset
-
-    def filter_bbox(self, queryset, name, value):
-        if value:
-            try:
-                points = (float(n) for n in value.split(','))
-                box = Polygon.from_bbox(points)
-                box.srid = SRID_WSG84
-                box.transform(SRID_RD)
-                return queryset.filter(geometrie__intersects=box)
-            except ValueError:
-                    pass
-
-        return queryset
-
-    def filter_gebied(self, queryset, name, value):
-        # get applicable model for parameter-name:
-        gebiedsmodel = {"wijk": bag_models.Buurtcombinatie, "ggw": bag_models.Gebiedsgerichtwerken,
-                        "stadsdeel": bag_models.Stadsdeel, "buurt": bag_models.Buurt}[name]
-        try:
-            gebied = gebiedsmodel.objects.get(pk=value)
-            return queryset.filter(geometrie__intersects=gebied.geometrie)
-        except gebiedsmodel.DoesNotExist:
-            return queryset
-
-
-class AppartementenFilter(BrkGeoFilter):
-    class Meta(BrkGeoFilter.Meta):
-        model = geo_models.Appartementen
-
-
-class EigenPerceelFilter(BrkGeoFilter):
-    class Meta(BrkGeoFilter.Meta):
-        model = geo_models.EigenPerceel
-
-
-class NietEigenPerceelFilter(BrkGeoFilter):
-    class Meta(BrkGeoFilter.Meta):
-        model = geo_models.NietEigenPerceel
-
-
-class BrkAppartementenSerializer(serializers.Serializer):
-    aantal = serializers.IntegerField()
-    geometrie = fields.GeometryField()
-
-    class Meta:
-        model = geo_models.Appartementen
-        inlcude_fields = ('aantal', 'geometrie')
-
-
-class BrkGeoLocationSerializer(serializers.Serializer):
-    appartementen = BrkAppartementenSerializer(many=True)
-    eigenpercelen = fields.GeometryField()
-    niet_eigenpercelen = fields.GeometryField()
-
-    class Meta:
-        inlcude_fields = ('appartementen', 'eigenpercelen', 'niet_eigenpercelen')
-
-
 class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         zoom = self.request.query_params.get('zoom')
@@ -127,23 +45,24 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         return self.get_zoomed_out()
 
+    def filter(self, model):
+        self.filter_class = filters.filter_class[model]
+        return self.filter_queryset(model.objects)
+
     def get_zoomed_in(self):
-        self.filter_class = AppartementenFilter
-        appartementen = self.filter_queryset(geo_models.Appartementen.objects).all()
+        appartementen = self.filter(geo_models.Appartementen).all()
 
-        self.filter_class = EigenPerceelFilter
-        queryset = self.filter_queryset(geo_models.EigenPerceel.objects)
-        eigenpercelen = queryset.aggregate(geom=Collect('geometrie'))
+        perceel_queryset = self.filter(geo_models.EigenPerceel)
+        eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        self.filter_class = NietEigenPerceelFilter
-        queryset = self.filter_queryset(geo_models.NietEigenPerceel.objects)
-        niet_eigenpercelen = queryset.aggregate(geom=Collect('geometrie'))
+        perceel_queryset = self.filter(geo_models.EigenPerceel)
+        niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
         output = {"appartementen": appartementen,
                   "eigenpercelen": eigenpercelen['geom'],
                   "niet_eigenpercelen": niet_eigenpercelen['geom']}
-        serialize = BrkGeoLocationSerializer(output)
 
+        serialize = serializers.BrkGeoLocationSerializer(output)
         return Response(serialize.data)
 
     def get_zoomed_out(self):
