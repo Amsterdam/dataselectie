@@ -237,4 +237,36 @@ carto_sql_commands = [
                         GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_stadsdeel USING GIST (geometrie)",
+
+    #   Aggregated table for geoselection api
+    #       Land-plots in full ownership, aggregated as unnested multi-polygons per 'buurt'
+    """CREATE TABLE geo_brk_eigendom_poly_buurt AS (SELECT
+            row_number() over () AS id,
+            cat_id,
+            buurt_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(poly_geom) geom, eigendom.cat_id, buurt.buurt_id,
+                        eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
+                        FROM geo_brk_eigendommen eigendom, brk_eigendombuurt buurt
+                        WHERE poly_geom is not null AND eigendom.kadastraal_object_id = buurt.kadastraal_object_id
+                        GROUP BY 2, 3, 4, 5 
+                    ) inner_query)""",
+    "CREATE INDEX ON geo_brk_eigendom_poly_buurt USING GIST (geometrie)",
+
+    #   Aggregated table for geoselection api
+    #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons per 'buurt'
+    """CREATE TABLE geo_brk_niet_eigendom_poly_buurt AS (SELECT
+            row_number() over () AS id,
+            cat_id,
+            buurt_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(geometrie) geom, eigendom.cat_id, buurt.buurt_id,
+                        eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
+                        FROM geo_brk_niet_eigendom_poly eigendom, brk_eigendombuurt buurt
+                        WHERE eigendom.kadastraal_object_id = buurt.kadastraal_object_id
+                        GROUP BY 2, 3, 4, 5 
+                    ) inner_query)""",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_buurt USING GIST (geometrie)",
 ]
