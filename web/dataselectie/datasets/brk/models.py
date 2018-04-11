@@ -465,7 +465,8 @@ class Eigendom(models.Model):
 
     kadastraal_object = models.ForeignKey(
         KadastraalObject,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        related_name="eigendommen"
     )
     aard_zakelijk_recht_akr = models.CharField(max_length=3, null=True)
 

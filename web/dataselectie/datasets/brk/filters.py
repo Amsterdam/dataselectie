@@ -84,8 +84,37 @@ class NietEigenPerceelFilter(BrkGeoFilter):
         model = geo_models.NietEigenPerceel
 
 
+class BrkGroepGeoFilter(BrkGeoFilter):
+    eigenaar = filters.NumberFilter(method='filter_eigenaar_direct')
+
+    class Meta:
+        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel')
+
+    def filter_eigenaar_direct(self, queryset, name, value):
+        eigenaarfilter = {
+            1: lambda qs: qs.filter(grondeigenaar=True),
+            2: lambda qs: qs.filter(aanschrijfbaar=True),
+            3: lambda qs: qs.filter(appartementeigenaar=True),
+        }
+        if value is not None and value in eigenaarfilter:
+            queryset = eigenaarfilter[value](queryset).distinct()
+        return queryset
+
+
+class EigenPerceelGroepFilter(BrkGroepGeoFilter):
+    class Meta(BrkGeoFilter.Meta):
+        model = geo_models.EigenPerceelGroep
+
+
+class NietEigenPerceelGroepFilter(BrkGroepGeoFilter):
+    class Meta(BrkGeoFilter.Meta):
+        model = geo_models.NietEigenPerceelGroep
+
+
 filter_class = {
     geo_models.NietEigenPerceel: NietEigenPerceelFilter,
     geo_models.EigenPerceel: EigenPerceelFilter,
-    geo_models.Appartementen: AppartementenFilter
+    geo_models.Appartementen: AppartementenFilter,
+    geo_models.EigenPerceelGroep: EigenPerceelGroepFilter,
+    geo_models.NietEigenPerceelGroep: NietEigenPerceelGroepFilter
 }

@@ -103,14 +103,14 @@ carto_sql_commands = [
     "DROP TABLE IF EXISTS geo_brk_eigendom_poly_stadsdeel",
     "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_stadsdeel",
 
-    # "DROP TABLE IF EXISTS geo_brk_eigendom_poly_ggw",
-    # "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_ggw",
+    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_ggw",
+    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_ggw",
     #
     # "DROP TABLE IF EXISTS geo_brk_eigendom_poly_wijk",
     # "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_wijk",
-    #
-    # "DROP TABLE IF EXISTS geo_brk_eigendom_poly_buurt",
-    # "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_buurt",
+
+    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_buurt",
+    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_buurt",
 
     "DROP TABLE IF EXISTS geo_brk_eigendom_poly",
     "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly",
@@ -243,14 +243,18 @@ carto_sql_commands = [
     """CREATE TABLE geo_brk_eigendom_poly_buurt AS (SELECT
             row_number() over () AS id,
             cat_id,
+            grondeigenaar,
+            aanschrijfbaar,
+            appartementeigenaar,
             buurt_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(poly_geom) geom, eigendom.cat_id, buurt.buurt_id,
+                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, buurt.buurt_id,
                         eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
-                        FROM geo_brk_eigendommen eigendom, brk_eigendombuurt buurt
+                        FROM geo_brk_eigendommen in_eigendom, brk_eigendombuurt buurt, brk_eigendom eigendom
                         WHERE poly_geom is not null AND eigendom.kadastraal_object_id = buurt.kadastraal_object_id
-                        GROUP BY 2, 3, 4, 5 
+                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id
+                        GROUP BY 2, 3, 4, 5, 6
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_eigendom_poly_buurt USING GIST (geometrie)",
 
@@ -259,14 +263,19 @@ carto_sql_commands = [
     """CREATE TABLE geo_brk_niet_eigendom_poly_buurt AS (SELECT
             row_number() over () AS id,
             cat_id,
+            grondeigenaar,
+            aanschrijfbaar,
+            appartementeigenaar,
             buurt_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(geometrie) geom, eigendom.cat_id, buurt.buurt_id,
+                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, buurt.buurt_id,
                         eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
-                        FROM geo_brk_niet_eigendom_poly eigendom, brk_eigendombuurt buurt
+                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendombuurt buurt, brk_eigendom eigendom
                         WHERE eigendom.kadastraal_object_id = buurt.kadastraal_object_id
-                        GROUP BY 2, 3, 4, 5 
+                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id
+                        GROUP BY 2, 3, 4, 5, 6 
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_buurt USING GIST (geometrie)",
+
 ]

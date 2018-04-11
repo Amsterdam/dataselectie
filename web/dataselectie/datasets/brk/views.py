@@ -4,7 +4,7 @@ from datasets.brk import models, geo_models, filters, serializers
 from datasets.generic.views_mixins import CSVExportView
 from datasets.generic.views_mixins import TableSearchView
 
-from django.contrib.gis.db.models import Collect
+from django.contrib.gis.db.models import Collect, Union
 from rest_framework import generics
 from rest_framework.response import Response
 
@@ -34,16 +34,21 @@ class BrkBase(object):
 
 class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
     def get(self, request, *args, **kwargs):
+        output = None
         zoom = self.request.query_params.get('zoom')
         try:
             zoom = int(zoom)
             if zoom > 12 and zoom < 17:
                 # Todo: gaurd against omitting bbox, or having too large a bbox
-                return self.get_zoomed_in()
+                output = self.get_zoomed_in()
         except:
             pass
 
-        return self.get_zoomed_out()
+        if output is None:
+            output = self.get_zoomed_out()
+
+        serialize = serializers.BrkGeoLocationSerializer(output)
+        return Response(serialize.data)
 
     def filter(self, model):
         self.filter_class = filters.filter_class[model]
@@ -55,18 +60,25 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         perceel_queryset = self.filter(geo_models.EigenPerceel)
         eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        perceel_queryset = self.filter(geo_models.EigenPerceel)
+        perceel_queryset = self.filter(geo_models.NietEigenPerceel)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        output = {"appartementen": appartementen,
-                  "eigenpercelen": eigenpercelen['geom'],
-                  "niet_eigenpercelen": niet_eigenpercelen['geom']}
-
-        serialize = serializers.BrkGeoLocationSerializer(output)
-        return Response(serialize.data)
+        return {"appartementen": appartementen,
+                "eigenpercelen": eigenpercelen['geom'],
+                "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
     def get_zoomed_out(self):
-        return Response([])
+        appartementen = []
+
+        perceel_queryset = self.filter(geo_models.EigenPerceelGroep)
+        eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
+
+        perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
+        niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
+
+        return {"appartementen": appartementen,
+                "eigenpercelen": eigenpercelen['geom'],
+                "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
 
 class BrkSearch(BrkBase, TableSearchView):
