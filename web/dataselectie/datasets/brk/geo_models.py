@@ -2,7 +2,8 @@ from django.contrib.gis.db import models as geo
 from django.db import models
 
 from datasets.brk import models as brk
-from datasets.bag import models as bag
+
+SRID_RD = 28992
 
 
 class BrkEigenaarGeoModel(models.Model):
@@ -15,7 +16,7 @@ class BrkEigenaarGeoModel(models.Model):
         brk.EigenaarCategorie,
         on_delete=models.CASCADE,
     )
-    geometrie = geo.PointField(srid=28992)
+    geometrie = geo.PointField(srid=SRID_RD)
 
     class Meta:
         abstract = True
@@ -32,7 +33,7 @@ class Appartementen(BrkEigenaarGeoModel):
 
 
 class EigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.PolygonField(srid=28992)
+    geometrie = geo.PolygonField(srid=SRID_RD)
     class Meta:
         db_table = "geo_brk_eigendom_poly"
         verbose_name = "EigenPerceel"
@@ -41,7 +42,7 @@ class EigenPerceel(BrkEigenaarGeoModel):
 
 
 class NietEigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.PolygonField(srid=28992)
+    geometrie = geo.PolygonField(srid=SRID_RD)
     class Meta:
         db_table = "geo_brk_niet_eigendom_poly"
         verbose_name = "NietEigenPerceel"
@@ -49,39 +50,34 @@ class NietEigenPerceel(BrkEigenaarGeoModel):
         managed = False
 
 
-class BrkBuurtGegroepeerdGeoModel(models.Model):
+class BrkGegroepeerdGeoModel(models.Model):
     id = models.IntegerField(primary_key=True)
-
-    buurt = models.ForeignKey(
-        bag.Buurt, on_delete=models.CASCADE
-    )
 
     cat = models.ForeignKey(
         brk.EigenaarCategorie,
         on_delete=models.CASCADE,
     )
 
-    geometrie = geo.PolygonField(srid=28992)
-
-    grondeigenaar = models.BooleanField()
-    aanschrijfbaar = models.BooleanField()
-    appartementeigenaar = models.BooleanField()
+    eigendom_cat = models.IntegerField()
+    gebied = models.CharField(max_length=255)
+    gebied_id = models.CharField(max_length=255, null=True)
+    geometrie = geo.PolygonField(srid=SRID_RD)
 
     class Meta:
         abstract = True
 
 
-class EigenPerceelGroep(BrkBuurtGegroepeerdGeoModel):
+class EigenPerceelGroep(BrkGegroepeerdGeoModel):
     class Meta:
-        db_table = "geo_brk_eigendom_poly_buurt"
+        db_table = "geo_brk_eigendom_poly_index"
         verbose_name = "EigenPerceelGroep"
         verbose_name_plural = "EigenPerceelGroepen"
         managed = False
 
 
-class NietEigenPerceelGroep(BrkBuurtGegroepeerdGeoModel):
+class NietEigenPerceelGroep(BrkGegroepeerdGeoModel):
     class Meta:
-        db_table = "geo_brk_niet_eigendom_poly_buurt"
+        db_table = "geo_brk_niet_eigendom_poly_index"
         verbose_name = "NietEigenPerceelGroep"
         verbose_name_plural = "NietEigenPercelenGroepen"
         managed = False

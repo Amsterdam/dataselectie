@@ -85,20 +85,30 @@ class NietEigenPerceelFilter(BrkGeoFilter):
 
 
 class BrkGroepGeoFilter(BrkGeoFilter):
-    eigenaar = filters.NumberFilter(method='filter_eigenaar_direct')
+    eigenaar = filters.NumberFilter(method='filter_eigenaar')
+
+    buurt = filters.CharFilter(method='filter_gebied')
+    wijk = filters.CharFilter(method='filter_gebied')
+    ggw = filters.CharFilter(method='filter_gebied')
+    stadsdeel = filters.CharFilter(method='filter_gebied')
+    zoom = filters.NumberFilter(method='filter_geen_gebied')
 
     class Meta:
         fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel')
 
-    def filter_eigenaar_direct(self, queryset, name, value):
-        eigenaarfilter = {
-            1: lambda qs: qs.filter(grondeigenaar=True),
-            2: lambda qs: qs.filter(aanschrijfbaar=True),
-            3: lambda qs: qs.filter(appartementeigenaar=True),
-        }
-        if value is not None and value in eigenaarfilter:
-            queryset = eigenaarfilter[value](queryset).distinct()
+    def filter_eigenaar(self, queryset, name, value):
+        if value:
+            queryset = queryset.filter(eigendom_cat=value)
         return queryset
+
+    def filter_gebied(self, queryset, name, value):
+        if name and value:
+            queryset = queryset.filter(gebied=name, gebied_id=value)
+        return queryset
+
+    def filter_geen_gebied(self, queryset, name, value):
+        filter_gebied = {8: 'stadsdeel', 9: 'ggw', 10: 'wijk', 11: 'buurt', 12: 'buurt'}
+        return queryset.filter(gebied=filter_gebied[value], gebied_id__isnull=False)
 
 
 class EigenPerceelGroepFilter(BrkGroepGeoFilter):

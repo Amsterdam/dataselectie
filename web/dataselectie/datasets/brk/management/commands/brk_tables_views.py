@@ -19,7 +19,3 @@ class Command(BaseCommand):
             for sql_command in brk_batch_sql.mapselection_sql_commands:
                 log.warning(f"command: {sql_command}")
                 c.execute(sql_command)
-
-            for sql_command in brk_batch_sql.carto_sql_commands:
-                log.warning(f"command: {sql_command}")
-                c.execute(sql_command)

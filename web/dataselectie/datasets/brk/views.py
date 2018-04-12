@@ -6,11 +6,13 @@ from datasets.generic.views_mixins import TableSearchView
 
 from django.contrib.gis.db.models import Collect, Union
 from rest_framework import generics
+from rest_framework import status
 from rest_framework.response import Response
 
 
 SRID_WSG84 = 4326
 SRID_RD = 28992
+
 
 class BrkBase(object):
     """
@@ -38,17 +40,49 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         zoom = self.request.query_params.get('zoom')
         try:
             zoom = int(zoom)
-            if zoom > 12 and zoom < 17:
-                # Todo: gaurd against omitting bbox, or having too large a bbox
+            if zoom > 12:
+                if 'bbox' not in request.query_params:
+                    return Response("Bounding box required at this zoomlevel",
+                                    status=status.HTTP_400_BAD_REQUEST)
+                # Todo: gaurd against having too large a bbox ?
                 output = self.get_zoomed_in()
         except:
             pass
 
         if output is None:
+            # make queryparams on underlying request-object mutable:
+            request._request.GET = request.query_params.copy()
+            # then change them, so that modifications can be accessed by the filter:
+            self._prepare_queryparams_for_zoomed_out(request.query_params)
             output = self.get_zoomed_out()
 
         serialize = serializers.BrkGeoLocationSerializer(output)
         return Response(serialize.data)
+
+    def _prepare_queryparams_for_zoomed_out(self, query_params):
+        if 'eigenaar' not in query_params:
+            query_params['eigenaar'] = 9
+        if 'categorie' not in query_params:
+            query_params['categorie'] = 99
+
+        if 'buurt' in query_params:
+            query_params.pop('wijk', None)
+            query_params.pop('ggw', None)
+            query_params.pop('stadsdeel', None)
+        if 'wijk' in query_params:
+            query_params.pop('ggw', None)
+            query_params.pop('stadsdeel', None)
+        if 'ggw' in query_params:
+            query_params.pop('stadsdeel', None)
+
+        if not any(key in query_params for key in ['buurt', 'wijk', 'ggw', 'stadsdeel']):
+            try:
+                zoom = int(query_params['zoom'])
+            except:
+                zoom = 0
+
+            # keep zoom between 8 and 12
+            query_params['zoom'] =  max(8, min(zoom, 12))
 
     def filter(self, model):
         self.filter_class = filters.filter_class[model]
@@ -71,10 +105,10 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         appartementen = []
 
         perceel_queryset = self.filter(geo_models.EigenPerceelGroep)
-        eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
+        eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
         perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
-        niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
+        niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
         return {"appartementen": appartementen,
                 "eigenpercelen": eigenpercelen['geom'],

@@ -8,6 +8,7 @@ dataselection_sql_commands = [
     "DROP TABLE IF EXISTS brk_eigendomggw",
     "DROP TABLE IF EXISTS brk_eigendomwijk",
     "DROP TABLE IF EXISTS brk_eigendombuurt",
+    "DROP TABLE IF EXISTS brk_eigendomcategorie",
 
     #
     #  Indexes on imported tables
@@ -78,6 +79,17 @@ dataselection_sql_commands = [
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomstadsdeel (kadastraal_object_id, stadsdeel_id)",
+
+    #   Normalisation-table:
+    #       all combinations of eigendom and eigendomcategorie
+    """CREATE TABLE brk_eigendomcategorie AS (
+        SELECT id AS eigendom_id, 1::INTEGER  as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = true::boolean
+        UNION
+        SELECT id AS eigendom_id, 2::INTEGER  as eigendom_cat FROM brk_eigendom WHERE aanschrijfbaar = true::boolean
+        UNION
+        SELECT id AS eigendom_id, 3::INTEGER  as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
+    )""",
+    "CREATE INDEX ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
 ]
 
 mapselection_sql_commands = [
@@ -85,6 +97,17 @@ mapselection_sql_commands = [
     #  Tables for selecting dataselections on map
     #
 
+    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_index",
+    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_index",
+
+    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_all",
+    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_all",
+
+    "DROP TABLE IF EXISTS geo_brk_eigendom_poly",
+    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly",
+    "DROP TABLE IF EXISTS geo_brk_eigendom_point",
+
+    "DROP TABLE IF EXISTS geo_brk_eigendommen",
     "DROP TABLE IF EXISTS geo_brk_kot_point_in_poly",
 
     #   Linkup-table:
@@ -94,29 +117,6 @@ mapselection_sql_commands = [
         where poly.poly_geom is not null and point.point_geom is not NULL
         and st_within(point.point_geom, poly.poly_geom))""",
     "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
-]
-
-carto_sql_commands = [
-    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_all",
-    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_all",
-
-    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_stadsdeel",
-    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_stadsdeel",
-
-    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_ggw",
-    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_ggw",
-    #
-    # "DROP TABLE IF EXISTS geo_brk_eigendom_poly_wijk",
-    # "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_wijk",
-
-    "DROP TABLE IF EXISTS geo_brk_eigendom_poly_buurt",
-    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_buurt",
-
-    "DROP TABLE IF EXISTS geo_brk_eigendom_poly",
-    "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly",
-    "DROP TABLE IF EXISTS geo_brk_eigendom_point",
-
-    "DROP TABLE IF EXISTS geo_brk_eigendommen",
 
     #   Base table for cartographic layers,
     #       categorized registry-objects - only outright ownership
@@ -208,74 +208,170 @@ carto_sql_commands = [
                     ) inner_query)""",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
 
-    #   Aggregated table for cartographic layers
-    #       Land-plots in full ownership, aggregated as unnested multi-polygons per 'stadsdeel'
-    """CREATE TABLE geo_brk_eigendom_poly_stadsdeel AS (SELECT
-            row_number() over () AS id,
-            cat_id,
-            stadsdeel_id,
-            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
-            FROM (
-                        SELECT st_union(poly_geom) geom, eigendom.cat_id, stadsdeel.stadsdeel_id 
-                        FROM geo_brk_eigendommen eigendom, brk_eigendomstadsdeel stadsdeel
-                        WHERE poly_geom is not null AND eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
-                        GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
-                    ) inner_query)""",
-    "CREATE INDEX ON geo_brk_eigendom_poly_stadsdeel USING GIST (geometrie)",
-
-    #   Aggregated table for cartographic layers
-    #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons per 'stadsdeel'
-    """CREATE TABLE geo_brk_niet_eigendom_poly_stadsdeel AS (SELECT
-            row_number() over () AS id,
-            cat_id,
-            stadsdeel_id,
-            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
-            FROM (
-                        SELECT st_union(geometrie) geom, eigendom.cat_id, stadsdeel.stadsdeel_id 
-                        FROM geo_brk_niet_eigendom_poly eigendom, brk_eigendomstadsdeel stadsdeel
-                        WHERE eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
-                        GROUP BY eigendom.cat_id, stadsdeel.stadsdeel_id 
-                    ) inner_query)""",
-    "CREATE INDEX ON geo_brk_niet_eigendom_poly_stadsdeel USING GIST (geometrie)",
-
     #   Aggregated table for geoselection api
     #       Land-plots in full ownership, aggregated as unnested multi-polygons per 'buurt'
-    """CREATE TABLE geo_brk_eigendom_poly_buurt AS (SELECT
-            row_number() over () AS id,
+    """CREATE TABLE geo_brk_eigendom_poly_index AS (SELECT
             cat_id,
-            grondeigenaar,
-            aanschrijfbaar,
-            appartementeigenaar,
-            buurt_id,
+            eigendom_cat,
+            'buurt' as gebied,
+            buurt_id as gebied_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, buurt.buurt_id,
-                        eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
-                        FROM geo_brk_eigendommen in_eigendom, brk_eigendombuurt buurt, brk_eigendom eigendom
+                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, buurt.buurt_id
+                        FROM geo_brk_eigendommen in_eigendom, brk_eigendombuurt buurt,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
                         WHERE poly_geom is not null AND eigendom.kadastraal_object_id = buurt.kadastraal_object_id
-                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id
-                        GROUP BY 2, 3, 4, 5, 6
+                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
                     ) inner_query)""",
-    "CREATE INDEX ON geo_brk_eigendom_poly_buurt USING GIST (geometrie)",
+    "ALTER TABLE geo_brk_eigendom_poly_index ADD COLUMN id SERIAL PRIMARY KEY",
+    """INSERT INTO geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'wijk' as gebied,
+            buurt_combi_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, wijk.buurt_combi_id
+                        FROM geo_brk_eigendommen in_eigendom, brk_eigendomwijk wijk,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE poly_geom is not null AND eigendom.kadastraal_object_id = wijk.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'ggw' as gebied,
+            ggw_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, ggw.ggw_id
+                        FROM geo_brk_eigendommen in_eigendom, brk_eigendomggw ggw,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE poly_geom is not null AND eigendom.kadastraal_object_id = ggw.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'stadsdeel' as gebied,
+            stadsdeel_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(in_eigendom.poly_geom) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, stadsdeel.stadsdeel_id
+                        FROM geo_brk_eigendommen in_eigendom, brk_eigendomstadsdeel stadsdeel,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE poly_geom is not null AND eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+        99::INTEGER as cat_id, eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+        FROM (SELECT st_union(geometrie) geom, eigendom_cat, gebied, gebied_id FROM geo_brk_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
+    """INSERT INTO geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+        cat_id, 9::INTEGER AS eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+        FROM (SELECT st_union(geometrie) geom, cat_id, gebied, gebied_id FROM geo_brk_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
 
     #   Aggregated table for geoselection api
     #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons per 'buurt'
-    """CREATE TABLE geo_brk_niet_eigendom_poly_buurt AS (SELECT
-            row_number() over () AS id,
+    """CREATE TABLE geo_brk_niet_eigendom_poly_index AS (SELECT
             cat_id,
-            grondeigenaar,
-            aanschrijfbaar,
-            appartementeigenaar,
-            buurt_id,
+            eigendom_cat,
+            'buurt' as gebied,
+            buurt_id as gebied_id,
             ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
             FROM (
-                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, buurt.buurt_id,
-                        eigendom.grondeigenaar, eigendom.aanschrijfbaar, eigendom.appartementeigenaar 
-                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendombuurt buurt, brk_eigendom eigendom
+                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, buurt.buurt_id
+                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendombuurt buurt,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
                         WHERE eigendom.kadastraal_object_id = buurt.kadastraal_object_id
-                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id
-                        GROUP BY 2, 3, 4, 5, 6 
+                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
                     ) inner_query)""",
-    "CREATE INDEX ON geo_brk_niet_eigendom_poly_buurt USING GIST (geometrie)",
+    "ALTER TABLE geo_brk_niet_eigendom_poly_index ADD COLUMN id SERIAL PRIMARY KEY",
+    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'wijk' as gebied,
+            buurt_combi_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, wijk.buurt_combi_id
+                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendomwijk wijk,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE eigendom.kadastraal_object_id = wijk.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'ggw' as gebied,
+            ggw_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, ggw.ggw_id
+                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendomggw ggw,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE eigendom.kadastraal_object_id = ggw.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+            cat_id,
+            eigendom_cat,
+            'stadsdeel' as gebied,
+            stadsdeel_id as gebied_id,
+            ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+            FROM (
+                        SELECT st_union(niet_in_eigendom.geometrie) geom, eigendom.cat_id, 
+                               eigendom_cat.eigendom_cat, stadsdeel.stadsdeel_id
+                        FROM geo_brk_niet_eigendom_poly niet_in_eigendom, brk_eigendomstadsdeel stadsdeel,
+                             brk_eigendom eigendom, brk_eigendomcategorie eigendom_cat
+                        WHERE eigendom.kadastraal_object_id = stadsdeel.kadastraal_object_id
+                        AND eigendom.kadastraal_object_id = niet_in_eigendom.kadastraal_object_id 
+                        AND eigendom.id = eigendom_cat.eigendom_id
+                        GROUP BY 2, 3, 4
+                    ) inner_query""",
+    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+        99::INTEGER as cat_id, eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+        FROM (SELECT st_union(geometrie) geom, eigendom_cat, gebied, gebied_id FROM geo_brk_niet_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
+    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
+        cat_id, 9::INTEGER AS eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+        FROM (SELECT st_union(geometrie) geom, cat_id, gebied, gebied_id FROM geo_brk_niet_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
+
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
+
+    # Simplify geometries for faster serving:
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 5) where gebied = 'buurt'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 5) where gebied = 'buurt'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 10) where gebied = 'wijk'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 10) where gebied = 'wijk'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 20) where gebied = 'ggw'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 20) where gebied = 'ggw'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 50) where gebied = 'stadsdeel'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 50) where gebied = 'stadsdeel'",
+
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_MAKEVALID(geometrie)",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_MAKEVALID(geometrie)",
 
 ]
