@@ -4,7 +4,7 @@ from datasets.brk import models, geo_models, filters, serializers
 from datasets.generic.views_mixins import CSVExportView
 from datasets.generic.views_mixins import TableSearchView
 
-from django.contrib.gis.db.models import Collect, Union
+from django.contrib.gis.db.models import Collect
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response

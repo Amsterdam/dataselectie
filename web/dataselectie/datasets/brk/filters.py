@@ -91,10 +91,11 @@ class BrkGroepGeoFilter(BrkGeoFilter):
     wijk = filters.CharFilter(method='filter_gebied')
     ggw = filters.CharFilter(method='filter_gebied')
     stadsdeel = filters.CharFilter(method='filter_gebied')
+
     zoom = filters.NumberFilter(method='filter_geen_gebied')
 
     class Meta:
-        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel')
+        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel', 'zoom')
 
     def filter_eigenaar(self, queryset, name, value):
         if value:
@@ -108,7 +109,7 @@ class BrkGroepGeoFilter(BrkGeoFilter):
 
     def filter_geen_gebied(self, queryset, name, value):
         filter_gebied = {8: 'stadsdeel', 9: 'ggw', 10: 'wijk', 11: 'buurt', 12: 'buurt'}
-        return queryset.filter(gebied=filter_gebied[value], gebied_id__isnull=False)
+        return queryset.filter(gebied=filter_gebied[value])
 
 
 class EigenPerceelGroepFilter(BrkGroepGeoFilter):
