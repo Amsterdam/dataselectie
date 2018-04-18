@@ -54,83 +54,11 @@ class HrGeoLocationSearch(HrBase, GeoLocationSearchView):
     def elastic_query(self, query):
         return meta_q(query, True)
 
-    def is_authorized(self, request):
-        """
-        HR dataselectie is only for employees.
-        :param request:
-        :return: true when the user
-        """
-        if settings.DISABLE_AUTH:
-            return True
-
-        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
-
 
 class HrSearch(HrBase, TableSearchView):
 
-    def is_authorized(self, request):
-        """
-        HR dataselectie is only for employees.
-        :param request:
-        :return: true when the user
-        """
-        if settings.DISABLE_AUTH:
-            return True
-
-        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
-
     def elastic_query(self, query: dict) -> dict:
         return meta_q(query, add_aggs=True, sort=True)
-
-    def _filter_doc(self, doc):
-        """
-        Remove fields depening on Authorization
-        """
-        non_mailing = doc.get('non_mailing', False)
-        hide_bezoekadres = doc.get('bezoekadres_afgeschermd', False)
-        hide_postadres = doc.get('postadres_afgeschermd', False)
-
-        remove_ba = hide_bezoekadres or non_mailing
-        remove_pa = hide_postadres or non_mailing
-
-        if remove_ba:
-            keystoremove = list(key for key in doc.keys()
-                                if key.startswith('bezoekadres'))
-            for key in keystoremove:
-                del doc[key]
-
-        if remove_pa:
-            keystoremove = list(key for key in doc.keys()
-                                if key.startswith('postadres'))
-            for key in keystoremove:
-                del doc[key]
-
-        public_fields = [
-            'handelsnaam',
-            'hoofdcategorie',
-            'sbi_code',
-            'sbi_omschrijving',
-            'subcategorie',
-            'ggw_naam',
-            'buurt_naam',
-            # 'openbare_ruimte', ?
-        ]
-
-        # remove non public keys
-        for key in list(doc.keys()):
-            if key not in public_fields:
-                del doc[key]
-
-    def filter_data(self, elastic_data: dict, request) -> dict:
-        if request.is_authorized_for(authorization_levels.SCOPE_HR_R):
-            # no filtering needed.
-            return elastic_data
-
-        for doc in elastic_data['object_list']:
-            # filter each doc
-            self._filter_doc(doc)
-
-        return elastic_data
 
     def _prepare_sbi_param(self, request) -> list:
         # Retrieving the request parameters
@@ -253,53 +181,15 @@ class HrCSV(HrBase, CSVExportView):
     def elastic_query(self, query):
         return meta_q(query, False, False)
 
-    def is_authorized(self, request):
-        """
-        HR download is only for employees.
-        :param request:
-        :return: true when the user
-        """
-        if settings.DISABLE_AUTH:
-            return True
-
-        return request.is_authorized_for(authorization_levels.SCOPE_HR_R)
-
     def paginate(self, _offset, q: dict) -> dict:
         if 'size' in q:
             del q['size']
         return q
 
     def item_data_update(self, item, request):
-        """
-        - Remove field if needed auth / non-mailing
-
-        - Datum aanvang with no timestamp.
-        """
-        non_mailing = item.get('non_mailing', False)
-        hide_bezoekadres = item.get('bezoekadres_afgeschermd', False)
-        hide_postadres = item.get('postadres_afgeschermd', False)
-
         # strip time from date.
         date = parse(item.get('datum_aanvang'))
         item['datum_aanvang'] = date.strftime('%Y-%m-%d')
-
-        not_authorized = not request.is_authorized_for(
-            authorization_levels.SCOPE_HR_R)
-
-        remove_ba = not_authorized and (hide_bezoekadres or non_mailing)
-        remove_pa = not_authorized and (hide_postadres or non_mailing)
-
-        if remove_ba:
-            item = {
-                k: v for k, v in item.items() if
-                not k.startswith('bezoekadres')
-            }
-
-        if remove_pa:
-            item = {
-                k: v for k, v in item.items() if
-                not k.startswith('postadres')
-            }
 
         return item
 

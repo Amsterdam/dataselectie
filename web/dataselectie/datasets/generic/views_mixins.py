@@ -87,16 +87,7 @@ class SingleDispatchMixin(object):
 
         return self.http_method_not_allowed(request, *args, **kwargs)
 
-    def is_authorized(self, _request):
-        """
-        Allow for authorization checks..
-        """
-        return True
-
     def render_to_response(self, request, response):
-        if not self.is_authorized(request):
-            return HttpResponse("Unauthorized", status=401)
-
         return HttpResponse(json.dumps(response),
                             content_type='application/json')
 
@@ -463,12 +454,6 @@ class CSVExportView(TableSearchView):
         """
         return item
 
-    def is_authorized(self, _request):
-        """
-        Allow for authorization checks..
-        """
-        return True
-
     def load_from_elastic(self) -> Generator:
         """
         Instead of normal results
@@ -545,11 +530,6 @@ class CSVExportView(TableSearchView):
         pass
 
     def render_to_response(self, request, data, **response_kwargs):
-        # Returning a CSV
-        # Streaming!
-        if not self.is_authorized(request):
-            return HttpResponse("Unauthorized", status=401)
-
         gen = self.result_generator(request, data)
         response = StreamingHttpResponse(gen, content_type="text/csv")
         response['Content-Disposition'] = \

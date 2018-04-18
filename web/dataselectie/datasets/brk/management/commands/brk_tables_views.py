@@ -13,9 +13,7 @@ class Command(BaseCommand):
 
         with connection.cursor() as c:
             for sql_command in brk_batch_sql.dataselection_sql_commands:
-                log.warning(f"command: {sql_command}")
                 c.execute(sql_command)
 
             for sql_command in brk_batch_sql.mapselection_sql_commands:
-                log.warning(f"command: {sql_command}")
                 c.execute(sql_command)
