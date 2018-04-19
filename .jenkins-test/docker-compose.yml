@@ -22,5 +22,5 @@ services:
       DATABASE_NAME: dataselectie
       DATABASE_USER: dataselectie
       DATABASE_PASSWORD: insecure
-      DJANGO_SETTINGS_MODULE: dataselectie.test_settings
+      DJANGO_SETTINGS_MODULE: dataselectie.settings
     command: bash -c "/app/docker-wait.sh && python manage.py migrate && python manage.py test"
