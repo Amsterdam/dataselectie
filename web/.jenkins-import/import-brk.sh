@@ -32,13 +32,13 @@ dc run --rm importer python manage.py import --bagdbconstraints
 
 dc run --rm importer python manage.py migrate contenttypes
 
-# create dataselectie BKR tables and views
+# create dataselectie BRK tables and views
 dc run --rm importer python manage.py brk_tables_views
 dc exec -T database backup-db.sh dataselectie
 
 dc run --rm database chmod -R 777 /tmp/backups
 
-# create dataselectie BKR indexes
+# create dataselectie BRK indexes
 dc run --rm importer python manage.py elastic_indices --recreate brk
 
 dc run --rm importer /app/docker-index-brk.sh

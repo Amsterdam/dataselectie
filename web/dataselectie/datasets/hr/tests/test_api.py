@@ -309,8 +309,6 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         res = response.json()
 
         self.assertEqual(len(res['object_list']), 1)
-        # self.check_in(res['object_list'], 'vestiging_id',
-        #              ('000000002216', '000000000086'))
         self.assertEqual(res['page_count'], 1)
         self.assertEqual(res['object_count'], 1)
 
@@ -442,28 +440,6 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEquals(
             res_json['object_list'][0]['non_mailing'], False)
 
-        # publiek request ziet alleen handelsnaam en sbi codes
-        # res = self.client.get(HR_BASE_QUERY.format(urlencode(q)),
-        #                      **self.header_auth_default)
-
-        # self.assertEquals(res.status_code, 200)
-        # res_json = res.json()
-        # self.assertEquals(res_json['object_count'], 1)
-
-        # self.assertIn('handelsnaam', res_json['object_list'][0])
-        # self.assertIn('hoofdcategorie', res_json['object_list'][0])
-        # self.assertIn('subcategorie', res_json['object_list'][0])
-
-        # publiek request ziet alleen handelsnaam en sbi codes
-        # res = self.client.get(HR_BASE_QUERY.format(urlencode(q)))
-        # self.assertEquals(res.status_code, 200)
-        # res_json = res.json()
-        # self.assertEquals(res_json['object_count'], 1)
-
-        # self.assertIn('handelsnaam', res_json['object_list'][0])
-        # self.assertIn('hoofdcategorie', res_json['object_list'][0])
-        # self.assertIn('subcategorie', res_json['object_list'][0])
-
     def test_hr_hides_nonmailing(self):
         q = {'page': 1, 'handelsnaam': 'Rietveld by Rietveld B.V.'}
 
@@ -480,27 +456,9 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEquals(
             res_json['object_list'][0]['non_mailing'], True)
 
-        # res = self.client.get(
-        #     HR_BASE_QUERY.format(urlencode(q)), **self.header_auth_default)
-
-        # self.assertEquals(res.status_code, 200)
-        # res_json = loads(res.content.decode('utf-8'))
-        # self.assertEquals(res_json['object_count'], 1)
-
-        # self.assertNotIn('postadres_afgeschermd', res_json['object_list'][0])
-        # self.assertNotIn('postadres_straatnaam', res_json['object_list'][0])
-        # self.assertNotIn('bezoekadres_volledig_adres',
-        #                  res_json['object_list'][0])
-
         # public.
         res = self.client.get(HR_BASE_QUERY.format(urlencode(q)))
         self.assertEquals(res.status_code, 401)
-        # res_json = loads(res.content.decode('utf-8'))
-        # self.assertEquals(res_json['object_count'], 1)
-        # self.assertNotIn('postadres_afgeschermd', res_json['object_list'][0])
-        # self.assertNotIn('postadres_straatnaam', res_json['object_list'][0])
-        # self.assertNotIn('bezoekadres_volledig_adres',
-        #                 res_json['object_list'][0])
 
     def tearDown(self):
         pass
