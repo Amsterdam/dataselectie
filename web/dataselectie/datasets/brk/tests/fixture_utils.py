@@ -1,4 +1,11 @@
+import logging
+
 from datasets.brk import models
+from django.db import connection
+from datasets.brk.management import brk_batch_sql
+
+log = logging.getLogger(__name__)
+
 
 def create_kadastraal_object():
     """
@@ -39,6 +46,7 @@ def create_eigendom():
         )
     ]
 
+
 def create_eigenaar_categorie():
     return [
         models.EigenaarCategorie.objects.get_or_create(
@@ -46,3 +54,15 @@ def create_eigenaar_categorie():
             categorie='De staat',
         )
     ]
+
+
+def create_geo_tables():
+    with connection.cursor() as c:
+        for sql_command in brk_batch_sql.dataselection_sql_commands \
+                           + brk_batch_sql.mapselection_sql_commands:
+            c.execute(sql_command)
+
+
+def get_bbox():
+    #   Left, top, right, bottom - code expects WSG84, if required this can change to RD
+    return '4.894825,52.370680,4.898945,52.367797'

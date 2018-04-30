@@ -1,15 +1,6 @@
 # https://gis.stackexchange.com/questions/98146/calculating-percent-area-of-intersection-in-where-clause
 
-dataselection_sql_commands = [
-    #
-    #  Tables for indexing purposes of dataselection
-    #
-    "DROP TABLE IF EXISTS brk_eigendomstadsdeel",
-    "DROP TABLE IF EXISTS brk_eigendomggw",
-    "DROP TABLE IF EXISTS brk_eigendomwijk",
-    "DROP TABLE IF EXISTS brk_eigendombuurt",
-    "DROP TABLE IF EXISTS brk_eigendomcategorie",
-
+bagimport_sql_commands = [
     #
     #  Indexes on imported tables
     #
@@ -19,6 +10,17 @@ dataselection_sql_commands = [
     "CREATE INDEX ON bag_buurtcombinatie USING GIST (geometrie)",
     "CREATE INDEX ON bag_gebiedsgerichtwerken USING GIST (geometrie)",
     "CREATE INDEX ON bag_stadsdeel USING GIST (geometrie)",
+]
+
+dataselection_sql_commands = [
+    #
+    #  Tables for indexing purposes of dataselection
+    #
+    "DROP TABLE IF EXISTS brk_eigendomstadsdeel",
+    "DROP TABLE IF EXISTS brk_eigendomggw",
+    "DROP TABLE IF EXISTS brk_eigendomwijk",
+    "DROP TABLE IF EXISTS brk_eigendombuurt",
+    "DROP TABLE IF EXISTS brk_eigendomcategorie",
 
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_buurt

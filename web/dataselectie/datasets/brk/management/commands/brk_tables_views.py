@@ -12,8 +12,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         with connection.cursor() as c:
-            for sql_command in brk_batch_sql.dataselection_sql_commands:
-                c.execute(sql_command)
-
-            for sql_command in brk_batch_sql.mapselection_sql_commands:
+            for sql_command in brk_batch_sql.bagimport_sql_commands \
+                               + brk_batch_sql.dataselection_sql_commands\
+                               + brk_batch_sql.mapselection_sql_commands:
                 c.execute(sql_command)
