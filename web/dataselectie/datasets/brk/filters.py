@@ -22,7 +22,8 @@ class BrkGeoFilter(GeoFilterSet):
     stadsdeel = filters.CharFilter(method='filter_gebied')
 
     class Meta:
-        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel')
+        fields = ('categorie', 'eigenaar', 'location', 'bbox',
+                  'buurt', 'wijk', 'ggw', 'stadsdeel')
 
     def filter_bbox(self, queryset, name, value):
         if value:
@@ -95,7 +96,8 @@ class BrkGroepGeoFilter(BrkGeoFilter):
     zoom = filters.NumberFilter(method='filter_geen_gebied')
 
     class Meta:
-        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt', 'wijk', 'ggw', 'stadsdeel', 'zoom')
+        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt',
+                  'wijk', 'ggw', 'stadsdeel', 'zoom')
 
     def filter_eigenaar(self, queryset, name, value):
         if value:
@@ -108,6 +110,7 @@ class BrkGroepGeoFilter(BrkGeoFilter):
         return queryset
 
     def filter_geen_gebied(self, queryset, name, value):
+        # maps zoomlevels on to meaningfull geographical generalisations:
         filter_gebied = {8: 'stadsdeel', 9: 'ggw', 10: 'wijk', 11: 'buurt', 12: 'buurt'}
         return queryset.filter(gebied=filter_gebied[value])
 

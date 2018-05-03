@@ -2,7 +2,7 @@
 from django.contrib.gis.geos import Polygon, Point
 
 from datasets.bag import models
-from .fixtures_geometrie import buurt_geometrie
+from .fixtures_geometrie import gebied_geometrie
 
 
 def create_stadsdeel_fixtures():
@@ -13,8 +13,12 @@ def create_stadsdeel_fixtures():
     return [
         models.Stadsdeel.objects.get_or_create(
             id="03630000000018", code="A", naam="Centrum", vervallen=False,
-            gemeente_id="03630000000000"
-        )
+            gemeente_id="03630000000000", geometrie=gebied_geometrie['03630000000018']
+        ),
+        models.Stadsdeel.objects.get_or_create(
+            id="03630000000019", code="N", naam="Noord", vervallen=False,
+            gemeente_id="03630000000000", geometrie=gebied_geometrie['off']
+        ),
     ]
 
 
@@ -27,9 +31,9 @@ def create_gebiedsgericht_werken_fixtures():
     create_ggw = models.Gebiedsgerichtwerken.objects.get_or_create
     return [
         create_ggw(id="DX01", naam="Centrum-West", code="DX01",
-                   stadsdeel_id="03630000000018"),
+                   stadsdeel_id="03630000000018", geometrie=gebied_geometrie['DX01']),
         create_ggw(id="DX02", naam="Centrum-Oost", code="DX02",
-                   stadsdeel_id="03630000000018"),
+                   stadsdeel_id="03630000000018", geometrie=gebied_geometrie['off']),
     ]
 
 
@@ -46,7 +50,8 @@ def create_buurt_combinaties():
     create_bc = models.Buurtcombinatie.objects.get_or_create
     return [
         create_bc(id="3630012052028", naam="Grachtengordel-West", code="02",
-                  vollcode="A02", stadsdeel_id="03630000000018"),
+                  vollcode="A02", stadsdeel_id="03630000000018",
+                  geometrie=gebied_geometrie['off']),
         create_bc(id="3630012052029", naam="Haarlemmerbuurt", code="05",
                   vollcode="A05", stadsdeel_id="03630000000018"),
         create_bc(id="3630012052031", naam="Weesperbuurt/Plantage", code="08",
@@ -57,10 +62,11 @@ def create_buurt_combinaties():
                   vollcode="A04", stadsdeel_id="03630000000018"),
         create_bc(id="3630012052034", naam="Grachtengordel-Zuid", code="03",
                   vollcode="A03", stadsdeel_id="03630000000018"),
-        create_bc(
-            id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01",
-            vollcode="A01", stadsdeel_id="03630000000018"),
-
+        create_bc(id="3630012052035", naam="Burgwallen-Nieuwe Zijde", code="01",
+                  vollcode="A01", stadsdeel_id="03630000000018"),
+        create_bc(id='3630012052036', naam="Burgwallen-Oude Zijde", code="00",
+                  vollcode="A00", stadsdeel_id="03630000000018",
+                  geometrie=gebied_geometrie['3630012052036']),
         create_bc(id="3630012052037", naam="Jordaan", code="06",
                   vollcode="A06", stadsdeel_id="03630000000018"),
     ]
@@ -76,53 +82,57 @@ def create_buurt_fixtures():
     create_buurt = models.Buurt.objects.get_or_create
     return [
         create_buurt(code="01a", vollcode="A01a", naam="Stationsplein e.o.",
-                     vervallen=False, geometrie=buurt_geometrie['01a'],
+                     vervallen=False, geometrie=gebied_geometrie['01a'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="1"),
         create_buurt(code="01b", vollcode="A01b", naam="Hemelrijk",
-                     vervallen=False, geometrie=buurt_geometrie['01b'],
+                     vervallen=False, geometrie=gebied_geometrie['01b'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="2"),
         create_buurt(code="01c", vollcode="A01c", naam="Nieuwendijk Noord",
-                     vervallen=False, geometrie=buurt_geometrie['01c'],
+                     vervallen=False, geometrie=gebied_geometrie['01c'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="3"),
         create_buurt(code="01d", vollcode="A01d", naam="Spuistraat Noord",
-                     vervallen=False, geometrie=buurt_geometrie['01d'],
+                     vervallen=False, geometrie=gebied_geometrie['01d'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="4"),
         create_buurt(code="01e", vollcode="A01e", naam="Nieuwe Kerk e.o.",
-                     vervallen=False, geometrie=buurt_geometrie['01e'],
+                     vervallen=False, geometrie=gebied_geometrie['01e'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="5"),
         create_buurt(code="01f", vollcode="A01f", naam="Spuistraat Zuid",
-                     vervallen=False, geometrie=buurt_geometrie['01f'],
+                     vervallen=False, geometrie=gebied_geometrie['01f'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="6"),
         create_buurt(code="01g", vollcode="A01g", naam="Begijnhofbuurt",
-                     vervallen=False, geometrie=buurt_geometrie['01g'],
+                     vervallen=False, geometrie=gebied_geometrie['01g'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="7"),
         create_buurt(code="01h", vollcode="A01h", naam="Kalverdriehoek",
-                     vervallen=False, geometrie=buurt_geometrie['01h'],
+                     vervallen=False, geometrie=gebied_geometrie['01h'],
                      buurtcombinatie_id="3630012052035",
                      stadsdeel_id="03630000000018", id="8"),
         create_buurt(code="02a", vollcode="A02a", naam="Langestraat e.o.",
-                     vervallen=False, geometrie=buurt_geometrie['02a'],
+                     vervallen=False, geometrie=gebied_geometrie['02a'],
                      buurtcombinatie_id="3630012052028",
                      stadsdeel_id="03630000000018", id="9"),
         create_buurt(code="02b", vollcode="A02b", naam="Leliegracht e.o.",
-                     vervallen=False, geometrie=buurt_geometrie['02b'],
+                     vervallen=False, geometrie=gebied_geometrie['02b'],
                      buurtcombinatie_id="3630012052028",
                      stadsdeel_id="03630000000018", id="10"),
         create_buurt(code="02c", vollcode="A02c", naam="Felix Meritisbuurt",
-                     vervallen=False, geometrie=buurt_geometrie['02c'],
+                     vervallen=False, geometrie=gebied_geometrie['02c'],
                      buurtcombinatie_id="3630012052028",
                      stadsdeel_id="03630000000018", id="11"),
         create_buurt(code="02d", vollcode="A02d", naam="Leidsegracht Noord",
-                     vervallen=False, geometrie=buurt_geometrie['02d'],
+                     vervallen=False, geometrie=gebied_geometrie['02d'],
                      buurtcombinatie_id="3630012052028",
                      stadsdeel_id="03630000000018", id="12"),
+        create_buurt(code="00e", vollcode="A00e", naam="BG-terrein e.o.",
+                     vervallen=False, geometrie=gebied_geometrie['00e'],
+                     buurtcombinatie_id="3630012052036",
+                     stadsdeel_id="03630000000018", id="20"),
     ]
 
 

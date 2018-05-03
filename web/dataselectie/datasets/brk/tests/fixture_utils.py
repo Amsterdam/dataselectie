@@ -2,9 +2,15 @@ import logging
 
 from datasets.brk import models
 from django.db import connection
+from django.contrib.gis.geos import Polygon, Point
+from datasets.brk import geo_models
 from datasets.brk.management import brk_batch_sql
+from .fixtures_geometrie import perceel_geometrie
 
 log = logging.getLogger(__name__)
+
+SRID_WSG84 = 4326
+SRID_RD = 28992
 
 
 def create_kadastraal_object():
@@ -63,6 +69,91 @@ def create_geo_tables():
             c.execute(sql_command)
 
 
+def create_appartementen():
+    return [
+        geo_models.Appartementen.objects.get_or_create(
+            id=1,
+            cat_id=3,
+            geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
+        )
+    ]
+
+
+def create_eigenpercelen():
+    return [
+        geo_models.EigenPerceel.objects.get_or_create(
+            id=1,
+            cat_id=3,
+            geometrie=perceel_geometrie[1],
+        ),
+    ]
+
+
+def create_eigenperceelgroepen():
+    objects = []
+    id = 0
+
+    for category in [3, 99]:
+        for eigendom_cat in [1, 9]:
+            for gebied in [('buurt', '20'), ('wijk', '3630012052036'),
+                           ('ggw', 'DX01'), ('stadsdeel', '03630000000018')]:
+                id += 1
+                objects.append(
+                    geo_models.EigenPerceelGroep.objects.get_or_create(
+                        id=id,
+                        cat_id=category,
+                        eigendom_cat=eigendom_cat,
+                        gebied=gebied[0],
+                        gebied_id=gebied[1],
+                        geometrie=perceel_geometrie[1],
+                    )
+                )
+
+    return objects
+
+
+def create_niet_eigenpercelen():
+    return [
+        geo_models.NietEigenPerceel.objects.get_or_create(
+            id=1,
+            cat_id=3,
+            geometrie=perceel_geometrie[2],
+        )
+    ]
+
+
+def create_niet_eigenperceelgroepen():
+    objects = []
+    id = 0
+
+    for category in [3, 99]:
+        for eigendom_cat in [3, 9]:
+            for gebied in [('buurt', '20'), ('wijk', '3630012052036'),
+                           ('ggw', 'DX01'), ('stadsdeel', '03630000000018')]:
+                id += 1
+                objects.append(
+                    geo_models.NietEigenPerceelGroep.objects.get_or_create(
+                        id=id,
+                        cat_id=category,
+                        eigendom_cat=eigendom_cat,
+                        gebied=gebied[0],
+                        gebied_id=gebied[1],
+                        geometrie=perceel_geometrie[2],
+                    )
+                )
+
+    return objects
+
+
+def create_geo_data():
+    create_appartementen()
+    create_eigenpercelen()
+    create_eigenperceelgroepen()
+    create_niet_eigenpercelen()
+    create_niet_eigenperceelgroepen()
+
+
 def get_bbox():
-    #   Left, top, right, bottom - code expects WSG84, if required this can change to RD
+    #   Left, top, right, bottom
+    #       code expects WSG84, if it is easier in the frontend this can change to RD
     return '4.894825,52.370680,4.898945,52.367797'

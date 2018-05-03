@@ -33,7 +33,7 @@ class Appartementen(BrkEigenaarGeoModel):
 
 
 class EigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.PolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
     class Meta:
         db_table = "geo_brk_eigendom_poly"
         verbose_name = "EigenPerceel"
@@ -42,7 +42,7 @@ class EigenPerceel(BrkEigenaarGeoModel):
 
 
 class NietEigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.PolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
     class Meta:
         db_table = "geo_brk_niet_eigendom_poly"
         verbose_name = "NietEigenPerceel"
@@ -61,7 +61,7 @@ class BrkGegroepeerdGeoModel(models.Model):
     eigendom_cat = models.IntegerField()
     gebied = models.CharField(max_length=255)
     gebied_id = models.CharField(max_length=255, null=True)
-    geometrie = geo.PolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
 
     class Meta:
         abstract = True

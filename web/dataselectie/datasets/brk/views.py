@@ -83,6 +83,8 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
             # keep zoom between 8 and 12
             query_params['zoom'] =  max(8, min(zoom, 12))
+        else:
+            query_params['zoom'] = None
 
     def filter(self, model):
         self.filter_class = filters.filter_class[model]
