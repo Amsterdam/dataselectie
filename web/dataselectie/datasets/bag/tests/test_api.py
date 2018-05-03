@@ -132,7 +132,7 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `buurtcombinatie_naam`
         """
-        self.assertEqual(models.Buurtcombinatie.objects.count(), 8)
+        self.assertEqual(models.Buurtcombinatie.objects.count(), 9)
 
         q = dict(page=1, buurtcombinatie_naam='Burgwallen-Nieuwe Zijde')
         response = self.client.get(
