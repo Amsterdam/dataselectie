@@ -456,6 +456,7 @@ class Eigendom(models.Model):
         db_column='id',
         on_delete=models.CASCADE,
         primary_key=True,
+        related_name='eigendom'
     )
 
     kadastraal_subject = models.ForeignKey(

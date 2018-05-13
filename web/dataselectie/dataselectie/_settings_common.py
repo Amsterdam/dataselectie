@@ -15,6 +15,7 @@ insecure_key = 'insecure'
 SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
 
 DEBUG = SECRET_KEY == insecure_key
+LOCAL = SECRET_KEY == insecure_key
 
 ALLOWED_HOSTS = ['*']
 
@@ -29,8 +30,6 @@ INSTALLED_APPS = [
     'rest_framework_gis',
 ]
 
-# set to True for local development.
-LOCAL = False
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [

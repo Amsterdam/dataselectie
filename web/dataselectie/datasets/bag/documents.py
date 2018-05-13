@@ -157,7 +157,7 @@ def add_verblijfsobject_data(doc, vbo):
     doc.gebruiksdoelen = " | ".join(gebruiksdoelen_omschrijvingen)
 
 
-def doc_from_nummeraanduiding(
+def  doc_from_nummeraanduiding(
         item: models.Nummeraanduiding) -> Nummeraanduiding:
     """
     Van een Nummeraanduiding bak een dataselectie document

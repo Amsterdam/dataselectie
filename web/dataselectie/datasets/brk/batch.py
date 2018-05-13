@@ -10,7 +10,7 @@ from ..generic import index
 log = logging.getLogger(__name__)
 
 BRK_DOC_TYPES = (
-    documents.KadastraalObject,
+    documents.Eigendom,
 )
 
 
@@ -48,17 +48,35 @@ class IndexBrkTask(index.ImportIndexTask):
     sequential = True
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
-    queryset = models.KadastraalObject.objects \
-        .prefetch_related('eigendommen') \
-        .prefetch_related('buurten') \
-        .prefetch_related('wijken') \
-        .prefetch_related('ggws') \
-        .prefetch_related('stadsdelen') \
-        .filter(id__in=models.Eigendom.objects.values_list('kadastraal_object_id', flat=True)) \
+    queryset = (
+        models.Eigendom.objects
+        .prefetch_related('kadastraal_object')
+        .prefetch_related('kadastraal_object__buurten')
+        .prefetch_related('kadastraal_object__wijken')
+        .prefetch_related('kadastraal_object__ggws')
+        .prefetch_related('kadastraal_object__stadsdelen')
+        .prefetch_related('kadastraal_object__verblijfsobjecten')
+        .prefetch_related('kadastraal_object__verblijfsobjecten__adressen')
+        .prefetch_related('kadastraal_subject')
+        .prefetch_related('kadastraal_subject__postadres')
+        .prefetch_related('kadastraal_subject__woonadres')
         .order_by('id')
+    )
 
     def convert(self, obj):
-        return documents.doc_from_kadastraalobject(obj)
+        return documents.doc_from_eigendom(obj)
+
+    # queryset = models.KadastraalObject.objects \
+    #     .prefetch_related('eigendommen') \
+    #     .prefetch_related('buurten') \
+    #     .prefetch_related('wijken') \
+    #     .prefetch_related('ggws') \
+    #     .prefetch_related('stadsdelen') \
+    #     .filter(id__in=models.Eigendom.objects.values_list('kadastraal_object_id', flat=True)) \
+    #     .order_by('id')
+    #
+    # def convert(self, obj):
+    #     return documents.doc_from_zakelijkrecht(obj)
 
 
 class BuildIndexBRKJob(object):

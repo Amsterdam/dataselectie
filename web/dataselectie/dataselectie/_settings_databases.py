@@ -19,7 +19,7 @@ def get_docker_host():
     return 'localhost'
 
 
-def in_docker():
+def _in_docker():
     """
     Checks pid 1 cgroup settings to check with reasonable certainty we're in a
     docker env.
@@ -45,7 +45,7 @@ class LocationKey:
 def get_database_key():
     if os.getenv(OVERRIDE_HOST_ENV_VAR):
         return LocationKey.override
-    elif in_docker():
+    elif _in_docker():
         return LocationKey.docker
 
     return LocationKey.local

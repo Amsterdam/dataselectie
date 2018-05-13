@@ -16,13 +16,8 @@ import authorization_levels
 
 import os
 
-from dataselectie.settings_common import * # noqa F403
-from dataselectie.settings_common import INSTALLED_APPS, DEBUG, LOCAL
-from dataselectie.settings_databases import LocationKey, \
-    get_docker_host, \
-    get_database_key, \
-    OVERRIDE_HOST_ENV_VAR, \
-    OVERRIDE_PORT_ENV_VAR
+from dataselectie._settings_common import *  # noqa F403
+from dataselectie._settings_databases import *  # noqa F403
 
 from dataselectie.utils import get_variable
 from dataselectie.utils import get_db_settings
@@ -30,7 +25,7 @@ from dataselectie.utils import get_db_settings
 
 # Application definition
 
-INSTALLED_APPS += [
+INSTALLED_APPS.extend([
     'dataselectie',
     'batch',
     'api',
@@ -39,7 +34,7 @@ INSTALLED_APPS += [
     'datasets.hr',
     'datasets.bag',
     'datasets.brk',
-]
+])
 
 ROOT_URLCONF = 'dataselectie.urls'
 
@@ -148,7 +143,8 @@ JWKS_TEST_KEY = """
 DATAPUNT_AUTHZ = {
     'JWKS': os.getenv('PUB_JWKS', JWKS_TEST_KEY),
     'MIN_SCOPE': authorization_levels.SCOPE_HR_R,
-    'FORCED_ANONYMOUS_ROUTES': ('/status/', '/dataselectie/bag/')
+    'FORCED_ANONYMOUS_ROUTES': ('/status/', '/dataselectie/bag/'),
+    'ALWAYS_OK': False #LOCAL
 }
 
 
@@ -156,14 +152,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 X_FRAME_OPTIONS = 'DENY'
 
-# For local development set TRUE
-DISABLE_AUTH = False
-if LOCAL:
-    DISABLE_AUTH = True
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-
 STATIC_URL = '/static/'
 
 # Generate https links
@@ -171,5 +161,3 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Setup support for proxy headers
 USE_X_FORWARDED_HOST = True
-
-# Db routing goes haywire without this
