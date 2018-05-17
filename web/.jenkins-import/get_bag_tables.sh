@@ -3,6 +3,8 @@
 set -u   # crash on missing env variables
 set -e   # stop on any error
 
+
+
 declare  -a bag_tables=(
 	"bag_bouwblok"
 	"bag_bron"
@@ -35,7 +37,12 @@ declare  -a bag_tables=(
 	"brk_eigendom"
 	"brk_eigenaar"
 	"brk_eigenaarcategorie"
+	"brk_gemeente"
+	"brk_kadastercodeomschrijving"
 	"brk_kadastraalobject"
+	"brk_kadastraalobjectverblijfsobjectrelatie"
+	"brk_kadastralegemeente"
+	"brk_kadastralesectie"
 	"brk_zakelijkrecht"
 	"brk_zakelijkrechtverblijfsobjectrelatie"
 	"brk_eigendom"
@@ -45,7 +52,14 @@ declare  -a bag_tables=(
 
 for tablename in "${bag_tables[@]}"
 do
-	echo $tablename
+	echo drop $tablename
+	echo "DROP TABLE $tablename CASCADE;" | dc exec -T database psql -U postgres -d dataselectie
+done
+
+
+for tablename in "${bag_tables[@]}"
+do
+	echo recreate $tablename
 	dc exec -T database update-table.sh bag $tablename public dataselectie
 done
 

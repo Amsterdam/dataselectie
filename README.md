@@ -36,6 +36,7 @@ $ docker-compose exec dataselectie python manage.py migrate
 $ docker-compose exec database download-db.sh bag <your username>
 $ ./prepare-local.sh
 $ docker-compose exec database update-table.sh handelsregister hr_dataselectie public dataselectie <your username>
+$ docker-compose exec dataselectie python manage.py  brk_tables_views
 
 $ docker-compose exec elasticsearch clean-el.sh
 $ docker-compose exec elasticsearch update-el.sh bag <your username>

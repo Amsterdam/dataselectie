@@ -21,6 +21,7 @@ SET row_security = off;
 SET search_path = public, pg_catalog;
 
 DROP TABLE IF EXISTS public.brk_kadastraalobject;
+DROP TABLE IF EXISTS brk_kadastraalobjectverblijfsobjectrelatie;
 DROP TABLE IF EXISTS public.brk_eigendom;
 
 DROP TABLE IF EXISTS public.brk_eigendomwijk;
@@ -35,6 +36,30 @@ SET search_path = public, pg_catalog;
 SET default_tablespace = '';
 
 SET default_with_oids = false;
+
+--
+-- Name: brk_adres; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brk_adres (
+    id character varying(32) NOT NULL,
+    openbareruimte_naam character varying(80),
+    huisnummer integer,
+    huisletter character varying(1),
+    toevoeging character varying(4),
+    postcode character varying(6),
+    woonplaats character varying(80),
+    postbus_nummer integer,
+    postbus_postcode character varying(50),
+    postbus_woonplaats character varying(80),
+    buitenland_adres character varying(100),
+    buitenland_woonplaats character varying(100),
+    buitenland_regio character varying(100),
+    buitenland_naam character varying(100),
+    buitenland_land_id character varying(50)
+);
+
+ALTER TABLE public.brk_adres OWNER TO dataselectie;
 
 --
 -- Name: brk_eigendombuurt; Type: TABLE; Schema: public; Owner: dataselectie
@@ -139,6 +164,53 @@ CREATE TABLE public.brk_kadastraalobject (
 );
 
 --
+-- Name: brk_kadastraalobjectverblijfsobjectrelatie; Type: TABLE; Schema: public; Owner: dataselectie
+--
+
+CREATE TABLE brk_kadastraalobjectverblijfsobjectrelatie
+(
+  id                   uuid                     NOT NULL,
+  date_modified        TIMESTAMP with time zone NOT NULL,
+  kadastraal_object_id VARCHAR(60)              NOT NULL,
+  verblijfsobject_id   VARCHAR(14)
+);
+
+--
+-- Name: brk_eigenaar; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brk_eigenaar (
+    cat_id integer,
+    categorie character varying,
+    id character varying(60),
+    type smallint,
+    date_modified timestamp with time zone,
+    voornamen character varying(200),
+    voorvoegsels character varying(10),
+    naam character varying(200),
+    geboortedatum character varying(50),
+    geboorteplaats character varying(80),
+    overlijdensdatum character varying(50),
+    partner_voornamen character varying(200),
+    partner_voorvoegsels character varying(10),
+    partner_naam character varying(200),
+    rsin character varying(80),
+    kvknummer character varying(8),
+    statutaire_naam character varying(200),
+    statutaire_zetel character varying(24),
+    bron smallint,
+    aanduiding_naam_id character varying(50),
+    beschikkingsbevoegdheid_id character varying(50),
+    geboorteland_id character varying(50),
+    geslacht_id character varying(50),
+    land_waarnaar_vertrokken_id character varying(50),
+    postadres_id character varying(32),
+    rechtsvorm_id character varying(50),
+    woonadres_id character varying(32)
+);
+
+
+--
 -- Name: brk_eigendom; Type: TABLE; Schema: public; Owner: postgres
 --
 
@@ -153,9 +225,71 @@ CREATE TABLE public.brk_eigendom (
     appartementeigenaar boolean
 );
 
-ALTER TABLE public.brk_eigendom OWNER TO dataselectie;
-ALTER TABLE public.brk_kadastraalobject OWNER TO dataselectie;
+--
+-- Name: brk_gemeente; Type: TABLE; Schema: public; Owner: -
+--
 
+CREATE TABLE public.brk_gemeente (
+    gemeente character varying(50) NOT NULL,
+    geometrie public.geometry(MultiPolygon,28992) NOT NULL,
+    date_modified timestamp with time zone NOT NULL
+);
+
+--
+-- Name: brk_kadastralesectie; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brk_kadastralesectie (
+    id character varying(200) NOT NULL,
+    sectie character varying(2) NOT NULL,
+    geometrie public.geometry(MultiPolygon,28992) NOT NULL,
+    date_modified timestamp with time zone NOT NULL,
+    kadastrale_gemeente_id character varying(200) NOT NULL
+);
+
+--
+-- Name: brk_kadastralegemeente; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brk_kadastralegemeente (
+    id character varying(200) NOT NULL,
+    naam character varying(100) NOT NULL,
+    geometrie public.geometry(MultiPolygon,28992) NOT NULL,
+    date_modified timestamp with time zone NOT NULL,
+    gemeente_id character varying(50) NOT NULL
+);
+
+
+--
+-- Name: brk_zakelijkrecht; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.brk_zakelijkrecht (
+    id character varying(183) NOT NULL,
+    date_modified timestamp with time zone NOT NULL,
+    zrt_id character varying(60) NOT NULL,
+    aard_zakelijk_recht_akr character varying(3),
+    teller integer,
+    noemer integer,
+    kadastraal_object_status character varying(50) NOT NULL,
+    _kadastraal_subject_naam character varying(200) NOT NULL,
+    _kadastraal_object_aanduiding character varying(100) NOT NULL,
+    aard_zakelijk_recht_id character varying(50),
+    app_rechtsplitstype_id character varying(50),
+    betrokken_bij_id character varying(60),
+    kadastraal_object_id character varying(60) NOT NULL,
+    kadastraal_subject_id character varying(60) NOT NULL,
+    ontstaan_uit_id character varying(60)
+);
+
+ALTER TABLE public.brk_eigendom OWNER TO dataselectie;
+ALTER TABLE public.brk_eigenaar OWNER TO dataselectie;
+ALTER TABLE public.brk_gemeente OWNER TO dataselectie;
+ALTER TABLE public.brk_kadastralesectie OWNER TO dataselectie;
+ALTER TABLE public.brk_kadastraalobject OWNER TO dataselectie;
+ALTER TABLE public.brk_kadastraalobjectverblijfsobjectrelatie OWNER TO dataselectie;
+ALTER TABLE public.brk_kadastralegemeente OWNER TO dataselectie;
+ALTER TABLE public.brk_zakelijkrecht OWNER TO dataselectie;
 
 --
 -- PostgreSQL database dump complete

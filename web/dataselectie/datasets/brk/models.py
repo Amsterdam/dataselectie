@@ -478,6 +478,10 @@ class Eigendom(models.Model):
     aanschrijfbaar = models.BooleanField()
     appartementeigenaar = models.BooleanField()
 
+    @property
+    def id(self):
+        return self.zakelijk_recht.id
+
     class Meta:
         verbose_name = "Eigendom"
         verbose_name_plural = "Eigendommen"

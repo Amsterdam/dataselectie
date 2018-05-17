@@ -86,7 +86,7 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
     then this function only returns chuncks index i for which
     modulo i % 3 == 1
 
-    The sequential boolean is added to make sure that also querysets with non-integer 'id-s' work
+    The sequential boolean is added to make sure that also querysets with non-integer 'pk-s' work
 
     """
 
@@ -95,17 +95,18 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
             total = qs.count()
             chunk_size = int(total / modulo)
             start = chunk_size * modulo_value
-            start_id = qs.all()[start].id
-            qs_s = qs.filter(id__gte=start_id)
+            start_id = qs.all()[start].pk
+            qs_s = qs.filter(pk__gte=start_id)
 
             if modulo > modulo_value+1:
                 end = chunk_size * (modulo_value + 1)
-                end_id = qs.all()[end].id
-                qs_s = qs_s.filter(id__lt=end_id)
+                end_id = qs.all()[end].pk
+                qs_s = qs_s.filter(pk__lt=end_id)
         else:
+            # In non-sequential mode only integer primary keys are possible
             qs_s = (
                 qs
-                .annotate(intid=Cast('id', BigIntegerField()))
+                .annotate(intid=Cast('pk', BigIntegerField()))
                 .annotate(idmod=F('intid') % modulo)
                 .filter(idmod=modulo_value)
             )

@@ -131,14 +131,14 @@ class Eigendom(es.DocType):
 
 
 def doc_from_eigendom(eigendom):
-    eigendommen = eigendom.eigendommen.all()
+    eigendommen = eigendom.kadastraal_object.eigendommen.all()
 
     doc = Eigendom()
     doc.kadastraal_object_id = eigendom.id
-    if eigendom.point_geom:
-        doc.geo_point = eigendom.point_geom.transform('wgs84', clone=True).coords
-    if eigendom.poly_geom:
-        multipolygon_wgs84 = eigendom.poly_geom.transform('wgs84', clone=True)
+    if eigendom.kadastraal_object.point_geom:
+        doc.geo_point = eigendom.kadastraal_object.point_geom.transform('wgs84', clone=True).coords
+    if eigendom.kadastraal_object.poly_geom:
+        multipolygon_wgs84 = eigendom.kadastraal_object.poly_geom.transform('wgs84', clone=True)
         # geoshape expects a dict with 'type' and 'coords'
         doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
     doc.eigenaar_cat = [str(eigendom.eigenaar_categorie.id) for eigendom in eigendommen]
@@ -146,10 +146,10 @@ def doc_from_eigendom(eigendom):
     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
     doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
 
-    doc.buurt = [str(buurt.id) for buurt in eigendom.buurten.all()]
-    doc.wijk = [str(wijk.id) for wijk in eigendom.wijken.all()]
-    doc.ggw = [str(ggw.id) for ggw in eigendom.ggws.all()]
-    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in eigendom.stadsdelen.all()]
+    doc.buurt = [str(buurt.id) for buurt in eigendom.kadastraal_object.buurten.all()]
+    doc.wijk = [str(wijk.id) for wijk in eigendom.kadastraal_object.wijken.all()]
+    doc.ggw = [str(ggw.id) for ggw in eigendom.kadastraal_object.ggws.all()]
+    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in eigendom.kadastraal_object.stadsdelen.all()]
 
     return doc
 

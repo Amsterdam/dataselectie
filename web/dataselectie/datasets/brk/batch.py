@@ -60,11 +60,14 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
-        .order_by('id')
+        .order_by('zakelijk_recht')
     )
 
     def convert(self, obj):
         return documents.doc_from_eigendom(obj)
+
+    def get_queryset(self):
+        return self.queryset.order_by('zakelijk_recht')
 
     # queryset = models.KadastraalObject.objects \
     #     .prefetch_related('eigendommen') \
