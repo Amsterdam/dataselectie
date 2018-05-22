@@ -35,6 +35,10 @@ $ docker-compose up -d
 $ docker-compose exec dataselectie python manage.py migrate
 $ docker-compose exec database download-db.sh bag <your username>
 $ ./prepare-local.sh
+
+?? Misschien moeten hiervoor eerst de bag en brk tabellen verwijderd worden omdat ze zijn gecreeerd met foreign key
+restricties in migrate??
+
 $ docker-compose exec database update-table.sh handelsregister hr_dataselectie public dataselectie <your username>
 $ docker-compose exec dataselectie python manage.py  brk_tables_views
 

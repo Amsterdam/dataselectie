@@ -19,6 +19,7 @@ graypy==0.2.14
 idna==2.6
 ipaddress==1.0.19
 psycopg2==2.7.4
+psycopg2-binary==2.7.4
 pycparser==2.18
 PyJWT==1.6.1
 python-dateutil==2.7.2

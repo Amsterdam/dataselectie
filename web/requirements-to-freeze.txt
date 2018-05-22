@@ -9,5 +9,5 @@ djangorestframework-gis
 elasticsearch_dsl
 factory-boy
 graypy
-Psycopg2
+psycopg2-binary
 requests
