@@ -50,12 +50,6 @@ declare  -a bag_tables=(
 	"brk_eigenaarcategorie"
 )
 
-for tablename in "${bag_tables[@]}"
-do
-	echo drop $tablename
-	echo "DROP TABLE $tablename CASCADE;" | dc exec -T database psql -U postgres -d dataselectie
-done
-
 
 for tablename in "${bag_tables[@]}"
 do
