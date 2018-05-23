@@ -91,10 +91,19 @@ dataselection_sql_commands = [
         UNION
         SELECT id AS eigendom_id, 3::INTEGER  as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
-    "CREATE INDEX ON brk_eigendom (kadastraal_object_id)",
-    "CREATE INDEX ON brk_eigendom (kadastraal_subject_id)",
-    "CREATE INDEX ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
-
+    "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
+    "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
+    "CREATE INDEX IF NOT EXISTS brk_adres_id_idx ON brk_adres(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigenaar_id_idx ON brk_eigenaar(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_id_idx ON brk_eigendom(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_object_id_idx ON brk_eigendom(kadastraal_object_id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_subject_id_idx ON brk_eigendom(kadastraal_subject_id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendomcategorie_eigendom_id_eigendom_cat_idx ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobject_id_idx ON brk_kadastraalobject(id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrel_id_idx  ON brk_kadastraalobjectverblijfsobjectrelatie(id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrelatie_kadastraal_object_id_idx ON brk_kadastraalobjectverblijfsobjectrelatie(kadastraal_object_id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastralegemeente_id_idx ON brk_kadastralegemeente(id)",
+    "CREATE INDEX IF NOT EXISTS brk_zakelijkrecht_id_idx ON brk_zakelijkrecht(id)",
 ]
 
 mapselection_sql_commands = [

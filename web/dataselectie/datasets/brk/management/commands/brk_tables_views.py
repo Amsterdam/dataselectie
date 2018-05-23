@@ -15,4 +15,6 @@ class Command(BaseCommand):
             for sql_command in brk_batch_sql.bagimport_sql_commands \
                                + brk_batch_sql.dataselection_sql_commands\
                                + brk_batch_sql.mapselection_sql_commands:
+                info = (sql_command[:64] + '..') if len(sql_command) > 64 else sql_command
+                log.info(f"Execute SQL: {info}")
                 c.execute(sql_command)

@@ -9,6 +9,7 @@ from ..generic import index
 
 log = logging.getLogger(__name__)
 
+# When examining Postgres query performance the following logs queries and runtime
 # l = logging.getLogger('django.db.backends')
 # l.setLevel(logging.DEBUG)
 # l.addHandler(logging.StreamHandler())
