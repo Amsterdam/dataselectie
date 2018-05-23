@@ -9,6 +9,10 @@ from ..generic import index
 
 log = logging.getLogger(__name__)
 
+# l = logging.getLogger('django.db.backends')
+# l.setLevel(logging.DEBUG)
+# l.addHandler(logging.StreamHandler())
+
 BRK_DOC_TYPES = (
     documents.Eigendom,
 )
@@ -60,14 +64,14 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
-        .order_by('zakelijk_recht')
+        .order_by('zakelijk_recht__id')
     )
 
     def convert(self, obj):
         return documents.doc_from_eigendom(obj)
 
     def get_queryset(self):
-        return self.queryset.order_by('zakelijk_recht')
+        return self.queryset.order_by('zakelijk_recht__id')
 
     # queryset = models.KadastraalObject.objects \
     #     .prefetch_related('eigendommen') \

@@ -131,25 +131,26 @@ class Eigendom(es.DocType):
 
 
 def doc_from_eigendom(eigendom):
-    eigendommen = eigendom.kadastraal_object.eigendommen.all()
+    kadastraal_object = eigendom.kadastraal_object
+    eigendommen = kadastraal_object.eigendommen.all()
 
     doc = Eigendom()
     doc.kadastraal_object_id = eigendom.id
-    if eigendom.kadastraal_object.point_geom:
-        doc.geo_point = eigendom.kadastraal_object.point_geom.transform('wgs84', clone=True).coords
-    if eigendom.kadastraal_object.poly_geom:
-        multipolygon_wgs84 = eigendom.kadastraal_object.poly_geom.transform('wgs84', clone=True)
+    if kadastraal_object.point_geom:
+        doc.geo_point = kadastraal_object.point_geom.transform('wgs84', clone=True).coords
+    if kadastraal_object.poly_geom:
+        multipolygon_wgs84 = kadastraal_object.poly_geom.transform('wgs84', clone=True)
         # geoshape expects a dict with 'type' and 'coords'
         doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
-    doc.eigenaar_cat = [str(eigendom.eigenaar_categorie.id) for eigendom in eigendommen]
+    doc.eigenaar_cat = [str(eigendom.eigenaar_categorie_id) for eigendom in eigendommen]
     doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
     doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
 
-    doc.buurt = [str(buurt.id) for buurt in eigendom.kadastraal_object.buurten.all()]
-    doc.wijk = [str(wijk.id) for wijk in eigendom.kadastraal_object.wijken.all()]
-    doc.ggw = [str(ggw.id) for ggw in eigendom.kadastraal_object.ggws.all()]
-    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in eigendom.kadastraal_object.stadsdelen.all()]
+    doc.buurt = [str(buurt.id) for buurt in kadastraal_object.buurten.all()]
+    doc.wijk = [str(wijk.id) for wijk in kadastraal_object.wijken.all()]
+    doc.ggw = [str(ggw.id) for ggw in kadastraal_object.ggws.all()]
+    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in kadastraal_object.stadsdelen.all()]
 
     return doc
 

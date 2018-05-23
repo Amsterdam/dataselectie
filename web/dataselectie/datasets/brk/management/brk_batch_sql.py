@@ -91,7 +91,10 @@ dataselection_sql_commands = [
         UNION
         SELECT id AS eigendom_id, 3::INTEGER  as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
+    "CREATE INDEX ON brk_eigendom (kadastraal_object_id)",
+    "CREATE INDEX ON brk_eigendom (kadastraal_subject_id)",
     "CREATE INDEX ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
+
 ]
 
 mapselection_sql_commands = [
