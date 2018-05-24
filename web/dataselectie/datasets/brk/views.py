@@ -1,4 +1,7 @@
-from datasets.bag.queries import meta_q
+import authorization_levels
+from rest_framework.status import HTTP_401_UNAUTHORIZED
+
+from datasets.brk.queries import meta_q
 from datasets.brk import models, geo_models, filters, serializers
 
 from datasets.generic.views_mixins import CSVExportView
@@ -23,6 +26,9 @@ class BrkBase(object):
     db = 'brk'
     q_func = meta_q
     keywords = [
+
+
+
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats',
@@ -35,6 +41,11 @@ class BrkBase(object):
 
 
 class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
+    def retrieve(self, request, *args, **kwargs):
+        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            return super().retrieve(request, *args, **kwargs)
+        return Response(status=HTTP_401_UNAUTHORIZED)
+
     def get(self, request, *args, **kwargs):
         output = None
         zoom = self.request.query_params.get('zoom')
@@ -118,6 +129,11 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
 
 class BrkSearch(BrkBase, TableSearchView):
+    def retrieve(self, request, *args, **kwargs):
+        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            return super().retrieve(request, *args, **kwargs)
+        return Response(status=HTTP_401_UNAUTHORIZED)
+
     def elastic_query(self, query):
         return meta_q(query)
 
@@ -160,6 +176,11 @@ class BrkCSV(BrkBase, CSVExportView):
         ('standplaats', 'Standplaatsidentificatie'),
         ('landelijk_id', 'Nummeraanduidingidentificatie')
     )
+
+    def retrieve(self, request, *args, **kwargs):
+        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            return super().retrieve(request, *args, **kwargs)
+        return Response(status=HTTP_401_UNAUTHORIZED)
 
     field_names = [h[0] for h in fields_and_headers]
     csv_headers = [h[1] for h in fields_and_headers]

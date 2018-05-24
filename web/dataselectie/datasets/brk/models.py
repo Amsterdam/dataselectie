@@ -126,6 +126,23 @@ class Adres(models.Model):
     class Meta:
         managed = False
 
+    def volledig_adres(self):
+        return " ".join([str(part) for part in (
+            self.openbareruimte_naam, self.huisnummer, self.huisletter, self.toevoeging, self.postcode, self.woonplaats)
+                         if part])
+
+    def volledig_buitenland_adres(self):
+        return " ".join([str(part) for part in (
+            self.buitenland_adres, self.buitenland_woonplaats, self.buitenland_regio, self.buitenland_naam)
+                         if part])
+
+    def postbus_adres(self):
+        return " ".join([str(part) for part in (
+            self.postbus_nummer, self.postbus_postcode, self.postbus_woonplaats)
+                         if part])
+
+
+
 
 class EigenaarCategorie(models.Model):
     id = models.IntegerField(primary_key=True)

@@ -3,6 +3,8 @@ import json
 import re
 
 from django.conf import settings
+from django.utils.dateparse import parse_date
+from datasets.brk import models as brk_models
 
 import elasticsearch_dsl as es
 
@@ -29,6 +31,7 @@ class Eigendom(es.DocType):
         doc_type = 'zakelijkrecht'
         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
+    eigendom_id = es.Keyword()
     kot_kadastrale_aanduiding = es.Text()  # <-- generated
     kot_kadastrale_gemeentecode = es.Text()
     kot_sectie = es.Text()
@@ -53,18 +56,18 @@ class Eigendom(es.DocType):
 
     woonplaats = es.Text()
 
-    kot_stadsdeel_naam = es.Text()
-    kot_stadsdeel_code = es.Text()
-    kot_ggw_naam = es.Text()
-    kot_ggw_code = es.Text()
-    kot_wijk_naam = es.Text()
-    kot_wijk_code = es.Text()
-    kot_buurt_naam = es.Text()
-    kot_buurt_code = es.Text()
+    kot_stadsdeel_naam = es.Text(multi=True)
+    kot_stadsdeel_code = es.Text(multi=True)
+    kot_ggw_naam = es.Text(multi=True)
+    kot_ggw_code = es.Text(multi=True)
+    kot_wijk_naam = es.Text(multi=True)
+    kot_wijk_code = es.Text(multi=True)
+    kot_buurt_naam = es.Text(multi=True)
+    kot_buurt_code = es.Text(multi=True)
     geo_point = es.GeoPoint()
     geo_poly = es.GeoShape()
 
-    zrt_aard_oms = es.Keyword()
+    zrt_aardzakelijkrecht_oms = es.Keyword()
     zrt_aandeel = es.Text()
 
     sjt_type = es.Keyword()
@@ -130,27 +133,130 @@ class Eigendom(es.DocType):
         return super().save(*args, **kwargs)
 
 
-def doc_from_eigendom(eigendom):
-    kadastraal_object = eigendom.kadastraal_object
-    eigendommen = kadastraal_object.eigendommen.all()
+lookup_tables = {}
 
-    doc = Eigendom()
-    doc.kadastraal_object_id = eigendom.id
-    if kadastraal_object.point_geom:
-        doc.geo_point = kadastraal_object.point_geom.transform('wgs84', clone=True).coords
-    if kadastraal_object.poly_geom:
-        multipolygon_wgs84 = kadastraal_object.poly_geom.transform('wgs84', clone=True)
+
+def get_omschrijving(clazz, code):
+    if code is None:
+        return None
+    global lookup_tables
+    class_name = clazz.__name__
+    if class_name not in lookup_tables:
+        lookup_tables[class_name] = {}
+        elements = clazz.objects.all()
+        for e in elements:
+            lookup_tables[class_name][e.code] = e.omschrijving
+    return lookup_tables[class_name].get(code)
+
+def get_date(val):
+    if val is None or val == '':
+        result = None
+    else:
+        try:
+            result = parse_date(val)
+        except ValueError:
+            result = None
+    return result
+
+
+def doc_from_eigendom(eigendom: object):
+    kot = eigendom.kadastraal_object
+    # eigendommen = kot.eigendommen.all()
+
+    doc = Eigendom(_id=eigendom.id)
+    doc.eigendom_id = eigendom.id
+    # kot_kadastrale_aanduiding = es.Text()  # <-- generated
+    doc.kot_kadastrale_gemeentecode = kot.kadastrale_gemeente_id
+    doc.kot_sectie = kot.sectie_id
+    doc.kot_perceelnummer = kot.perceelnummer
+    doc.kot_indexletter = kot.indexletter
+    doc.kot_indexnummer = kot.indexnummer
+
+    doc.kot_kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
+
+    doc.kot_koopsom = kot.koopsom
+    doc.kot_koopjaar = kot.koopjaar
+    doc.kot_grootte = kot.grootte
+
+    doc.kot_cultuurcode_bebouwd_oms = kot.cultuurcode_bebouwd_id
+    doc.kot_cultuurcode_onbebouwd_oms = kot.cultuurcode_onbebouwd_id
+
+    vbo_list = kot.verblijfsobjecten.all()  # This is already ordered
+
+    # eerste_adres = es.Text()  # <-- generated
+    if vbo_list:
+        vbo = vbo_list[0]
+        doc.verblijfsobject_id =  vbo.landelijk_id
+        doc.verblijfsobject_openbare_ruimte_naam = vbo._openbare_ruimte_naam
+        doc.verblijfsobject_huisnummer = vbo._huisnummer
+        doc.verblijfsobject_huisletter = vbo._huisletter
+        doc.verblijfsobject_huisnummer_toevoeging = vbo._huisnummer_toevoeging
+        hoofdadres = vbo.hoofdadres
+        doc.verblijfsobject_postcode = hoofdadres.postcode
+        doc.woonplaats = str(hoofdadres.woonplaats)
+
+    stadsdelen = kot.stadsdelen.all()
+    if stadsdelen:
+        doc.kot_stadsdeel_naam = [stadsdeel.naam for stadsdeel in stadsdelen]
+        doc.kot_stadsdeel_code = [stadsdeel.code for stadsdeel in stadsdelen]
+    ggws = kot.ggws.all()
+    if ggws:
+        doc.kot_ggw_code = [ggw.code for ggw in ggws]
+        doc.kot_ggw_naam = [ggw.naam for ggw in ggws]
+    wijken = kot.wijken.all()
+    if wijken:
+        doc.kot_wijk_naam = [wijk.naam for wijk in wijken]
+        doc.kot_wijk_code = [wijk.code for wijk in wijken]
+    buurten = kot.buurten.all()
+    if buurten:
+        doc.kot_buurt_naam = [buurt.naam for buurt in buurten]
+        doc.kot_buurt_code = [buurt.code for buurt in buurten]
+
+    if kot.point_geom:
+        doc.geo_point = kot.point_geom.transform('wgs84', clone=True).coords
+    if kot.poly_geom:
+        multipolygon_wgs84 = kot.poly_geom.transform('wgs84', clone=True)
         # geoshape expects a dict with 'type' and 'coords'
         doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
-    doc.eigenaar_cat = [str(eigendom.eigenaar_categorie_id) for eigendom in eigendommen]
-    doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
-    doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
-    doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
 
-    doc.buurt = [str(buurt.id) for buurt in kadastraal_object.buurten.all()]
-    doc.wijk = [str(wijk.id) for wijk in kadastraal_object.wijken.all()]
-    doc.ggw = [str(ggw.id) for ggw in kadastraal_object.ggws.all()]
-    doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in kadastraal_object.stadsdelen.all()]
+    zrt = eigendom.zakelijk_recht
+    if zrt:
+        doc.zrt_aardzakelijkrecht_oms = get_omschrijving(brk_models.AardZakelijkRecht, zrt.aard_zakelijk_recht_id)
+        doc.zrt_aandeel = f"{zrt.teller}/{zrt.noemer}"
+
+    kst = eigendom.kadastraal_subject
+    if kst:
+        doc.sjt_type = kst.type
+        # doc.sjt_naam = es.Text()  # <-- generated
+        doc.sjt_voornamen = kst.voornamen
+        doc.sjt_voorvoegsel_geslachtsnaam = kst.voorvoegsels
+        doc.sjt_geslachtsnaam = kst.naam
+        doc.sjt_geslachtcode_oms = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
+        doc.sjt_kad_geboortedatum = get_date(kst.geboortedatum)
+        doc.sjt_kad_geboorteplaats = kst.geboorteplaats
+        doc.sjt_kad_geboorteland_code = kst.geboorteland_id
+        doc.sjt_kad_datum_overlijden = get_date(kst.overlijdensdatum)
+        doc.sjt_nnp_statutaire_naam = kst.statutaire_naam
+        doc.sjt_nnp_statutaire_zetel = kst.statutaire_zetel
+        doc.sjt_nnp_statutaire_rechtsvorm_oms = get_omschrijving(brk_models.Rechtsvorm, kst.rechtsvorm_id)
+        doc.sjt_nnp_rsin = kst.rsin
+        doc.sjt_nnp_kvknummer = kst.kvknummer
+        woonadres = kst.woonadres
+        if woonadres:
+            doc.sjt_woonadres = woonadres.volledig_adres()
+            doc.sjt_woonadres_buitenland = woonadres.volledig_buitenland_adres()
+        postadres = kst.postadres
+        if postadres:
+            doc.sjt_postadres = postadres.volledig_adres()
+            doc.sjt_postadres_buitenland = postadres.volledig_buitenland_adres()
+            doc.sjt_postadres_postbus = postadres.postbus_adres()
+
+    # doc.kadastraal_object_id = eigendom.id
+    # doc.eigenaar_cat = [str(eigendom.eigenaar_categorie_id) for eigendom in eigendommen]
+    # doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
+    # doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
+    # doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
+
 
     return doc
 
