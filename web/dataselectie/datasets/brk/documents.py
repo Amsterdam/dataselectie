@@ -28,51 +28,51 @@ def _cleanup(s: str):
 class Eigendom(es.DocType):
     class Meta:
         all = es.MetaField(enabled=False)
-        doc_type = 'zakelijkrecht'
+        doc_type = 'eigendom'
         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     eigendom_id = es.Keyword()
-    kot_kadastrale_aanduiding = es.Text()  # <-- generated
-    kot_kadastrale_gemeentecode = es.Text()
-    kot_sectie = es.Text()
-    kot_perceelnummer = es.Text()
-    kot_indexletter = es.Text()
-    kot_indexnummer = es.Text()
+    kot_kadastrale_aanduiding = es.Keyword()  # <-- generated
+    kot_kadastrale_gemeentecode = es.Keyword()
+    kot_sectie = es.Keyword()
+    kot_perceelnummer = es.Keyword()
+    kot_indexletter = es.Keyword()
+    kot_indexnummer = es.Keyword()
 
-    kot_kadastrale_gemeentenaam = es.Text()
+    kot_kadastrale_gemeentenaam = es.Keyword()
     kot_koopsom = es.Float()
     kot_koopjaar = es.Integer()
     kot_grootte = es.Float()
-    kot_cultuurcode_bebouwd_oms = es.Text()
-    kot_cultuurcode_onbebouwd_oms = es.Text()
+    kot_cultuurcode_bebouwd_oms = es.Keyword()
+    kot_cultuurcode_onbebouwd_oms = es.Keyword()
 
-    eerste_adres = es.Text()  # <-- generated
-    verblijfsobject_id = es.Text()
-    verblijfsobject_openbare_ruimte_naam = es.Text()
+    eerste_adres = es.Keyword()  # <-- generated
+    verblijfsobject_id = es.Keyword()
+    verblijfsobject_openbare_ruimte_naam = es.Keyword()
     verblijfsobject_huisnummer = es.Integer()
-    verblijfsobject_huisletter = es.Text()
-    verblijfsobject_huisnummer_toevoeging = es.Text()
-    verblijfsobject_postcode = es.Text()
+    verblijfsobject_huisletter = es.Keyword()
+    verblijfsobject_huisnummer_toevoeging = es.Keyword()
+    verblijfsobject_postcode = es.Keyword()
 
-    woonplaats = es.Text()
+    woonplaats = es.Keyword()
 
-    kot_stadsdeel_naam = es.Text(multi=True)
-    kot_stadsdeel_code = es.Text(multi=True)
-    kot_ggw_naam = es.Text(multi=True)
-    kot_ggw_code = es.Text(multi=True)
-    kot_wijk_naam = es.Text(multi=True)
-    kot_wijk_code = es.Text(multi=True)
-    kot_buurt_naam = es.Text(multi=True)
-    kot_buurt_code = es.Text(multi=True)
+    kot_stadsdeel_naam = es.Keyword(multi=True)
+    kot_stadsdeel_code = es.Keyword(multi=True)
+    kot_ggw_naam = es.Keyword(multi=True)
+    kot_ggw_code = es.Keyword(multi=True)
+    kot_wijk_naam = es.Keyword(multi=True)
+    kot_wijk_code = es.Keyword(multi=True)
+    kot_buurt_naam = es.Keyword(multi=True)
+    kot_buurt_code = es.Keyword(multi=True)
     geo_point = es.GeoPoint()
     geo_poly = es.GeoShape()
 
     zrt_aardzakelijkrecht_oms = es.Keyword()
-    zrt_aandeel = es.Text()
+    zrt_aandeel = es.Keyword()
 
     sjt_type = es.Keyword()
-    sjt_naam = es.Text()  # <-- generated
-    sjt_voornamen = es.Text()
+    sjt_naam = es.Keyword()  # <-- generated
+    sjt_voornamen = es.Keyword()
     sjt_voorvoegsel_geslachtsnaam = es.Keyword()
     sjt_geslachtsnaam = es.Keyword()
     sjt_geslachtcode_oms = es.Keyword()
@@ -85,11 +85,11 @@ class Eigendom(es.DocType):
     sjt_nnp_statutaire_rechtsvorm_oms = es.Keyword()
     sjt_nnp_rsin = es.Keyword()
     sjt_nnp_kvknummer = es.Keyword()
-    sjt_woonadres = es.Text()
-    sjt_woonadres_buitenland = es.Text()
-    sjt_postadres = es.Text()
-    sjt_postadres_buitenland = es.Text()
-    sjt_postadres_postbus = es.Text()
+    sjt_woonadres = es.Keyword()
+    sjt_woonadres_buitenland = es.Keyword()
+    sjt_postadres = es.Keyword()
+    sjt_postadres_buitenland = es.Keyword()
+    sjt_postadres_postbus = es.Keyword()
 
     def save(self, *args, **kwargs):
         """Fills a few dependant fields with data from other fields.
@@ -165,7 +165,7 @@ def doc_from_eigendom(eigendom: object):
 
     doc = Eigendom(_id=eigendom.id)
     doc.eigendom_id = eigendom.id
-    # kot_kadastrale_aanduiding = es.Text()  # <-- generated
+    # kot_kadastrale_aanduiding = es.Keyword()  # <-- generated
     doc.kot_kadastrale_gemeentecode = kot.kadastrale_gemeente_id
     doc.kot_sectie = kot.sectie_id
     doc.kot_perceelnummer = kot.perceelnummer
@@ -183,7 +183,7 @@ def doc_from_eigendom(eigendom: object):
 
     vbo_list = kot.verblijfsobjecten.all()  # This is already ordered
 
-    # eerste_adres = es.Text()  # <-- generated
+    # eerste_adres = es.Keyword()  # <-- generated
     if vbo_list:
         vbo = vbo_list[0]
         doc.verblijfsobject_id =  vbo.landelijk_id
@@ -192,8 +192,9 @@ def doc_from_eigendom(eigendom: object):
         doc.verblijfsobject_huisletter = vbo._huisletter
         doc.verblijfsobject_huisnummer_toevoeging = vbo._huisnummer_toevoeging
         hoofdadres = vbo.hoofdadres
-        doc.verblijfsobject_postcode = hoofdadres.postcode
-        doc.woonplaats = str(hoofdadres.woonplaats)
+        if hoofdadres:
+            doc.verblijfsobject_postcode = hoofdadres.postcode
+            doc.woonplaats = str(hoofdadres.woonplaats)
 
     stadsdelen = kot.stadsdelen.all()
     if stadsdelen:
@@ -227,7 +228,7 @@ def doc_from_eigendom(eigendom: object):
     kst = eigendom.kadastraal_subject
     if kst:
         doc.sjt_type = kst.type
-        # doc.sjt_naam = es.Text()  # <-- generated
+        # doc.sjt_naam = es.Keyword()  # <-- generated
         doc.sjt_voornamen = kst.voornamen
         doc.sjt_voorvoegsel_geslachtsnaam = kst.voorvoegsels
         doc.sjt_geslachtsnaam = kst.naam

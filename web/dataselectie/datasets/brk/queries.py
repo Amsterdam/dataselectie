@@ -13,19 +13,19 @@ from django.conf import settings
 from ..generic.queries import create_query
 
 
-def meta_q(query: str, add_aggs=True, sort=True) -> dict:
+def meta_q(query: str, add_aggs=False, sort=True) -> dict:
     # @TODO change to setting
     if add_aggs:
         aggs = create_aggs()
     else:
         aggs = None
     sort = {
-         'sort': {
-             'verblijfsobject_openbare_ruimte_naam': {"order": "asc"},
-             'verblijfsobject_huisnummer': {"order": "asc"},
-             'verblijfsobject_huisletter': {"order": "asc"},
-             'verblijfsobject_huisnummer_toevoeging': {"order": "asc"}
-         }
+         # 'sort': {
+         #     'verblijfsobject_openbare_ruimte_naam': {"order": "asc"},
+         #     'verblijfsobject_huisnummer': {"order": "asc"},
+         #     'verblijfsobject_huisletter': {"order": "asc"},
+         #     'verblijfsobject_huisnummer_toevoeging': {"order": "asc"}
+         # }
      }
 
     return create_query(query, aggs, sort, qtype='eigendom')
@@ -49,20 +49,20 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 }
             },
-            # 'buurtcombinatie_naam': {
-            #     'terms': {
-            #         'field': 'buurtcombinatie_naam',
-            #         'size': agg_size,
-            #         'order': {'_term': 'asc'},
-            #     },
-            # },
-            # 'buurtcombinatie_code': {
-            #     'terms': {
-            #         'field': 'buurtcombinatie_code',
-            #         'size': agg_size,
-            #         'order': {'_term': 'asc'},
-            #     },
-            # },
+            'wijk_naam': {
+                'terms': {
+                    'field': 'wijk_naam',
+                    'size': agg_size,
+                     'order': {'_term': 'asc'},
+                },
+            },
+            'wijk_code': {
+                'terms': {
+                    'field': 'wijk_code',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                },
+            },
             'buurt_code': {
                 'terms': {
                     'field': 'kot_buurt_code',
