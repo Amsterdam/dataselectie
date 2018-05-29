@@ -1,4 +1,5 @@
 import logging
+import json
 
 import factory
 from factory import fuzzy
@@ -7,6 +8,7 @@ from datasets.brk import models
 from django.db import connection
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from datasets.brk import geo_models
+from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
 from datasets.generic import kadaster
 from .fixtures_geometrie import perceel_geometrie
@@ -298,6 +300,20 @@ def create_geo_data():
     create_eigenperceelgroepen()
     create_niet_eigenpercelen()
     create_niet_eigenperceelgroepen()
+
+
+def get_bbox_leaflet():
+    # get the leaflet-like LatLngBounds
+    return json.dumps({
+        '_northEast': {
+            'lat': 52.37068,
+            'lng': 4.894825
+        },
+        '_southWest': {
+            'lat': 52.367797,
+            'lng': 4.898945
+        }
+    })
 
 
 def get_bbox():

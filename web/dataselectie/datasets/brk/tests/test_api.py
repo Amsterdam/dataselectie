@@ -86,13 +86,13 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     def test_get_geodata_with_bbox(self):
         q = {'categorie': 1, 'zoom': 14}
-        q['bbox'] = brk.get_bbox()
+        q['bbox'] = brk.get_bbox_leaflet()
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertEqual(response.status_code, 200)
 
     def test_get_geodata_appartementen(self):
-        q = {'categorie': 3, 'zoom': 12, 'bbox': brk.get_bbox()}
+        q = {'categorie': 3, 'zoom': 12, 'bbox': brk.get_bbox_leaflet()}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertEqual(response.status_code, 200)
@@ -104,7 +104,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(response.json()['appartementen']), 1)
 
     def test_get_geodata_eigenpercelen(self):
-        q = {'categorie': 3, 'bbox': brk.get_bbox()}
+        q = {'categorie': 3, 'bbox': brk.get_bbox_leaflet()}
 
         for zoom in range(8, 14):
             q['zoom'] = zoom
@@ -115,7 +115,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
 
     def test_get_geodata_nieteigenpercelen(self):
-        q = {'categorie': 3, 'bbox': brk.get_bbox()}
+        q = {'categorie': 3, 'bbox': brk.get_bbox_leaflet()}
 
         for zoom in range(8, 14):
             q['zoom'] = zoom
@@ -125,7 +125,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             self.assertGeoJSON(response.json()['niet_eigenpercelen'])
 
     def test_get_geodata_gebied_buurt(self):
-        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox(), 'buurt': '1'}
+        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'buurt': '1'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertValidEmpty(response)
@@ -146,7 +146,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertValidEmpty(response)
 
     def test_get_geodata_gebied_wijk(self):
-        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox(), 'wijk': '3630012052028'}
+        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'wijk': '3630012052028'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertValidEmpty(response)
@@ -167,7 +167,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertValidEmpty(response)
 
     def test_get_geodata_gebied_ggw(self):
-        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox(), 'ggw': 'DX02'}
+        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'ggw': 'DX02'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertValidEmpty(response)
@@ -188,7 +188,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertValidEmpty(response)
 
     def test_get_geodata_gebied_stadsdeel(self):
-        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox(), 'stadsdeel': '03630000000019'}
+        q = {'categorie': 3, 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'stadsdeel': '03630000000019'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_hr_r)
         self.assertValidEmpty(response)

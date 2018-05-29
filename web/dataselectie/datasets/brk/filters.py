@@ -1,3 +1,5 @@
+import json
+
 from django.contrib.gis.geos import Polygon
 from django_filters import rest_framework as filters
 from rest_framework_gis.filters import GeometryFilter
@@ -27,14 +29,13 @@ class BrkGeoFilter(GeoFilterSet):
 
     def filter_bbox(self, queryset, name, value):
         if value:
-            try:
-                points = (float(n) for n in value.split(','))
-                box = Polygon.from_bbox(points)
-                box.srid = SRID_WSG84
-                box.transform(SRID_RD)
-                return queryset.filter(geometrie__intersects=box)
-            except ValueError:
-                pass
+            bbox = json.loads(value)
+            points = (bbox['_southWest']['lng'], bbox['_northEast']['lat'],
+                      bbox['_northEast']['lng'], bbox['_southWest']['lat'])
+            box = Polygon.from_bbox(points)
+            box.srid = SRID_WSG84
+            box.transform(SRID_RD)
+            return queryset.filter(geometrie__intersects=box)
 
         return queryset
 
