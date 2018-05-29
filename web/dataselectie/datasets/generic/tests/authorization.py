@@ -41,13 +41,13 @@ class AuthorizationSetup(object):
         token_default = jwt.encode({
             'scopes': [],
             'iat': now, 'exp': now + 600}, key.key, algorithm=key.alg,headers={'kid': kid})
-        token_scope_hr_r = jwt.encode({
-            'scopes':[authorization_levels.SCOPE_HR_R],
+        token_scope_brk_plus = jwt.encode({
+            'scopes':[authorization_levels.SCOPE_HR_R, authorization_levels.SCOPE_BRK_RS, authorization_levels.SCOPE_BRK_RSN],
             'iat': now, 'exp': now + 600}, key.key, algorithm=key.alg,headers={'kid': kid})
 
         self.token_default = str(token_default, 'utf-8')
         self.header_auth_default = {AUTH_HEADER: f'Bearer {self.token_default}'}
 
-        self.token_scope_hr_r = str(token_scope_hr_r, 'utf-8')
+        self.token_scope_brk_plus = str(token_scope_brk_plus, 'utf-8')
         self.header_auth_scope_hr_r = {
-            AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}
+            AUTH_HEADER: f'Bearer {self.token_scope_brk_plus}'}
