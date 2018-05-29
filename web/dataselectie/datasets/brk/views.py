@@ -1,5 +1,5 @@
 import authorization_levels
-from rest_framework.status import HTTP_401_UNAUTHORIZED
+from rest_framework.status import HTTP_403_FORBIDDEN
 
 from datasets.brk.queries import meta_q
 from datasets.brk import models, geo_models, filters, serializers
@@ -7,6 +7,7 @@ from datasets.brk import models, geo_models, filters, serializers
 from datasets.generic.views_mixins import CSVExportView
 from datasets.generic.views_mixins import TableSearchView
 
+from django.core.exceptions import PermissionDenied
 from django.contrib.gis.db.models import Collect
 from rest_framework import generics
 from rest_framework import status
@@ -26,27 +27,21 @@ class BrkBase(object):
     db = 'brk'
     q_func = meta_q
     keywords = [
-
-
-
-        'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
-        'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
-        'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats',
-        '_openbare_ruimte_naam', 'openbare_ruimte'
+        'buurt_naam', 'buurt_code', 'wijk_code',
+        'wijk_naam', 'ggw_naam', 'ggw_code',
+        'stadsdeel_naam', 'stadsdeel_code',
+        'verblijfsobject_postcode', 'woonplaats',
+        'verblijfsobject_openbare_ruimte_naam', 'eerste_adres'
     ]
     keyword_mapping = {
-        'openbare_ruimte': 'naam',
     }
     raw_fields = []
 
 
 class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
-    def retrieve(self, request, *args, **kwargs):
-        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
-            return super().retrieve(request, *args, **kwargs)
-        return Response(status=HTTP_401_UNAUTHORIZED)
-
     def get(self, request, *args, **kwargs):
+        if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            return Response(status=HTTP_403_FORBIDDEN)
         output = None
         zoom = self.request.query_params.get('zoom')
         try:
@@ -93,7 +88,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 zoom = 0
 
             # keep zoom between 8 and 12
-            query_params['zoom'] =  max(8, min(zoom, 12))
+            query_params['zoom'] = max(8, min(zoom, 12))
         else:
             query_params['zoom'] = None
 
@@ -129,10 +124,10 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
 
 class BrkSearch(BrkBase, TableSearchView):
-    def retrieve(self, request, *args, **kwargs):
-        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
-            return super().retrieve(request, *args, **kwargs)
-        return Response(status=HTTP_401_UNAUTHORIZED)
+    def handle_request(self, request, *args, **kwargs):
+        if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            raise PermissionDenied("scope BRK/RSN required")
+        return super().handle_request(request, *args, **kwargs)
 
     def elastic_query(self, query):
         return meta_q(query)
@@ -177,10 +172,10 @@ class BrkCSV(BrkBase, CSVExportView):
         ('landelijk_id', 'Nummeraanduidingidentificatie')
     )
 
-    def retrieve(self, request, *args, **kwargs):
-        if request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
-            return super().retrieve(request, *args, **kwargs)
-        return Response(status=HTTP_401_UNAUTHORIZED)
+    def handle_request(self, request, *args, **kwargs):
+        if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            raise PermissionDenied("scope BRK/RSN required")
+        return super().handle_request(request, *args, **kwargs)
 
     field_names = [h[0] for h in fields_and_headers]
     csv_headers = [h[1] for h in fields_and_headers]

@@ -1,7 +1,7 @@
 version: '3.0'
 services:
   elasticsearch:
-    image: amsterdam/elasticsearch5
+    image: amsterdam/elasticsearch6
     user: root
     volumes:
       - ./backups/elasticsearch:/tmp/backups

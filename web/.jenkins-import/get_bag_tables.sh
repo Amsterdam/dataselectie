@@ -35,6 +35,8 @@ declare  -a bag_tables=(
 	"bag_woonplaats"
 	"brk_aardzakelijkrecht"
 	"brk_adres"
+	"brk_cultuurcodebebouwd"
+	"brk_cultuurcodeonbebouwd"
 	"brk_eigendom"
 	"brk_eigenaar"
 	"brk_eigenaarcategorie"

@@ -27,116 +27,128 @@ def _cleanup(s: str):
 
 class Eigendom(es.DocType):
     class Meta:
-        all = es.MetaField(enabled=False)
+        # all = es.MetaField(enabled=False)
         doc_type = 'eigendom'
         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
-    eigendom_id = es.Keyword()
-    kot_kadastrale_aanduiding = es.Keyword()  # <-- generated
-    kot_kadastrale_gemeentecode = es.Keyword()
-    kot_sectie = es.Keyword()
-    kot_perceelnummer = es.Keyword()
-    kot_indexletter = es.Keyword()
-    kot_indexnummer = es.Keyword()
+    kadastraal_object_id = es.Keyword()
+    eigenaar_cat = es.Keyword()
+    grondeigenaar = es.Boolean()
+    aanschrijfbaar = es.Boolean()
+    appartementeigenaar = es.Boolean()
+    aard_zakelijk_recht_akr = es.Keyword()
 
-    kot_kadastrale_gemeentenaam = es.Keyword()
-    kot_koopsom = es.Float()
-    kot_koopjaar = es.Integer()
-    kot_grootte = es.Float()
-    kot_cultuurcode_bebouwd_oms = es.Keyword()
-    kot_cultuurcode_onbebouwd_oms = es.Keyword()
+    eigendom_id = es.Keyword()
+    aanduiding = es.Keyword()  # <-- generated
+    kadastrale_gemeentecode = es.Keyword()
+    sectie = es.Keyword()
+    perceelnummer = es.Keyword()
+    indexletter = es.Keyword()
+    indexnummer = es.Keyword()
+
+    kadastrale_gemeentenaam = es.Keyword()
+    koopsom = es.Float()
+    koopjaar = es.Integer()
+    grootte = es.Float()
+    cultuurcode_bebouwd = es.Keyword()
+    cultuurcode_onbebouwd = es.Keyword()
 
     eerste_adres = es.Keyword()  # <-- generated
-    verblijfsobject_id = es.Keyword()
-    verblijfsobject_openbare_ruimte_naam = es.Keyword()
-    verblijfsobject_huisnummer = es.Integer()
-    verblijfsobject_huisletter = es.Keyword()
-    verblijfsobject_huisnummer_toevoeging = es.Keyword()
-    verblijfsobject_postcode = es.Keyword()
+    verblijfsobject_id = es.Keyword(multi=True)
+    verblijfsobject_openbare_ruimte_naam = es.Keyword(multi=True)
+    verblijfsobject_huisnummer = es.Integer(multi=True)
+    verblijfsobject_huisletter = es.Keyword(multi=True)
+    verblijfsobject_huisnummer_toevoeging = es.Keyword(multi=True)
+    verblijfsobject_postcode = es.Keyword(multi=True)
+    verblijfsobject_woonplaats = es.Keyword(multi=True)
 
-    woonplaats = es.Keyword()
-
-    kot_stadsdeel_naam = es.Keyword(multi=True)
-    kot_stadsdeel_code = es.Keyword(multi=True)
-    kot_ggw_naam = es.Keyword(multi=True)
-    kot_ggw_code = es.Keyword(multi=True)
-    kot_wijk_naam = es.Keyword(multi=True)
-    kot_wijk_code = es.Keyword(multi=True)
-    kot_buurt_naam = es.Keyword(multi=True)
-    kot_buurt_code = es.Keyword(multi=True)
+    stadsdeel_naam = es.Keyword(multi=True)
+    stadsdeel_code = es.Keyword(multi=True)
+    ggw_naam = es.Keyword(multi=True)
+    ggw_code = es.Keyword(multi=True)
+    wijk_naam = es.Keyword(multi=True)
+    wijk_code = es.Keyword(multi=True)
+    buurt_naam = es.Keyword(multi=True)
+    buurt_code = es.Keyword(multi=True)
     geo_point = es.GeoPoint()
     geo_poly = es.GeoShape()
 
-    zrt_aardzakelijkrecht_oms = es.Keyword()
-    zrt_aandeel = es.Keyword()
+    aard_zakelijk_recht = es.Keyword()
+    zakelijk_recht_aandeel = es.Keyword()
 
-    sjt_type = es.Keyword()
-    sjt_naam = es.Keyword()  # <-- generated
-    sjt_voornamen = es.Keyword()
-    sjt_voorvoegsel_geslachtsnaam = es.Keyword()
-    sjt_geslachtsnaam = es.Keyword()
-    sjt_geslachtcode_oms = es.Keyword()
-    sjt_kad_geboortedatum = es.Date()
-    sjt_kad_geboorteplaats = es.Keyword()
-    sjt_kad_geboorteland_code = es.Keyword()
-    sjt_kad_datum_overlijden = es.Date()
-    sjt_nnp_statutaire_naam = es.Keyword()
-    sjt_nnp_statutaire_zetel = es.Keyword()
-    sjt_nnp_statutaire_rechtsvorm_oms = es.Keyword()
-    sjt_nnp_rsin = es.Keyword()
-    sjt_nnp_kvknummer = es.Keyword()
-    sjt_woonadres = es.Keyword()
-    sjt_woonadres_buitenland = es.Keyword()
-    sjt_postadres = es.Keyword()
-    sjt_postadres_buitenland = es.Keyword()
-    sjt_postadres_postbus = es.Keyword()
+    kadastraal_subject = es.Nested(
+        properties = {
+            'id': es.Keyword(),
+            'type': es.Keyword(),
+            'is_natuurlijk_persoon': es.Boolean(),
+            'voornamen': es.Keyword(),
+            'voorvoegsels':es.Keyword(),
+            'naam': es.Keyword(),
+            'geslacht_omschrijving': es.Keyword(),
+            'geboortedatum': es.Date(),
+            'geboorteplaats': es.Keyword(),
+            'geboorteland_code': es.Keyword(),
+            'datum_overlijden': es.Date(),
+            'statutaire_naam': es.Keyword(),
+            'statutaire_zetel': es.Keyword(),
+            'statutaire_rechtsvorm': es.Keyword(),
+            'rsin': es.Keyword(),
+            'kvknummer': es.Keyword(),
+            'woonadres': es.Keyword(),
+            'woonadres_buitenland': es.Keyword(),
+            'postadres': es.Keyword(),
+            'postadres_buitenland': es.Keyword(),
+            'postadres_postbus': es.Keyword()
+        }
+    )
 
-    def save(self, *args, **kwargs):
-        """Fills a few dependant fields with data from other fields.
-
-        -   kot_kadastrale_aanduiding
-        -   sjt_naam
-        -   eerste_adres
-
-        """
-        # noinspection PyTypeChecker
-        self.kot_kadastrale_aanduiding = _cleanup(
-            ' '.join(s for s in [
-                self.kot_kadastrale_gemeentecode,
-                self.kot_sectie,
-                self.kot_perceelnummer,
-                self.kot_indexletter,
-                self.kot_indexnummer
-            ] if s is not None)
-        )
-        # noinspection PyTypeChecker
-        self.sjt_naam = _cleanup(
-            ' '.join(s for s in [
-                self.sjt_voornamen,
-                self.sjt_voorvoegsel_geslachtsnaam,
-                self.sjt_geslachtsnaam
-            ] if s is not None)
-        )
-        adressen = []
-        # noinspection PyTypeChecker
-        for i in range(len(self.verblijfsobject_id)):
-            adres = ' '.join(s for s in [
-                self.verblijfsobject_openbare_ruimte_naam[i],
-                self.verblijfsobject_huisnummer[i],
-                self.verblijfsobject_huisletter[i],
-                self.verblijfsobject_huisnummer_toevoeging[i]
-            ] if s is not None)
-            if self.verblijfsobject_postcode[i] is not None:
-                adres += ', ' + self.verblijfsobject_postcode[i]
-            adressen.append(_cleanup(adres))
-        self.eerste_adres = sorted(adressen)[0] if len(adressen) else None
-        return super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     """Fills a few dependant fields with data from other fields.
+    #
+    #     -   kot_kadastrale_aanduiding
+    #     -   sjt_naam
+    #     -   eerste_adres
+    #
+    #     """
+    #     # noinspection PyTypeChecker
+    #     self.aanduiding = _cleanup(
+    #         ' '.join(s for s in [
+    #             self.kadastrale_gemeentecode,
+    #             self.sectie,
+    #             self.perceelnummer,
+    #             self.indexletter,
+    #             self.indexnummer
+    #         ] if s is not None)
+    #     )
+    #     # noinspection PyTypeChecker
+    #     # self.kadastraal_subject.append({
+    #     #      'naam' : _cleanup(
+    #     #         ' '.join(s for s in [
+    #     #             self.kadastraal_subject.voornamen,
+    #     #             self.kadastraal_subject.voorvoegsel_geslachtsnaam,
+    #     #             self.kadastraal_subject.geslachtsnaam
+    #     #         ] if s is not None) )
+    #     # })
+    #     adressen = []
+    #     # noinspection PyTypeChecker
+    #     for i in range(len(self.verblijfsobject_id)):
+    #         adres = ' '.join(s for s in [
+    #             self.verblijfsobject_openbare_ruimte_naam[i],
+    #             self.verblijfsobject_huisnummer[i],
+    #             self.verblijfsobject_huisletter[i],
+    #             self.verblijfsobject_huisnummer_toevoeging[i]
+    #         ] if s is not None)
+    #         if self.verblijfsobject_postcode[i] is not None:
+    #             adres += ', ' + self.verblijfsobject_postcode[i]
+    #         adressen.append(_cleanup(adres))
+    #     self.eerste_adres = sorted(adressen)[0] if len(adressen) else None
+    #     return super().save(*args, **kwargs)
 
 
 lookup_tables = {}
 
 
-def get_omschrijving(clazz, code):
+def get_omschrijving(clazz, code, code_field='code', omschrijving_field='omschrijving'):
     if code is None:
         return None
     global lookup_tables
@@ -145,7 +157,7 @@ def get_omschrijving(clazz, code):
         lookup_tables[class_name] = {}
         elements = clazz.objects.all()
         for e in elements:
-            lookup_tables[class_name][e.code] = e.omschrijving
+            lookup_tables[class_name][getattr(e, code_field)] = getattr(e, omschrijving_field)
     return lookup_tables[class_name].get(code)
 
 def get_date(val):
@@ -159,59 +171,98 @@ def get_date(val):
     return result
 
 
-def doc_from_eigendom(eigendom: object):
+def doc_from_eigendom(eigendom: object) -> Eigendom:
     kot = eigendom.kadastraal_object
     # eigendommen = kot.eigendommen.all()
 
     doc = Eigendom(_id=eigendom.id)
     doc.eigendom_id = eigendom.id
+
+    doc.kadastraal_object_id = kot.id
+    doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
+                                        omschrijving_field='categorie')
+    doc.grondeigenaar = eigendom.grondeigenaar
+    doc.aanschrijfbaar = eigendom.aanschrijfbaar
+    doc.appartementeigenaar = eigendom.appartementeigenaar
+    doc.aard_zakelijk_recht_akr = eigendom.aard_zakelijk_recht_akr
+
     # kot_kadastrale_aanduiding = es.Keyword()  # <-- generated
-    doc.kot_kadastrale_gemeentecode = kot.kadastrale_gemeente_id
-    doc.kot_sectie = kot.sectie_id
-    doc.kot_perceelnummer = kot.perceelnummer
-    doc.kot_indexletter = kot.indexletter
-    doc.kot_indexnummer = kot.indexnummer
+    doc.kadastrale_gemeentecode = kot.kadastrale_gemeente_id
+    doc.sectie = kot.sectie_id
+    doc.perceelnummer = str(kot.perceelnummer)
+    doc.indexletter = kot.indexletter
+    doc.indexnummer = str(kot.indexnummer)
 
-    doc.kot_kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
+    doc.kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
 
-    doc.kot_koopsom = kot.koopsom
-    doc.kot_koopjaar = kot.koopjaar
-    doc.kot_grootte = kot.grootte
+    doc.aanduiding = _cleanup(
+        ' '.join(s for s in [
+            doc.kadastrale_gemeentecode,
+            doc.sectie,
+            doc.perceelnummer,
+            doc.indexletter,
+            doc.indexnummer
+        ] if s is not None)
+    )
 
-    doc.kot_cultuurcode_bebouwd_oms = kot.cultuurcode_bebouwd_id
-    doc.kot_cultuurcode_onbebouwd_oms = kot.cultuurcode_onbebouwd_id
+    doc.koopsom = kot.koopsom
+    doc.koopjaar = kot.koopjaar
+    doc.grootte = kot.grootte
+
+    doc.cultuurcode_bebouwd = get_omschrijving(brk_models.CultuurCodeBebouwd, kot.cultuurcode_bebouwd_id)
+    doc.cultuurcode_onbebouwd = get_omschrijving(brk_models.CultuurCodeOnbebouwd, kot.cultuurcode_onbebouwd_id)
 
     vbo_list = kot.verblijfsobjecten.all()  # This is already ordered
-
     # eerste_adres = es.Keyword()  # <-- generated
     if vbo_list:
-        vbo = vbo_list[0]
-        doc.verblijfsobject_id =  vbo.landelijk_id
-        doc.verblijfsobject_openbare_ruimte_naam = vbo._openbare_ruimte_naam
-        doc.verblijfsobject_huisnummer = vbo._huisnummer
-        doc.verblijfsobject_huisletter = vbo._huisletter
-        doc.verblijfsobject_huisnummer_toevoeging = vbo._huisnummer_toevoeging
-        hoofdadres = vbo.hoofdadres
-        if hoofdadres:
-            doc.verblijfsobject_postcode = hoofdadres.postcode
-            doc.woonplaats = str(hoofdadres.woonplaats)
+        doc.verblijfsobject_id = []
+        doc.verblijfsobject_openbare_ruimte_naam = []
+        doc.verblijfsobject_huisnummer = []
+        doc.verblijfsobject_huisletter = []
+        doc.verblijfsobject_huisnummer_toevoeging = []
+        doc.verblijfsobject_postcode = []
+        doc.verblijfsobject_woonplaats = []
+
+        doc.eerste_adres = None
+        for vbo in vbo_list:
+            doc.verblijfsobject_id.append(vbo.landelijk_id)
+            doc.verblijfsobject_openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
+            doc.verblijfsobject_huisnummer.append(str(vbo._huisnummer))
+            doc.verblijfsobject_huisletter.append(vbo._huisletter)
+            doc.verblijfsobject_huisnummer_toevoeging.append(vbo._huisnummer_toevoeging)
+            hoofdadres = vbo.hoofdadres
+            if hoofdadres:
+                postcode = hoofdadres.postcode
+                woonplaats = str(hoofdadres.woonplaats) if hoofdadres.woonplaats else ''
+            else:
+                postcode = None
+                woonplaats = None
+            doc.verblijfsobject_postcode.append(postcode)
+            doc.verblijfsobject_woonplaats.append(woonplaats)
+            if doc.eerste_adres is None:
+                doc.eerste_adres = _cleanup(
+                    ' '.join(s for s in [
+                        vbo._openbare_ruimte_naam,
+                        str(vbo._huisnummer),
+                        vbo._huisletter,
+                        vbo._huisnummer_toevoeging] if s is not None))
 
     stadsdelen = kot.stadsdelen.all()
     if stadsdelen:
-        doc.kot_stadsdeel_naam = [stadsdeel.naam for stadsdeel in stadsdelen]
-        doc.kot_stadsdeel_code = [stadsdeel.code for stadsdeel in stadsdelen]
+        doc.stadsdeel_naam = [stadsdeel.naam for stadsdeel in stadsdelen]
+        doc.stadsdeel_code = [stadsdeel.code for stadsdeel in stadsdelen]
     ggws = kot.ggws.all()
     if ggws:
-        doc.kot_ggw_code = [ggw.code for ggw in ggws]
-        doc.kot_ggw_naam = [ggw.naam for ggw in ggws]
+        doc.ggw_code = [ggw.code for ggw in ggws]
+        doc.ggw_naam = [ggw.naam for ggw in ggws]
     wijken = kot.wijken.all()
     if wijken:
-        doc.kot_wijk_naam = [wijk.naam for wijk in wijken]
-        doc.kot_wijk_code = [wijk.code for wijk in wijken]
+        doc.wijk_naam = [wijk.naam for wijk in wijken]
+        doc.wijk_code = [wijk.code for wijk in wijken]
     buurten = kot.buurten.all()
     if buurten:
-        doc.kot_buurt_naam = [buurt.naam for buurt in buurten]
-        doc.kot_buurt_code = [buurt.code for buurt in buurten]
+        doc.buurt_naam = [buurt.naam for buurt in buurten]
+        doc.buurt_code = [buurt.code for buurt in buurten]
 
     if kot.point_geom:
         doc.geo_point = kot.point_geom.transform('wgs84', clone=True).coords
@@ -222,42 +273,48 @@ def doc_from_eigendom(eigendom: object):
 
     zrt = eigendom.zakelijk_recht
     if zrt:
-        doc.zrt_aardzakelijkrecht_oms = get_omschrijving(brk_models.AardZakelijkRecht, zrt.aard_zakelijk_recht_id)
-        doc.zrt_aandeel = f"{zrt.teller}/{zrt.noemer}"
+        doc.aard_zakelijk_recht = get_omschrijving(brk_models.AardZakelijkRecht, zrt.aard_zakelijk_recht_id)
+        doc.zakelijk_recht_aandeel = f"{zrt.teller}/{zrt.noemer}"
 
     kst = eigendom.kadastraal_subject
     if kst:
-        doc.sjt_type = kst.type
-        # doc.sjt_naam = es.Keyword()  # <-- generated
-        doc.sjt_voornamen = kst.voornamen
-        doc.sjt_voorvoegsel_geslachtsnaam = kst.voorvoegsels
-        doc.sjt_geslachtsnaam = kst.naam
-        doc.sjt_geslachtcode_oms = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
-        doc.sjt_kad_geboortedatum = get_date(kst.geboortedatum)
-        doc.sjt_kad_geboorteplaats = kst.geboorteplaats
-        doc.sjt_kad_geboorteland_code = kst.geboorteland_id
-        doc.sjt_kad_datum_overlijden = get_date(kst.overlijdensdatum)
-        doc.sjt_nnp_statutaire_naam = kst.statutaire_naam
-        doc.sjt_nnp_statutaire_zetel = kst.statutaire_zetel
-        doc.sjt_nnp_statutaire_rechtsvorm_oms = get_omschrijving(brk_models.Rechtsvorm, kst.rechtsvorm_id)
-        doc.sjt_nnp_rsin = kst.rsin
-        doc.sjt_nnp_kvknummer = kst.kvknummer
+        kst_properties = {
+            'id': kst.id,
+            'type': kst.type,
+            'is_natuurlijk_persoon': kst.is_natuurlijk_persoon(),
+            'voornamen': kst.voornamen,
+            'voorvoegsels': kst.voorvoegsels,
+            'naam': kst.naam,
+            'geslacht_omschrijving': get_omschrijving(brk_models.Geslacht, kst.geslacht_id),
+            'geboortedatum': get_date(kst.geboortedatum),
+            'geboorteplaats': kst.geboorteplaats,
+            'geboorteland_code': kst.geboorteland_id,
+            'datum_overlijden': get_date(kst.overlijdensdatum),
+            'statutaire_naam': kst.statutaire_naam,
+            'statutaire_zetel': kst.statutaire_zetel,
+            'statutaire_rechtsvorm': get_omschrijving(brk_models.Rechtsvorm, kst.rechtsvorm_id),
+            'rsin': kst.rsin,
+            'kvknummer': kst.kvknummer,
+        }
         woonadres = kst.woonadres
         if woonadres:
-            doc.sjt_woonadres = woonadres.volledig_adres()
-            doc.sjt_woonadres_buitenland = woonadres.volledig_buitenland_adres()
+            kst_properties.update(
+                {
+                    'woonadres': woonadres.volledig_adres(),
+                    'woonadres_buitenland': woonadres.volledig_buitenland_adres()
+                }
+            )
         postadres = kst.postadres
         if postadres:
-            doc.sjt_postadres = postadres.volledig_adres()
-            doc.sjt_postadres_buitenland = postadres.volledig_buitenland_adres()
-            doc.sjt_postadres_postbus = postadres.postbus_adres()
+            kst_properties.update(
+                {
+                    'postadres': postadres.volledig_adres(),
+                    'postadres_buitenland': postadres.volledig_buitenland_adres(),
+                    'postadres_postbus': postadres.postbus_adres()
 
-    # doc.kadastraal_object_id = eigendom.id
-    # doc.eigenaar_cat = [str(eigendom.eigenaar_categorie_id) for eigendom in eigendommen]
-    # doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
-    # doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
-    # doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
-
+                }
+            )
+        doc.kadastraal_subject.append(kst_properties)
 
     return doc
 
