@@ -32,6 +32,7 @@ class Eigendom(es.DocType):
         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     kadastraal_object_id = es.Keyword()
+    eigenaar_cat_id = es.Integer()
     eigenaar_cat = es.Keyword()
     grondeigenaar = es.Boolean()
     aanschrijfbaar = es.Boolean()
@@ -56,7 +57,7 @@ class Eigendom(es.DocType):
     eerste_adres = es.Keyword()  # <-- generated
     verblijfsobject_id = es.Keyword(multi=True)
     verblijfsobject_openbare_ruimte_naam = es.Keyword(multi=True)
-    verblijfsobject_huisnummer = es.Integer(multi=True)
+    verblijfsobject_huisnummer = es.Keyword(multi=True)
     verblijfsobject_huisletter = es.Keyword(multi=True)
     verblijfsobject_huisnummer_toevoeging = es.Keyword(multi=True)
     verblijfsobject_postcode = es.Keyword(multi=True)
@@ -179,6 +180,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.eigendom_id = eigendom.id
 
     doc.kadastraal_object_id = kot.id
+    doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
                                         omschrijving_field='categorie')
     doc.grondeigenaar = eigendom.grondeigenaar
