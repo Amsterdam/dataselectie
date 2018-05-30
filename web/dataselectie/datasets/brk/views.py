@@ -1,5 +1,4 @@
 import authorization_levels
-from django.contrib.gis.geos import GEOSGeometry
 from rest_framework.status import HTTP_403_FORBIDDEN
 
 from datasets.brk.queries import meta_q
@@ -13,6 +12,8 @@ from django.contrib.gis.db.models import Collect
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
+
+SRID_WSG84 = 4326
 
 
 class BrkBase(object):
