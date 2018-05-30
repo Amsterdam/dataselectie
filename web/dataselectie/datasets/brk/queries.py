@@ -35,16 +35,44 @@ def create_aggs():
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
+            'eigenaar_cat': {
+                'terms': {
+                    'field': 'eigenaar_cat',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            'grondeigenaar': {
+                'terms': {
+                    'field': 'grondeigenaar',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            'aanschrijfbaar': {
+                'terms': {
+                    'field': 'aanschrijfbaar',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
+            'appartementeigenaar': {
+                'terms': {
+                    'field': 'appartementeigenaar',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
             'verblijfsobject_postcode': {
                 'terms': {
-                    'field': 'postcode',
+                    'field': 'verblijfsobject_postcode',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'verblijfsobject_openbare_ruimte_naam': {
                 'terms': {
-                    'field': 'naam',
+                    'field': 'verblijfsobject_openbare_ruimte_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
@@ -65,21 +93,21 @@ def create_aggs():
             },
             'buurt_code': {
                 'terms': {
-                    'field': 'kot_buurt_code',
+                    'field': 'buurt_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'buurt_naam': {
                 'terms': {
-                    'field': 'kot_buurt_naam',
+                    'field': 'buurt_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
             'ggw_naam': {
                 'terms': {
-                    'field': 'kot_ggw_naam',
+                    'field': 'ggw_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
@@ -93,14 +121,14 @@ def create_aggs():
             },
             'stadsdeel_naam': {
                 'terms': {
-                    'field': 'kot_stadsdeel_naam',
+                    'field': 'stadsdeel_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }
             },
             'stadsdeel_code': {
                 'terms': {
-                    'field': 'kot_stadsdeel_code',
+                    'field': 'stadsdeel_code',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }

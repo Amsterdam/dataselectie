@@ -54,7 +54,7 @@ class Eigendom(es.DocType):
     cultuurcode_bebouwd = es.Keyword()
     cultuurcode_onbebouwd = es.Keyword()
 
-    eerste_adres = es.Keyword()  # <-- generated
+    adressen = es.Keyword(multi=True)
     verblijfsobject_id = es.Keyword(multi=True)
     verblijfsobject_openbare_ruimte_naam = es.Keyword(multi=True)
     verblijfsobject_huisnummer = es.Keyword(multi=True)
@@ -71,37 +71,35 @@ class Eigendom(es.DocType):
     wijk_code = es.Keyword(multi=True)
     buurt_naam = es.Keyword(multi=True)
     buurt_code = es.Keyword(multi=True)
-    geo_point = es.GeoPoint()
-    geo_poly = es.GeoShape()
+    geometrie_rd = es.Keyword(index=False, ignore_above=256)
+    geometrie_wgs84 = es.Keyword(index=False, ignore_above=256)
+    #geo_point = es.GeoPoint()
+    #geo_poly = es.GeoShape()
 
     aard_zakelijk_recht = es.Keyword()
     zakelijk_recht_aandeel = es.Keyword()
 
-    kadastraal_subject = es.Nested(
-        properties = {
-            'id': es.Keyword(),
-            'type': es.Keyword(),
-            'is_natuurlijk_persoon': es.Boolean(),
-            'voornamen': es.Keyword(),
-            'voorvoegsels':es.Keyword(),
-            'naam': es.Keyword(),
-            'geslacht_omschrijving': es.Keyword(),
-            'geboortedatum': es.Date(),
-            'geboorteplaats': es.Keyword(),
-            'geboorteland_code': es.Keyword(),
-            'datum_overlijden': es.Date(),
-            'statutaire_naam': es.Keyword(),
-            'statutaire_zetel': es.Keyword(),
-            'statutaire_rechtsvorm': es.Keyword(),
-            'rsin': es.Keyword(),
-            'kvknummer': es.Keyword(),
-            'woonadres': es.Keyword(),
-            'woonadres_buitenland': es.Keyword(),
-            'postadres': es.Keyword(),
-            'postadres_buitenland': es.Keyword(),
-            'postadres_postbus': es.Keyword()
-        }
-    )
+    sjt_id = es.Keyword()
+    sjt_type = es.Keyword()
+    sjt_is_natuurlijk_persoon = es.Boolean()
+    sjt_voornamen = es.Keyword()
+    sjt_voorvoegsels =es.Keyword()
+    sjt_naam = es.Keyword()
+    sjt_geslacht_oms = es.Keyword()
+    sjt_geboortedatum = es.Date()
+    sjt_geboorteplaats = es.Keyword()
+    sjt_geboorteland_code = es.Keyword()
+    sjt_datum_overlijden = es.Date()
+    sjt_statutaire_naam = es.Keyword()
+    sjt_statutaire_zetel = es.Keyword()
+    sjt_statutaire_rechtsvorm = es.Keyword()
+    sjt_rsin = es.Keyword()
+    sjt_kvknummer = es.Keyword()
+    sjt_woonadres = es.Keyword()
+    sjt_woonadres_buitenland = es.Keyword()
+    sjt_postadres = es.Keyword()
+    sjt_postadres_buitenland = es.Keyword()
+    sjt_postadres_postbus = es.Keyword()
 
     # def save(self, *args, **kwargs):
     #     """Fills a few dependant fields with data from other fields.
@@ -224,8 +222,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.verblijfsobject_huisnummer_toevoeging = []
         doc.verblijfsobject_postcode = []
         doc.verblijfsobject_woonplaats = []
+        doc.adressen = []
 
-        doc.eerste_adres = None
         for vbo in vbo_list:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
             doc.verblijfsobject_openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
@@ -241,13 +239,14 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
                 woonplaats = None
             doc.verblijfsobject_postcode.append(postcode)
             doc.verblijfsobject_woonplaats.append(woonplaats)
-            if doc.eerste_adres is None:
-                doc.eerste_adres = _cleanup(
+            doc.adressen.append(
+                _cleanup(
                     ' '.join(s for s in [
                         vbo._openbare_ruimte_naam,
                         str(vbo._huisnummer),
                         vbo._huisletter,
-                        vbo._huisnummer_toevoeging] if s is not None))
+                        vbo._huisnummer_toevoeging,
+                        postcode] if s is not None)))
 
     stadsdelen = kot.stadsdelen.all()
     if stadsdelen:
@@ -267,11 +266,11 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.buurt_code = [buurt.code for buurt in buurten]
 
     if kot.point_geom:
-        doc.geo_point = kot.point_geom.transform('wgs84', clone=True).coords
-    if kot.poly_geom:
-        multipolygon_wgs84 = kot.poly_geom.transform('wgs84', clone=True)
-        # geoshape expects a dict with 'type' and 'coords'
-        doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
+        doc.geometrie_rd = kot.point_geom.transform('28992', clone=True).wkt
+        doc.geometrie_wgs84 = kot.point_geom.transform('wgs84', clone=True).wkt
+    elif kot.poly_geom:
+        doc.geometrie_rd = kot.poly_geom.transform('28992', clone=True).wkt
+        doc.geometrie_wgs84 = kot.poly_geom.transform('wgs84', clone=True).wkt
 
     zrt = eigendom.zakelijk_recht
     if zrt:
@@ -280,43 +279,32 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     kst = eigendom.kadastraal_subject
     if kst:
-        kst_properties = {
-            'id': kst.id,
-            'type': kst.type,
-            'is_natuurlijk_persoon': kst.is_natuurlijk_persoon(),
-            'voornamen': kst.voornamen,
-            'voorvoegsels': kst.voorvoegsels,
-            'naam': kst.naam,
-            'geslacht_omschrijving': get_omschrijving(brk_models.Geslacht, kst.geslacht_id),
-            'geboortedatum': get_date(kst.geboortedatum),
-            'geboorteplaats': kst.geboorteplaats,
-            'geboorteland_code': kst.geboorteland_id,
-            'datum_overlijden': get_date(kst.overlijdensdatum),
-            'statutaire_naam': kst.statutaire_naam,
-            'statutaire_zetel': kst.statutaire_zetel,
-            'statutaire_rechtsvorm': get_omschrijving(brk_models.Rechtsvorm, kst.rechtsvorm_id),
-            'rsin': kst.rsin,
-            'kvknummer': kst.kvknummer,
-        }
+        doc.sjt_id = kst.id
+        doc.sjt_type = kst.type
+        doc.sjt_is_natuurlijk_persoon = kst.is_natuurlijk_persoon()
+        doc.sjt_voornamen = kst.voornamen
+        doc.sjt_voorvoegsels = kst.voorvoegsels
+        doc.sjt_naam = kst.naam
+        doc.sjt_geslacht_omschrijving = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
+        doc.sjt_geboortedatum = get_date(kst.geboortedatum)
+        doc.sjt_geboorteplaats = kst.geboorteplaats
+        doc.sjt_geboorteland_code = kst.geboorteland_id
+        doc.sjt_datum_overlijden = get_date(kst.overlijdensdatum)
+        doc.sjt_statutaire_naam = kst.statutaire_naam
+        doc.sjt_statutaire_zetel = kst.statutaire_zetel
+        doc.sjt_statutaire_rechtsvorm = get_omschrijving(brk_models.Rechtsvorm, kst.rechtsvorm_id)
+        doc.sjt_rsin = kst.rsin
+        doc.sjt_kvknummer = kst.kvknummer
+
         woonadres = kst.woonadres
         if woonadres:
-            kst_properties.update(
-                {
-                    'woonadres': woonadres.volledig_adres(),
-                    'woonadres_buitenland': woonadres.volledig_buitenland_adres()
-                }
-            )
+            doc.sjt_woonadres = woonadres.volledig_adres()
+            doc.sjt_woonadres_buitenland = woonadres.volledig_buitenland_adres()
         postadres = kst.postadres
         if postadres:
-            kst_properties.update(
-                {
-                    'postadres': postadres.volledig_adres(),
-                    'postadres_buitenland': postadres.volledig_buitenland_adres(),
-                    'postadres_postbus': postadres.postbus_adres()
-
-                }
-            )
-        doc.kadastraal_subject.append(kst_properties)
+            doc.sjt_postadres = postadres.volledig_adres()
+            doc.sjt_postadres_buitenland = postadres.volledig_buitenland_adres()
+            doc.sjt_postadres_postbus = postadres.postbus_adres()
 
     return doc
 
