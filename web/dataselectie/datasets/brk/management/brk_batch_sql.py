@@ -155,7 +155,7 @@ mapselection_sql_commands = [
     #       Select plot - category combo if not already exists and within that plot the non-plot - category combo does
     """CREATE TABLE geo_brk_niet_eigendom_poly AS (SELECT
         row_number() over () AS id, niet_eigendom.kadastraal_object_id, 
-        possible_cats.cat_id, niet_eigendom.poly_geom as geometrie
+        possible_cats.cat_id, ST_ForcePolygonCW(niet_eigendom.poly_geom) as geometrie
         FROM geo_brk_eigendommen niet_eigendom, 
             (select distinct kpp.poly_kot_id, eigendom.cat_id from geo_brk_eigendommen eigendom, geo_brk_kot_point_in_poly kpp
               where kpp.point_kot_id = eigendom.kadastraal_object_id) possible_cats
@@ -176,7 +176,7 @@ mapselection_sql_commands = [
         row_number() over () AS id, 
         eigendom.kadastraal_object_id,
         eigendom.cat_id,
-        eigendom.poly_geom as geometrie
+        ST_ForcePolygonCW(eigendom.poly_geom) as geometrie
         FROM geo_brk_eigendommen eigendom
         WHERE poly_geom is not null
         )""",
@@ -388,5 +388,9 @@ mapselection_sql_commands = [
     # Make geometries valid for calculating intersections:
     "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_MAKEVALID(geometrie)",
     "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_MAKEVALID(geometrie)",
+
+    # Make geometries CW for serializing into valid GeoJSON:
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_ForcePolygonCW(geometrie)",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_ForcePolygonCW(geometrie)",
 
 ]
