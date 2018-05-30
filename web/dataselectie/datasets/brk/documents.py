@@ -62,6 +62,7 @@ class Eigendom(es.DocType):
     verblijfsobject_huisnummer_toevoeging = es.Keyword(multi=True)
     verblijfsobject_postcode = es.Keyword(multi=True)
     verblijfsobject_woonplaats = es.Keyword(multi=True)
+    eerste_adres = es.Keyword()
 
     stadsdeel_naam = es.Keyword(multi=True)
     stadsdeel_code = es.Keyword(multi=True)
@@ -247,6 +248,9 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
                         vbo._huisletter,
                         vbo._huisnummer_toevoeging,
                         postcode] if s is not None)))
+
+    if doc.adressen:
+        doc.eerste_adres = doc.adressen[0]
 
     stadsdelen = kot.stadsdelen.all()
     if stadsdelen:

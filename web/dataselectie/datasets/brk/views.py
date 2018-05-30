@@ -144,7 +144,13 @@ class BrkSearch(BrkBase, TableSearchView):
         return super().handle_request(request, *args, **kwargs)
 
     def elastic_query(self, query):
-        return meta_q(query)
+        result = meta_q(query)
+        result.update({
+            "_source": {
+                "exclude": ["adressen", "verblijfsobject*"]
+            },
+        })
+        return result
 
 
 class BrkCSV(BrkBase, CSVExportView):
@@ -159,6 +165,7 @@ class BrkCSV(BrkBase, CSVExportView):
         ('perceelnummer', 'Perceelnummer'),
         ('indexletter', 'Indexletter'),
         ('indexnummer', 'Indexnummer'),
+        ('adressen', 'Adressen'),
         ('verblijfsobject_id', 'Verblijfsobjectidentificatie'),
         ('verblijfsobject_openbare_ruimte_naam', 'Naam openbare ruimte'),
         ('verblijfsobject_huisnummer', 'Huisnummer'),
@@ -214,7 +221,13 @@ class BrkCSV(BrkBase, CSVExportView):
     csv_headers = [h[1] for h in fields_and_headers]
 
     def elastic_query(self, query):
-        return meta_q(query, False, False)
+        result = meta_q(query, False, False)
+        result.update({
+            "_source": {
+                "exclude": ["eerste_adres"]
+            },
+        })
+        return result
 
     def item_data_update(self, item, request):
         # create_geometry_dict(item)
