@@ -74,8 +74,7 @@ class Eigendom(es.DocType):
     buurt_code = es.Keyword(multi=True)
     geometrie_rd = es.Keyword(index=False, ignore_above=256)
     geometrie_wgs84 = es.Keyword(index=False, ignore_above=256)
-    #geo_point = es.GeoPoint()
-    #geo_poly = es.GeoShape()
+    centroid = es.GeoPoint()  # centroid is required for shape search. Which items are inside the shape ?
 
     aard_zakelijk_recht = es.Keyword()
     zakelijk_recht_aandeel = es.Keyword()
@@ -271,10 +270,14 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     if kot.point_geom:
         doc.geometrie_rd = kot.point_geom.transform('28992', clone=True).wkt
-        doc.geometrie_wgs84 = kot.point_geom.transform('wgs84', clone=True).wkt
+        geometrie_wgs84 = kot.point_geom.transform('wgs84', clone=True)
+        doc.geometrie_wgs84 = geometrie_wgs84.wkt
+        doc.centroid = (geometrie_wgs84.coords)
     elif kot.poly_geom:
         doc.geometrie_rd = kot.poly_geom.transform('28992', clone=True).wkt
-        doc.geometrie_wgs84 = kot.poly_geom.transform('wgs84', clone=True).wkt
+        geometrie_wgs84 = kot.poly_geom.transform('wgs84', clone=True)
+        doc.geometrie_wgs84 = geometrie_wgs84.wkt
+        doc.centroid = (geometrie_wgs84.centroid.coords)
 
     zrt = eigendom.zakelijk_recht
     if zrt:
