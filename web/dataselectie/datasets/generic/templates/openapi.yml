@@ -210,7 +210,7 @@ paths:
         - name: shape
           required: false
           in: query
-          description: Shape (polygon) selecteert eigendommen binnen polygon (bijv: shape=%5B%5B4.9017541,52.4124517%5D,%5B4.8986594,52.4050457%5D,%5B4.9027843,52.4041399%5D,%5B4.907126,52.4085158%5D%5D)
+          description: Shape (polygon) selecteert eigendommen binnen polygon
           type: string
 
       responses:
