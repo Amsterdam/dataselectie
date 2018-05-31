@@ -61,7 +61,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         if 'categorie' not in query_params:
             query_params['categorie'] = 99
 
-        # only filter on the
+        # only filter on the most detailed level
         if 'buurt' in query_params:
             query_params.pop('wijk', None)
             query_params.pop('ggw', None)
@@ -97,8 +97,8 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
         return {"appartementen": appartementen,
-                "eigenpercelen": niet_eigenpercelen['geom'],
-                "niet_eigenpercelen": eigenpercelen['geom']}
+                "eigenpercelen": eigenpercelen['geom'],
+                "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
     def get_zoomed_out(self):
         appartementen = []
@@ -110,8 +110,8 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
         return {"appartementen": appartementen,
-                "eigenpercelen": niet_eigenpercelen['geom'],
-                "niet_eigenpercelen": eigenpercelen['geom']}
+                "eigenpercelen": eigenpercelen['geom'],
+                "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
 
 class BrkSearch(BrkBase, TableSearchView):
