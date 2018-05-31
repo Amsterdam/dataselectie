@@ -1,0 +1,204 @@
+swagger: "2.0"
+info:
+    title: "Dataselectie API"
+    description: "Beschrijving dataselectie API"
+    version: ""
+host: {{ acc_prod_prefix }}api.data.amsterdam.nl
+basePath: /dataselectie
+schemes:
+  - https
+produces:
+  - application/json
+securityDefinitions:
+  OAuth2:
+    type: oauth2
+    description: 'Authorization through datapunt Authorization service.'
+    authorizationUrl: 'https://{{ acc_prod_prefix }}api.data.amsterdam.nl/oauth2/authorize'
+    flow: implicit
+    scopes:
+      HR/R: Read handelsregister
+      BRK/RS: Read non-natural subject
+      BRK/RSN: Read natural subject
+
+paths:
+  /brk/:
+    get:
+      summary: Dataselectie eigendommen search
+      description: Geef lijst van alle eigendommen die matchen en aggregaties.
+      security:
+        - OAuth2:
+            - HR/R
+            - BRK/RS
+            - BRK/RSN
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Pagina
+          type: string
+          pattern: '^[0-9]+$'
+        - name: eigenaar_categorie_id
+          required: false
+          in: query
+          description: Categorie Id eigenaar (0..9)
+          type: string
+          pattern: '^[0-9]$'
+        - name: eigenaar_cat
+          required: false
+          in: query
+          description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
+          type: string
+        - name: grondeigenaar
+          required: false
+          in: query
+          description: Is grondeigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: aanschrijfbaar
+          required: false
+          in: query
+          description: Is aanschrijfbaar (pandeigenaar) (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: appartementeigenaar
+          required: false
+          in: query
+          description: Is appartements eigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: buurt_naam
+          required: false
+          in: query
+          description: Naam buurt (bijv. De Bongerd)
+          type: string
+        - name: buurt_code
+          required: false
+          in: query
+          description: Code buurt (bijv. 65d)
+          type: string
+        - name: wijk_code
+          required: false
+          in: query
+          description: Code wijk (bijv. 65)
+          type: string
+        - name: wijk_naam
+          required: false
+          in: query
+          description: Naam wijk (bijv. Tuindorp Oostzaan)
+          type: string
+        - name: ggw_naam
+          required: false
+          in: query
+          description: Naam gebiedsgerichtwerken (bijv. West)
+          type: string
+        - name: ggw_code
+          required: false
+          in: query
+          description: Code gebiedsgerichtwerken (bijv. DX17)
+          type: string
+        - name: stadsdeel_naam
+          required: false
+          in: query
+          description: Naam stadsdeel (Westpoort, Oost, Noord, Centrum, West, Nieuw-West, Zuid, Zuidoost)
+          type: string
+        - name: stadsdeel_code
+          required: false
+          in: query
+          description: Code stadsdeel (B, M, N, A, E, F, K, T)
+          type: string
+
+      responses:
+        '200':
+          description: >-
+            Aggregaties en lijst met eigendommen
+
+  /brk/export/:
+    get:
+      summary: Dataselectie eigendommen search voor CSV download
+      description: Geef lijst van alle eigendommen die matchen in CSV.
+      security:
+        - OAuth2:
+            - HR/R
+            - BRK/RS
+            - BRK/RSN
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Pagina
+          type: string
+          pattern: '^[0-9]+$'
+        - name: eigenaar_categorie_id
+          required: false
+          in: query
+          description: Categorie Id eigenaar (0..9)
+          type: string
+          pattern: '^[0-9]$'
+        - name: eigenaar_cat
+          required: false
+          in: query
+          description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
+          type: string
+        - name: grondeigenaar
+          required: false
+          in: query
+          description: Is grondeigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: aanschrijfbaar
+          required: false
+          in: query
+          description: Is aanschrijfbaar (pandeigenaar) (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: appartementeigenaar
+          required: false
+          in: query
+          description: Is appartements eigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: buurt_naam
+          required: false
+          in: query
+          description: Naam buurt (bijv. De Bongerd)
+          type: string
+        - name: buurt_code
+          required: false
+          in: query
+          description: Code buurt (bijv. 65d)
+          type: string
+        - name: wijk_code
+          required: false
+          in: query
+          description: Code wijk (bijv. 65)
+          type: string
+        - name: wijk_naam
+          required: false
+          in: query
+          description: Naam wijk (bijv. Tuindorp Oostzaan)
+          type: string
+        - name: ggw_naam
+          required: false
+          in: query
+          description: Naam gebiedsgerichtwerken (bijv. West)
+          type: string
+        - name: ggw_code
+          required: false
+          in: query
+          description: Code gebiedsgerichtwerken (bijv. DX17)
+          type: string
+        - name: stadsdeel_naam
+          required: false
+          in: query
+          description: Naam stadsdeel (Westpoort, Oost, Noord, Centrum, West, Nieuw-West, Zuid, Zuidoost)
+          type: string
+        - name: stadsdeel_code
+          required: false
+          in: query
+          description: Code stadsdeel (B, M, N, A, E, F, K, T)
+          type: string
+
+      responses:
+        '200':
+          description: >-
+            Lijst met eigendommen in CSV

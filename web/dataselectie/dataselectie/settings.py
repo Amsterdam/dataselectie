@@ -10,11 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
-import datetime
-import sys
 import authorization_levels
-
-import os
 
 from dataselectie._settings_common import *  # noqa F403
 from dataselectie._settings_databases import *  # noqa F403
@@ -22,6 +18,9 @@ from dataselectie._settings_databases import *  # noqa F403
 from dataselectie.utils import get_variable
 from dataselectie.utils import get_db_settings
 
+
+DATAPUNT_API_URL = os.getenv(
+    'DATAPUNT_API_URL', 'https://api.data.amsterdam.nl/')
 
 # Application definition
 
@@ -143,7 +142,11 @@ JWKS_TEST_KEY = """
 DATAPUNT_AUTHZ = {
     'JWKS': os.getenv('PUB_JWKS', JWKS_TEST_KEY),
     'MIN_SCOPE': authorization_levels.SCOPE_HR_R,
-    'FORCED_ANONYMOUS_ROUTES': ('/status/', '/dataselectie/bag/'),
+    'FORCED_ANONYMOUS_ROUTES': (
+        '/status/',
+        '/dataselectie/bag/',
+        '/dataselectie/api-docs'
+    ),
     'ALWAYS_OK': False #LOCAL
 }
 
