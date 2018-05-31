@@ -56,7 +56,7 @@ class Nummeraanduiding(es.DocType):
 
     # Verblijfsobject specific data
     gebruiksdoelen_omschrijvingen = es.Keyword(
-        index='not_analyzed', multi=True)
+        index=False, multi=True)
     gebruiksdoelen_coden = es.Keyword(multi=True)
 
     oppervlakte = es.Integer()
