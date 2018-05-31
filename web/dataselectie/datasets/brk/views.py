@@ -38,27 +38,21 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
             return Response(status=HTTP_403_FORBIDDEN)
-        output = None
-        zoom = self.request.query_params.get('zoom')
-        try:
-            zoom = int(zoom)
+
+        if 'zoom' in self.request.query_params:
+            zoom = int(self.request.query_params.get('zoom'))
             if zoom > 12:
                 if 'bbox' not in request.query_params:
                     return Response("Bounding box required at this zoomlevel",
                                     status=status.HTTP_400_BAD_REQUEST)
-                # Todo: gaurd against having too large a bbox ?
-                output = self.get_zoomed_in()
-        except:
-            pass
+                serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_in())
+                return Response(serialize.data)
 
-        if output is None:
-            # make queryparams on underlying request-object mutable:
-            request._request.GET = request.query_params.copy()
-            # then change them, so that modifications can be accessed by the filter:
-            self._prepare_queryparams_for_zoomed_out(request.query_params)
-            output = self.get_zoomed_out()
-
-        serialize = serializers.BrkGeoLocationSerializer(output)
+        # make queryparams on underlying request-object mutable:
+        request._request.GET = request.query_params.copy()
+        # then change them, so that modifications can be accessed by the filter:
+        self._prepare_queryparams_for_zoomed_out(request.query_params)
+        serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_out())
         return Response(serialize.data)
 
     def _prepare_queryparams_for_zoomed_out(self, query_params):
@@ -67,6 +61,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         if 'categorie' not in query_params:
             query_params['categorie'] = 99
 
+        # only filter on the
         if 'buurt' in query_params:
             query_params.pop('wijk', None)
             query_params.pop('ggw', None)

@@ -376,14 +376,14 @@ mapselection_sql_commands = [
     "CREATE INDEX ON geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
 
     # Simplify geometries (to the nearest 5, 10, 20 and 50 meters) for faster serving:
-    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 5) where gebied = 'buurt'",
-    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 5) where gebied = 'buurt'",
-    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 10) where gebied = 'wijk'",
-    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 10) where gebied = 'wijk'",
-    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 20) where gebied = 'ggw'",
-    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 20) where gebied = 'ggw'",
-    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 50) where gebied = 'stadsdeel'",
-    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 50) where gebied = 'stadsdeel'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.0000025) where gebied = 'buurt'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.0000025) where gebied = 'buurt'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.000005) where gebied = 'wijk'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.000005) where gebied = 'wijk'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.00001) where gebied = 'ggw'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.00001) where gebied = 'ggw'",
+    "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.000025) where gebied = 'stadsdeel'",
+    "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.000025) where gebied = 'stadsdeel'",
 
     # Make geometries valid for calculating intersections:
     "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_MAKEVALID(geometrie)",
