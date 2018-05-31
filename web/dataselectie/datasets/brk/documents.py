@@ -56,12 +56,12 @@ class Eigendom(es.DocType):
 
     adressen = es.Keyword(multi=True)
     verblijfsobject_id = es.Keyword(multi=True)
-    verblijfsobject_openbare_ruimte_naam = es.Keyword(multi=True)
-    verblijfsobject_huisnummer = es.Keyword(multi=True)
-    verblijfsobject_huisletter = es.Keyword(multi=True)
-    verblijfsobject_huisnummer_toevoeging = es.Keyword(multi=True)
-    verblijfsobject_postcode = es.Keyword(multi=True)
-    verblijfsobject_woonplaats = es.Keyword(multi=True)
+    openbare_ruimte_naam = es.Keyword(multi=True)
+    huisnummer = es.Keyword(multi=True)
+    huisletter = es.Keyword(multi=True)
+    huisnummer_toevoeging = es.Keyword(multi=True)
+    postcode = es.Keyword(multi=True)
+    woonplaats = es.Keyword(multi=True)
     eerste_adres = es.Keyword()
 
     stadsdeel_naam = es.Keyword(multi=True)
@@ -209,27 +209,32 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.koopjaar = kot.koopjaar
     doc.grootte = kot.grootte
 
-    doc.cultuurcode_bebouwd = get_omschrijving(brk_models.CultuurCodeBebouwd, kot.cultuurcode_bebouwd_id)
+    # There can be more culturecode_bebouwd in the id, separated by commas
+    if kot.cultuurcode_bebouwd_id:
+        doc.cultuurcode_bebouwd = ",".join(map(lambda x: get_omschrijving(brk_models.CultuurCodeBebouwd, x),
+                                           [x.strip() for x in kot.cultuurcode_bebouwd_id.split(',')]))
+    else:
+        doc.cultuurcode_bebouwd = None
     doc.cultuurcode_onbebouwd = get_omschrijving(brk_models.CultuurCodeOnbebouwd, kot.cultuurcode_onbebouwd_id)
 
     vbo_list = kot.verblijfsobjecten.all()  # This is already ordered
     # eerste_adres = es.Keyword()  # <-- generated
     if vbo_list:
         doc.verblijfsobject_id = []
-        doc.verblijfsobject_openbare_ruimte_naam = []
-        doc.verblijfsobject_huisnummer = []
-        doc.verblijfsobject_huisletter = []
-        doc.verblijfsobject_huisnummer_toevoeging = []
-        doc.verblijfsobject_postcode = []
-        doc.verblijfsobject_woonplaats = []
+        doc.openbare_ruimte_naam = []
+        doc.huisnummer = []
+        doc.huisletter = []
+        doc.huisnummer_toevoeging = []
+        doc.postcode = []
+        doc.woonplaats = []
         doc.adressen = []
 
         for vbo in vbo_list:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
-            doc.verblijfsobject_openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
-            doc.verblijfsobject_huisnummer.append(str(vbo._huisnummer))
-            doc.verblijfsobject_huisletter.append(vbo._huisletter)
-            doc.verblijfsobject_huisnummer_toevoeging.append(vbo._huisnummer_toevoeging)
+            doc.openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
+            doc.huisnummer.append(str(vbo._huisnummer))
+            doc.huisletter.append(vbo._huisletter)
+            doc.huisnummer_toevoeging.append(vbo._huisnummer_toevoeging)
             hoofdadres = vbo.hoofdadres
             if hoofdadres:
                 postcode = hoofdadres.postcode
@@ -237,8 +242,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
             else:
                 postcode = None
                 woonplaats = None
-            doc.verblijfsobject_postcode.append(postcode)
-            doc.verblijfsobject_woonplaats.append(woonplaats)
+            doc.postcode.append(postcode)
+            doc.woonplaats.append(woonplaats)
             doc.adressen.append(
                 _cleanup(
                     ' '.join(s for s in [

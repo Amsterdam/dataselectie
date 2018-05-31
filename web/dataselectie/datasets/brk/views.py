@@ -28,6 +28,7 @@ class BrkBase(object):
         'buurt_naam', 'buurt_code', 'wijk_code',
         'wijk_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code',
+        'openbare_ruimte_naam', 'postcode'
     ]
     keyword_mapping = {
     }
@@ -124,7 +125,7 @@ class BrkSearch(BrkBase, TableSearchView):
         result = meta_q(query)
         result.update({
             "_source": {
-                "exclude": ["adressen", "verblijfsobject*"]
+                "exclude": ["adressen"]
             },
         })
         return result
@@ -144,12 +145,12 @@ class BrkCSV(BrkBase, CSVExportView):
         ('indexnummer', 'Indexnummer'),
         ('adressen', 'Adressen'),
         ('verblijfsobject_id', 'Verblijfsobjectidentificatie'),
-        ('verblijfsobject_openbare_ruimte_naam', 'Naam openbare ruimte'),
-        ('verblijfsobject_huisnummer', 'Huisnummer'),
-        ('verblijfsobject_huisletter', 'Huisletter'),
-        ('verblijfsobject_huisnummer_toevoeging', 'Huisnummer toevoeging'),
-        ('verblijfsobject_postcode', 'Postcode'),
-        ('verblijfsobject_woonplaats', 'Woonplaats'),
+        ('openbare_ruimte_naam', 'Naam openbare ruimte'),
+        ('huisnummer', 'Huisnummer'),
+        ('huisletter', 'Huisletter'),
+        ('huisnummer_toevoeging', 'Huisnummer toevoeging'),
+        ('postcode', 'Postcode'),
+        ('woonplaats', 'Woonplaats'),
         ('stadsdeel_naam', 'Naam stadsdeel'),
         ('stadsdeel_code', 'Code stadsdeel'),
         ('ggw_naam', 'Naam gebiedsgerichtwerkengebied'),

@@ -21,10 +21,7 @@ def meta_q(query: str, add_aggs=True, sort=True) -> dict:
         aggs = None
     sort = {
          'sort': {
-             'verblijfsobject_openbare_ruimte_naam': {"order": "asc"},
-             'verblijfsobject_huisnummer': {"order": "asc"},
-             'verblijfsobject_huisletter': {"order": "asc"},
-             'verblijfsobject_huisnummer_toevoeging': {"order": "asc"}
+             'eerste_adres': {"order": "asc"},
          }
      }
 
@@ -63,16 +60,16 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 }
             },
-            'verblijfsobject_postcode': {
+            'postcode': {
                 'terms': {
-                    'field': 'verblijfsobject_postcode',
+                    'field': 'postcode',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 },
             },
-            'verblijfsobject_openbare_ruimte_naam': {
+            'openbare_ruimte_naam': {
                 'terms': {
-                    'field': 'verblijfsobject_openbare_ruimte_naam',
+                    'field': 'openbare_ruimte_naam',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }

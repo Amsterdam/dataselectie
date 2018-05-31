@@ -197,6 +197,21 @@ paths:
           in: query
           description: Code stadsdeel (B, M, N, A, E, F, K, T)
           type: string
+        - name: openbare_ruimte_naam
+          required: false
+          in: query
+          description: naam straat of plein (bijv. Kalverstraat)
+          type: string
+        - name: postcode
+          required: false
+          in: query
+          description: Postcode (bijv 1019KS)
+          type: string
+        - name: shape
+          required: false
+          in: query
+          description: Shape (polygon) selecteert eigendommen binnen polygon (bijv: shape=%5B%5B4.9017541,52.4124517%5D,%5B4.8986594,52.4050457%5D,%5B4.9027843,52.4041399%5D,%5B4.907126,52.4085158%5D%5D)
+          type: string
 
       responses:
         '200':
