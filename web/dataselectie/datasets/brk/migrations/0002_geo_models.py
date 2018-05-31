@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
             name='Appartementen',
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
-                ('geometrie', django.contrib.gis.db.models.fields.PointField(srid=28992)),
+                ('geometrie', django.contrib.gis.db.models.fields.PointField(srid=4326)),
                 ('aantal', models.IntegerField()),
             ],
             options={
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             name='EigenPerceel',
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
-                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=28992)),
+                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
             ],
             options={
                 'verbose_name': 'EigenPerceel',
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
                 ('eigendom_cat', models.IntegerField()),
                 ('gebied', models.CharField(max_length=255)),
                 ('gebied_id', models.CharField(max_length=255, null=True)),
-                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=28992)),
+                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
             ],
             options={
                 'verbose_name': 'EigenPerceelGroep',
@@ -56,7 +56,7 @@ class Migration(migrations.Migration):
             name='NietEigenPerceel',
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
-                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=28992)),
+                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
             ],
             options={
                 'verbose_name': 'NietEigenPerceel',
@@ -72,7 +72,7 @@ class Migration(migrations.Migration):
                 ('eigendom_cat', models.IntegerField()),
                 ('gebied', models.CharField(max_length=255)),
                 ('gebied_id', models.CharField(max_length=255, null=True)),
-                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=28992)),
+                ('geometrie', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
             ],
             options={
                 'verbose_name': 'NietEigenPerceelGroep',

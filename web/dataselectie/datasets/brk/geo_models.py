@@ -3,7 +3,7 @@ from django.db import models
 
 from datasets.brk import models as brk
 
-SRID_RD = 28992
+SRID_WSG84 = 4326
 
 
 class BrkEigenaarGeoModel(models.Model):
@@ -16,7 +16,7 @@ class BrkEigenaarGeoModel(models.Model):
         brk.EigenaarCategorie,
         on_delete=models.CASCADE,
     )
-    geometrie = geo.PointField(srid=SRID_RD)
+    geometrie = geo.PointField(srid=SRID_WSG84)
 
     class Meta:
         abstract = True
@@ -33,7 +33,7 @@ class Appartementen(BrkEigenaarGeoModel):
 
 
 class EigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.MultiPolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_WSG84)
     class Meta:
         db_table = "geo_brk_eigendom_poly"
         verbose_name = "EigenPerceel"
@@ -42,7 +42,7 @@ class EigenPerceel(BrkEigenaarGeoModel):
 
 
 class NietEigenPerceel(BrkEigenaarGeoModel):
-    geometrie = geo.MultiPolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_WSG84)
     class Meta:
         db_table = "geo_brk_niet_eigendom_poly"
         verbose_name = "NietEigenPerceel"
@@ -61,7 +61,7 @@ class BrkGegroepeerdGeoModel(models.Model):
     eigendom_cat = models.IntegerField()
     gebied = models.CharField(max_length=255)
     gebied_id = models.CharField(max_length=255, null=True)
-    geometrie = geo.MultiPolygonField(srid=SRID_RD)
+    geometrie = geo.MultiPolygonField(srid=SRID_WSG84)
 
     class Meta:
         abstract = True

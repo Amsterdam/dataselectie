@@ -13,8 +13,6 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
 
-SRID_WSG84 = 4326
-
 
 class BrkBase(object):
     """
@@ -103,17 +101,9 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         perceel_queryset = self.filter(geo_models.NietEigenPerceel)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        ep_geom = eigenpercelen['geom']
-        if ep_geom:
-            ep_geom.transform(SRID_WSG84)
-
-        nep_geom = niet_eigenpercelen['geom']
-        if nep_geom:
-            nep_geom.transform(SRID_WSG84)
-
         return {"appartementen": appartementen,
-                "eigenpercelen": ep_geom,
-                "niet_eigenpercelen": nep_geom}
+                "eigenpercelen": niet_eigenpercelen['geom'],
+                "niet_eigenpercelen": eigenpercelen['geom']}
 
     def get_zoomed_out(self):
         appartementen = []
@@ -124,17 +114,9 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        ep_geom = niet_eigenpercelen['geom']
-        if ep_geom:
-            ep_geom.transform(SRID_WSG84)
-
-        nep_geom = eigenpercelen['geom']
-        if nep_geom:
-            nep_geom.transform(SRID_WSG84)
-
         return {"appartementen": appartementen,
-                "eigenpercelen": ep_geom,
-                "niet_eigenpercelen": nep_geom}
+                "eigenpercelen": niet_eigenpercelen['geom'],
+                "niet_eigenpercelen": eigenpercelen['geom']}
 
 
 class BrkSearch(BrkBase, TableSearchView):

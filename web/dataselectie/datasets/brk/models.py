@@ -6,11 +6,14 @@ from django.db import models
 from datasets.bag import models as bag
 from datasets.generic import kadaster
 
+SRID_WSG84 = 4326
+SRID_RD = 28992
+
 
 class Gemeente(models.Model):
     gemeente = models.CharField(max_length=50, primary_key=True)
 
-    geometrie = geo.MultiPolygonField(srid=28992)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
 
     objects = geo.Manager()
 
@@ -32,7 +35,7 @@ class KadastraleGemeente(models.Model):
         Gemeente, related_name="kadastrale_gemeentes",
         on_delete=models.CASCADE)
 
-    geometrie = geo.MultiPolygonField(srid=28992)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
 
     objects = geo.Manager()
 
@@ -57,7 +60,7 @@ class KadastraleSectie(models.Model):
         on_delete=models.CASCADE
     )
 
-    geometrie = geo.MultiPolygonField(srid=28992)
+    geometrie = geo.MultiPolygonField(srid=SRID_RD)
 
     objects = geo.Manager()
 
@@ -314,8 +317,8 @@ class KadastraalObject(models.Model):
     voorlopige_kadastrale_grens = models.NullBooleanField(default=None)
     in_onderzoek = models.TextField(null=True)
 
-    poly_geom = geo.MultiPolygonField(srid=28992, null=True)
-    point_geom = geo.PointField(srid=28992, null=True)
+    poly_geom = geo.MultiPolygonField(srid=SRID_RD, null=True)
+    point_geom = geo.PointField(srid=SRID_RD, null=True)
 
     voornaamste_gerechtigde = models.ForeignKey(
         Eigenaar, null=True, on_delete=models.CASCADE)
