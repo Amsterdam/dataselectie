@@ -21,4 +21,3 @@ class BrkGeoLocationSerializer(serializers.Serializer):
     class Meta:
         inlcude_fields = ('appartementen', 'eigenpercelen', 'niet_eigenpercelen')
 
-

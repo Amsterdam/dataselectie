@@ -364,9 +364,6 @@ mapselection_sql_commands = [
                         GROUP BY 2, 3, 4
                     ) inner_query""",
     """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
-        99::INTEGER as cat_id, eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
-        FROM (SELECT st_union(geometrie) geom, eigendom_cat, gebied, gebied_id FROM geo_brk_niet_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
-    """INSERT INTO geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id, geometrie) SELECT
         cat_id, 9::INTEGER AS eigendom_cat, gebied, gebied_id, ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
         FROM (SELECT st_union(geometrie) geom, cat_id, gebied, gebied_id FROM geo_brk_niet_eigendom_poly_index GROUP BY 2, 3, 4) subquery""",
 
