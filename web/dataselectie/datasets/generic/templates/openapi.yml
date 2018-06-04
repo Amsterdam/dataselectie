@@ -127,6 +127,112 @@ paths:
           description: >-
             Aggregaties en lijst met eigendommen
 
+  /brk/kot/:
+    get:
+      summary: Dataselectie kadastrale objecten search (via eigendommen)
+      description: Geef lijst van kadastrale objecten die matchen.
+      security:
+        - OAuth2:
+            - HR/R
+            - BRK/RS
+            - BRK/RSN
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Pagina
+          type: string
+          pattern: '^[0-9]+$'
+        - name: eigenaar_categorie_id
+          required: false
+          in: query
+          description: Categorie Id eigenaar (0..9)
+          type: string
+          pattern: '^[0-9]$'
+        - name: eigenaar_cat
+          required: false
+          in: query
+          description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
+          type: string
+        - name: grondeigenaar
+          required: false
+          in: query
+          description: Is grondeigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: aanschrijfbaar
+          required: false
+          in: query
+          description: Is aanschrijfbaar (pandeigenaar) (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: appartementeigenaar
+          required: false
+          in: query
+          description: Is appartements eigenaar (boolean)
+          type: string
+          pattern: '^(true|false)$'
+        - name: buurt_naam
+          required: false
+          in: query
+          description: Naam buurt (bijv. De Bongerd)
+          type: string
+        - name: buurt_code
+          required: false
+          in: query
+          description: Code buurt (bijv. 65d)
+          type: string
+        - name: wijk_code
+          required: false
+          in: query
+          description: Code wijk (bijv. 65)
+          type: string
+        - name: wijk_naam
+          required: false
+          in: query
+          description: Naam wijk (bijv. Tuindorp Oostzaan)
+          type: string
+        - name: ggw_naam
+          required: false
+          in: query
+          description: Naam gebiedsgerichtwerken (bijv. West)
+          type: string
+        - name: ggw_code
+          required: false
+          in: query
+          description: Code gebiedsgerichtwerken (bijv. DX17)
+          type: string
+        - name: stadsdeel_naam
+          required: false
+          in: query
+          description: Naam stadsdeel (Westpoort, Oost, Noord, Centrum, West, Nieuw-West, Zuid, Zuidoost)
+          type: string
+        - name: stadsdeel_code
+          required: false
+          in: query
+          description: Code stadsdeel (B, M, N, A, E, F, K, T)
+          type: string
+        - name: openbare_ruimte_naam
+          required: false
+          in: query
+          description: naam straat of plein (bijv. Kalverstraat)
+          type: string
+        - name: postcode
+          required: false
+          in: query
+          description: Postcode (bijv 1019KS)
+          type: string
+        - name: shape
+          required: false
+          in: query
+          description: Shape (polygon) selecteert kadastrale objecten van eigendommen binnen polygon
+          type: string
+
+      responses:
+        '200':
+          description: >-
+            Lijst van kadastrale objecten
+
   /brk/export/:
     get:
       summary: Dataselectie eigendommen search voor CSV download
