@@ -49,7 +49,6 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 if 'bbox' not in request.query_params:
                     return Response("Bounding box required at this zoomlevel",
                                     status=status.HTTP_400_BAD_REQUEST)
-                self._prepare_queryparams_for_categorie(request.query_params)
                 serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_in())
                 return Response(serialize.data)
 
@@ -93,10 +92,14 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         return self.filter_queryset(model.objects)
 
     def get_zoomed_in(self):
-        appartementen = self.filter(geo_models.Appartementen).all()
-
+        #   eigenpercelen works with non-modified categorie
         perceel_queryset = self.filter(geo_models.EigenPerceel)
         eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
+
+        #   appartementen en niet-eigenpercelen require modified categorie
+        self._prepare_queryparams_for_categorie(self.request.query_params)
+
+        appartementen = self.filter(geo_models.Appartementen).all()
 
         perceel_queryset = self.filter(geo_models.NietEigenPerceel)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
