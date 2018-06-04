@@ -26,7 +26,7 @@ class Appartementen(BrkEigenaarGeoModel):
     aantal = models.IntegerField()
 
     class Meta:
-        db_table = "geo_brk_eigendom_point"
+        db_table = "geo_brk_eigendom_point_index"
         verbose_name = "Appartementen"
         verbose_name_plural = "AppartementenGroepen"
         managed = False

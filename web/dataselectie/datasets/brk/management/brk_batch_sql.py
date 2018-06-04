@@ -223,6 +223,31 @@ mapselection_sql_commands = [
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
 
     #   Aggregated table for geoselection api
+    #       Aggregated registry-objects per land plots
+    """CREATE TABLE geo_brk_eigendom_point_index AS (Select
+        kadastraal_object_id,
+        cat_id,
+        geometrie,
+        aantal,
+        id
+        from geo_brk_eigendom_point)""",
+    "CREATE SEQUENCE point_index_seq",
+    "ALTER TABLE geo_brk_eigendom_point_index ALTER COLUMN id SET NOT NULL, ALTER COLUMN id SET DEFAULT nextval('point_index_seq')",
+    "ALTER SEQUENCE point_index_seq OWNED BY geo_brk_eigendom_point_index.id",
+    "SELECT setval('point_index_seq', MAX(id)) FROM geo_brk_eigendom_point_index ",
+    """INSERT INTO geo_brk_eigendom_point_index (kadastraal_object_id, cat_id, geometrie, aantal) Select
+        kpp.poly_kot_id as kadastraal_object_id,
+        99::INTEGER as cat_id,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(eigendom.point_geom) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendommen eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1""",
+    "CREATE INDEX ON geo_brk_eigendom_point_index (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_eigendom_point_index USING GIST (geometrie)",
+
+
+    #   Aggregated table for geoselection api
     #       Land-plots in full ownership, aggregated as unnested multi-polygons per 'buurt'
     """CREATE TABLE geo_brk_eigendom_poly_index AS (SELECT
             cat_id,

@@ -40,27 +40,31 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
             return Response(status=HTTP_403_FORBIDDEN)
 
+        # make queryparams on underlying request-object mutable:
+        request._request.GET = request.query_params.copy()
+
         if 'zoom' in self.request.query_params:
             zoom = int(self.request.query_params.get('zoom'))
             if zoom > 12:
                 if 'bbox' not in request.query_params:
                     return Response("Bounding box required at this zoomlevel",
                                     status=status.HTTP_400_BAD_REQUEST)
+                self._prepare_queryparams_for_categorie(request.query_params)
                 serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_in())
                 return Response(serialize.data)
 
-        # make queryparams on underlying request-object mutable:
-        request._request.GET = request.query_params.copy()
-        # then change them, so that modifications can be accessed by the filter:
         self._prepare_queryparams_for_zoomed_out(request.query_params)
         serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_out())
         return Response(serialize.data)
 
-    def _prepare_queryparams_for_zoomed_out(self, query_params):
-        if 'eigenaar' not in query_params:
-            query_params['eigenaar'] = 9
+    def _prepare_queryparams_for_categorie(self, query_params):
         if 'categorie' not in query_params:
             query_params['categorie'] = 99
+
+    def _prepare_queryparams_for_zoomed_out(self, query_params):
+        self._prepare_queryparams_for_categorie(query_params)
+        if 'eigenaar' not in query_params:
+            query_params['eigenaar'] = 9
 
         # only filter on the most detailed level
         if 'buurt' in query_params:
