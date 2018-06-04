@@ -139,7 +139,10 @@ class ElasticSearchMixin(object):
         A query dict to send to elastic
         """
         # Adding filters
-        filters = []
+        if 'filter' in query['query']['bool']:
+            filters = query['query']['bool']['filter']
+        else:
+            filters = []
         # Retrieving the request parameters
         request_parameters = getattr(self.request, self.request.method)
 

@@ -138,6 +138,35 @@ class BrkSearch(BrkBase, TableSearchView):
         return result
 
 
+class BrkKotSearch(BrkBase, TableSearchView):
+    def handle_request(self, request, *args, **kwargs):
+        if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
+            raise PermissionDenied("scope BRK/RSN required")
+        return super().handle_request(request, *args, **kwargs)
+
+    def elastic_query(self, query):
+        result = meta_q(query, False, False)
+        result.update({
+            "_source": {
+                "include" : [
+                "kadastraal_object_id",
+                "aanduiding",
+                ]
+            },
+            'sort': {
+                'aanduiding': {"order": "asc"}
+            },
+            "query": {
+                "bool": {
+                    "filter": [
+                        {"term": {"kadastraal_object_index": 0} }
+                    ]
+                }
+            }
+        })
+        return result
+
+
 class BrkCSV(BrkBase, CSVExportView):
     """
     Output CSV

@@ -1,6 +1,7 @@
 import logging
-import json
 import re
+
+from collections import Counter
 
 from django.conf import settings
 from django.utils.dateparse import parse_date
@@ -32,6 +33,7 @@ class Eigendom(es.DocType):
         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     kadastraal_object_id = es.Keyword()
+    kadastraal_object_index = es.Short()
     eigenaar_cat_id = es.Integer()
     eigenaar_cat = es.Keyword()
     grondeigenaar = es.Boolean()
@@ -83,7 +85,7 @@ class Eigendom(es.DocType):
     sjt_type = es.Keyword()
     sjt_is_natuurlijk_persoon = es.Boolean()
     sjt_voornamen = es.Keyword()
-    sjt_voorvoegsels =es.Keyword()
+    sjt_voorvoegsels = es.Keyword()
     sjt_naam = es.Keyword()
     sjt_geslacht_oms = es.Keyword()
     sjt_geboortedatum = es.Date()
@@ -159,6 +161,7 @@ def get_omschrijving(clazz, code, code_field='code', omschrijving_field='omschri
             lookup_tables[class_name][getattr(e, code_field)] = getattr(e, omschrijving_field)
     return lookup_tables[class_name].get(code)
 
+
 def get_date(val):
     if val is None or val == '':
         result = None
@@ -170,6 +173,17 @@ def get_date(val):
     return result
 
 
+# For the 'lijst'  view we only need to see the  kadastrale object. Because there can be multiple
+# Eigendommen for one kadastraal_object we keep a counter for kadastrale objecten. In that way
+# we can select the first kadastrale_object by having additional constraint : kadastraal_object_index == 0
+# To create we keep a Counter dictionary for each kadastraal_object.  This does not work correctly if
+# create the indexes in batches, because then we create a new empty Counter dictionary for each batch.
+# In order to account for this in the original query we order by kadastraal_object_id.
+# Then it could still be that on the end of one batch and beginning of another batch
+# there are duplicate kadastrale objects. But that will be very rare.
+kadastraal_object_index = Counter()
+
+
 def doc_from_eigendom(eigendom: object) -> Eigendom:
     kot = eigendom.kadastraal_object
     # eigendommen = kot.eigendommen.all()
@@ -177,7 +191,11 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc = Eigendom(_id=eigendom.id)
     doc.eigendom_id = eigendom.id
 
-    doc.kadastraal_object_id = kot.id
+    kadastraal_object_id = kot.id
+    doc.kadastraal_object_id = kadastraal_object_id
+    doc.kadastraal_object_index = kadastraal_object_index[kadastraal_object_id]
+    kadastraal_object_index[kadastraal_object_id] += 1
+
     doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
                                         omschrijving_field='categorie')
@@ -277,12 +295,12 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.geometrie_rd = kot.point_geom.transform('28992', clone=True).wkt
         geometrie_wgs84 = kot.point_geom.transform('wgs84', clone=True)
         doc.geometrie_wgs84 = geometrie_wgs84.wkt
-        doc.centroid = (geometrie_wgs84.coords)
+        doc.centroid = geometrie_wgs84.coords
     elif kot.poly_geom:
         doc.geometrie_rd = kot.poly_geom.transform('28992', clone=True).wkt
         geometrie_wgs84 = kot.poly_geom.transform('wgs84', clone=True)
         doc.geometrie_wgs84 = geometrie_wgs84.wkt
-        doc.centroid = (geometrie_wgs84.centroid.coords)
+        doc.centroid = geometrie_wgs84.centroid.coords
 
     zrt = eigendom.zakelijk_recht
     if zrt:

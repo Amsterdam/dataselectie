@@ -65,7 +65,10 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
-        .order_by('zakelijk_recht__id')
+        # Order by kadastraal_object_id because we keep track of kadastraal_objects_oid to count them
+        # Therefore we do not want to minimize to have the same kadastraal_object_id in different
+        # batches
+        .order_by('kadastraal_object_id')
     )
 
     def convert(self, obj):
