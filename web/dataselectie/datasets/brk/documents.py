@@ -57,7 +57,7 @@ class Eigendom(es.DocType):
     adressen = es.Keyword(multi=True)
     verblijfsobject_id = es.Keyword(multi=True)
     openbare_ruimte_naam = es.Keyword(multi=True)
-    huisnummer = es.Keyword(multi=True)
+    huisnummer = es.Integer(multi=True)
     huisletter = es.Keyword(multi=True)
     huisnummer_toevoeging = es.Keyword(multi=True)
     postcode = es.Keyword(multi=True)
@@ -232,7 +232,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         for vbo in vbo_list:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
             doc.openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
-            doc.huisnummer.append(str(vbo._huisnummer))
+            doc.huisnummer.append(vbo._huisnummer)
             doc.huisletter.append(vbo._huisletter)
             doc.huisnummer_toevoeging.append(vbo._huisnummer_toevoeging)
             hoofdadres = vbo.hoofdadres

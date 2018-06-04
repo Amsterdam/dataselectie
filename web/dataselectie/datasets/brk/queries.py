@@ -20,11 +20,13 @@ def meta_q(query: str, add_aggs=True, sort=True) -> dict:
     else:
         aggs = None
     sort = {
-         'sort': {
-             'eerste_adres': {"order": "asc"},
-         }
-     }
-
+        'sort': {
+            'openbare_ruimte_naam': {"order": "asc"},
+            'huisnummer': {"order": "asc"},
+            'huisletter': {"order": "asc"},
+            'huisnummer_toevoeging': {"order": "asc"}
+        }
+    }
     return create_query(query, aggs, sort, qtype='eigendom')
 
 
