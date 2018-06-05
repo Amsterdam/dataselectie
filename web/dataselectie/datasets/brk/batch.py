@@ -75,7 +75,7 @@ class IndexBrkTask(index.ImportIndexTask):
         return documents.doc_from_eigendom(obj)
 
     def get_queryset(self):
-        return self.queryset.order_by('zakelijk_recht__id')
+        return self.queryset.order_by('kadastraal_object_id')
 
     # queryset = models.KadastraalObject.objects \
     #     .prefetch_related('eigendommen') \

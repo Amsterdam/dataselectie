@@ -206,7 +206,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     # kot_kadastrale_aanduiding = es.Keyword()  # <-- generated
     doc.kadastrale_gemeentecode = kot.kadastrale_gemeente_id
-    doc.sectie = kot.sectie_id
+    doc.sectie = get_omschrijving(brk_models.KadastraleSectie, kot.sectie_id, code_field='id',
+                                  omschrijving_field='sectie')
     doc.perceelnummer = str(kot.perceelnummer)
     doc.indexletter = kot.indexletter
     doc.indexnummer = str(kot.indexnummer)
@@ -262,14 +263,14 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
                 woonplaats = None
             doc.postcode.append(postcode)
             doc.woonplaats.append(woonplaats)
-            doc.adressen.append(
-                _cleanup(
-                    ' '.join(s for s in [
+            adres = ' '.join(s for s in [
                         vbo._openbare_ruimte_naam,
                         str(vbo._huisnummer),
                         vbo._huisletter,
-                        vbo._huisnummer_toevoeging,
-                        postcode] if s is not None)))
+                        vbo._huisnummer_toevoeging] if s is not None)
+            if postcode: # Add postcode with comma
+                adres += ', ' + postcode
+            doc.adressen.append(_cleanup(adres))
 
     if doc.adressen:
         doc.eerste_adres = doc.adressen[0]
@@ -305,7 +306,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     zrt = eigendom.zakelijk_recht
     if zrt:
         doc.aard_zakelijk_recht = get_omschrijving(brk_models.AardZakelijkRecht, zrt.aard_zakelijk_recht_id)
-        doc.zakelijk_recht_aandeel = f"{zrt.teller}/{zrt.noemer}"
+        if zrt.teller is not None and zrt.noemer is not None:
+            doc.zakelijk_recht_aandeel = f"{zrt.teller}/{zrt.noemer}"
 
     kst = eigendom.kadastraal_subject
     if kst:
