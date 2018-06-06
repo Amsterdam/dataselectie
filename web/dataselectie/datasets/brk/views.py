@@ -145,16 +145,14 @@ class BrkKotSearch(BrkBase, TableSearchView):
         return super().handle_request(request, *args, **kwargs)
 
     def elastic_query(self, query):
-        result = meta_q(query, False, False)
+        result = meta_q(query, False, True)
         result.update({
             "_source": {
                 "include" : [
                 "kadastraal_object_id",
                 "aanduiding",
+                "eerste_adres",
                 ]
-            },
-            'sort': {
-                'aanduiding': {"order": "asc"}
             },
             "query": {
                 "bool": {

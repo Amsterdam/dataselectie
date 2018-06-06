@@ -61,12 +61,12 @@ class Eigendom(es.DocType):
 
     adressen = es.Keyword(multi=True)
     verblijfsobject_id = es.Keyword(multi=True)
-    openbare_ruimte_naam = es.Keyword(multi=True)
-    huisnummer = es.Integer(multi=True)
-    huisletter = es.Keyword(multi=True)
-    huisnummer_toevoeging = es.Keyword(multi=True)
-    postcode = es.Keyword(multi=True)
-    woonplaats = es.Keyword(multi=True)
+    openbare_ruimte_naam = es.Keyword()
+    huisnummer = es.Integer()
+    huisletter = es.Keyword()
+    huisnummer_toevoeging = es.Keyword()
+    postcode = es.Keyword()
+    woonplaats = es.Keyword()
     eerste_adres = es.Keyword()
 
     stadsdeel_naam = es.Keyword(multi=True)
@@ -253,29 +253,26 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     # eerste_adres = es.Keyword()  # <-- generated
     if vbo_list:
         doc.verblijfsobject_id = []
-        doc.openbare_ruimte_naam = []
-        doc.huisnummer = []
-        doc.huisletter = []
-        doc.huisnummer_toevoeging = []
-        doc.postcode = []
-        doc.woonplaats = []
+        doc.openbare_ruimte_naam = vbo_list[0]._openbare_ruimte_naam
+        doc.huisnummer = vbo_list[0]._huisnummer
+        doc.huisletter = vbo_list[0]._huisletter
+        doc.huisnummer_toevoeging = vbo_list[0]._huisnummer_toevoeging
+        hoofdadres = vbo_list[0].hoofdadres
+        if hoofdadres:
+            doc.postcode = hoofdadres.postcode
+            doc.woonplaats = str(hoofdadres.woonplaats) if hoofdadres.woonplaats else ''
+        else:
+            doc.postcode = None
+            doc.woonplaats = None
         doc.adressen = []
 
         for vbo in vbo_list:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
-            doc.openbare_ruimte_naam.append(vbo._openbare_ruimte_naam)
-            doc.huisnummer.append(vbo._huisnummer)
-            doc.huisletter.append(vbo._huisletter)
-            doc.huisnummer_toevoeging.append(vbo._huisnummer_toevoeging)
             hoofdadres = vbo.hoofdadres
             if hoofdadres:
                 postcode = hoofdadres.postcode
-                woonplaats = str(hoofdadres.woonplaats) if hoofdadres.woonplaats else ''
             else:
                 postcode = None
-                woonplaats = None
-            doc.postcode.append(postcode)
-            doc.woonplaats.append(woonplaats)
             adres = _cleanup(' '.join(s for s in [
                         vbo._openbare_ruimte_naam,
                         str(vbo._huisnummer),
