@@ -1,10 +1,13 @@
 import logging
 import re
+import redis
 
 from collections import Counter
 
 from django.conf import settings
 from django.utils.dateparse import parse_date
+
+from dataselectie import utils
 from datasets.brk import models as brk_models
 
 import elasticsearch_dsl as es
@@ -86,6 +89,7 @@ class Eigendom(es.DocType):
     sjt_is_natuurlijk_persoon = es.Boolean()
     sjt_voornamen = es.Keyword()
     sjt_voorvoegsels = es.Keyword()
+    sjt_geslachtsnaam = es.Keyword()
     sjt_naam = es.Keyword()
     sjt_geslacht_oms = es.Keyword()
     sjt_geboortedatum = es.Date()
@@ -182,6 +186,26 @@ def get_date(val):
 # Then it could still be that on the end of one batch and beginning of another batch
 # there are duplicate kadastrale objects. But that will be very rare.
 kadastraal_object_index = Counter()
+redis_db = None
+use_redis = None
+
+
+def get_kadastraal_object_index(key):
+    global use_redis
+    global redis_db
+    if use_redis is None:
+        redis_db = utils.get_redis()
+        if redis_db is None:
+            use_redis = False
+            log.warning("Redis is not available. Use local check for kadastraal_object_seen")
+        else:
+            use_redis = True
+    if use_redis:
+        result = redis_db.incr(key) - 1  # start with 0
+    else:
+        result = kadastraal_object_index[key]
+        kadastraal_object_index[key] += 1
+    return result
 
 
 def doc_from_eigendom(eigendom: object) -> Eigendom:
@@ -193,8 +217,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     kadastraal_object_id = kot.id
     doc.kadastraal_object_id = kadastraal_object_id
-    doc.kadastraal_object_index = kadastraal_object_index[kadastraal_object_id]
-    kadastraal_object_index[kadastraal_object_id] += 1
+
+    doc.kadastraal_object_index = get_kadastraal_object_index(kadastraal_object_id)
 
     doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
@@ -211,19 +235,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.perceelnummer = str(kot.perceelnummer)
     doc.indexletter = kot.indexletter
     doc.indexnummer = str(kot.indexnummer)
-
     doc.kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
-
-    doc.aanduiding = _cleanup(
-        ' '.join(s for s in [
-            doc.kadastrale_gemeentecode,
-            doc.sectie,
-            doc.perceelnummer,
-            doc.indexletter,
-            doc.indexnummer
-        ] if s is not None)
-    )
-
+    doc.aanduiding = kot.get_aanduiding_spaties()
     doc.koopsom = kot.koopsom
     doc.koopjaar = kot.koopjaar
     doc.grootte = kot.grootte
@@ -263,14 +276,14 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
                 woonplaats = None
             doc.postcode.append(postcode)
             doc.woonplaats.append(woonplaats)
-            adres = ' '.join(s for s in [
+            adres = _cleanup(' '.join(s for s in [
                         vbo._openbare_ruimte_naam,
                         str(vbo._huisnummer),
                         vbo._huisletter,
-                        vbo._huisnummer_toevoeging] if s is not None)
+                        vbo._huisnummer_toevoeging] if s is not None))
             if postcode: # Add postcode with comma
                 adres += ', ' + postcode
-            doc.adressen.append(_cleanup(adres))
+            doc.adressen.append(adres)
 
     if doc.adressen:
         doc.eerste_adres = doc.adressen[0]
@@ -316,7 +329,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.sjt_is_natuurlijk_persoon = kst.is_natuurlijk_persoon()
         doc.sjt_voornamen = kst.voornamen
         doc.sjt_voorvoegsels = kst.voorvoegsels
-        doc.sjt_naam = kst.naam
+        doc.sjt_geslachtsnaam = kst.naam
+        doc.sjt_naam = kst.volledige_naam()
         doc.sjt_geslacht_omschrijving = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
         doc.sjt_geboortedatum = get_date(kst.geboortedatum)
         doc.sjt_geboorteplaats = kst.geboorteplaats

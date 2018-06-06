@@ -2,6 +2,7 @@ import logging
 
 from django.conf import settings
 
+from dataselectie import utils
 from datasets.brk import models
 
 from . import documents
@@ -28,6 +29,18 @@ class RebuildDocTaskBRK(index.CreateDocTypeTask):
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
     doc_types = BRK_DOC_TYPES
 
+class FlushRedisDbTask():
+    def __init__(self):
+        pass
+
+    def execute(self):
+        redis = utils.get_redis()
+        if redis:
+            redis.flushall()
+            log.info("Flushing redis")
+        else:
+            log.warning("Redis not available for flushing")
+
 
 class ReBuildIndexDsBRKJob(object):
     name = "Recreate search-index for all BRK data from elastic"
@@ -36,7 +49,8 @@ class ReBuildIndexDsBRKJob(object):
     def tasks():
         return [
             DeleteDsBRKIndexTask(),
-            RebuildDocTaskBRK()
+            RebuildDocTaskBRK(),
+            FlushRedisDbTask(),
         ]
 
 
@@ -59,6 +73,7 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_object__buurten')
         .prefetch_related('kadastraal_object__wijken')
         .prefetch_related('kadastraal_object__ggws')
+        .prefetch_related('kadastraal_object__sectie')
         .prefetch_related('kadastraal_object__stadsdelen')
         .prefetch_related('kadastraal_object__verblijfsobjecten')
         .prefetch_related('kadastraal_object__verblijfsobjecten__adressen')
@@ -68,14 +83,14 @@ class IndexBrkTask(index.ImportIndexTask):
         # Order by kadastraal_object_id because we keep track of kadastraal_objects_oid to count them
         # Therefore we do not want to minimize to have the same kadastraal_object_id in different
         # batches
-        .order_by('kadastraal_object_id')
+        .order_by('zakelijk_recht__id')
     )
 
     def convert(self, obj):
         return documents.doc_from_eigendom(obj)
 
     def get_queryset(self):
-        return self.queryset.order_by('kadastraal_object_id')
+        return self.queryset.order_by('zakelijk_recht__id')
 
     # queryset = models.KadastraalObject.objects \
     #     .prefetch_related('eigendommen') \

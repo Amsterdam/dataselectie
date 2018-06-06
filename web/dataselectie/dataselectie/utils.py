@@ -2,10 +2,12 @@
 import re
 
 import os
+import redis
 from typing import Dict
 
-from django.apps import apps
 from django.test.runner import DiscoverRunner
+
+from dataselectie import settings
 
 
 class ManagedModelTestRunner(DiscoverRunner):
@@ -20,7 +22,7 @@ class ManagedModelTestRunner(DiscoverRunner):
         self.verbosity = 2
         self.unmanaged_models = []
 
-    #def setup_test_environment(self, *args, **kwargs):
+    # def setup_test_environment(self, *args, **kwargs):
     #    datasets = ['bag', 'hr']  # update when new datasets are introdiced
     #    # datasets = []  # update when new datasets are introdiced
     #    for dataset in datasets:
@@ -32,7 +34,7 @@ class ManagedModelTestRunner(DiscoverRunner):
     #        m._meta.managed = True
     #    super(ManagedModelTestRunner, self).setup_test_environment(**kwargs)
 
-    #def teardown_test_environment(self, *args, **kwargs):
+    # def teardown_test_environment(self, *args, **kwargs):
     #    super(ManagedModelTestRunner, self).teardown_test_environment(**kwargs)
     #    # reset unmanaged models
     #    for m in self.unmanaged_models:
@@ -113,6 +115,7 @@ def get_db_settings(
     :param db:
     :param docker_host:
     :param localport:
+    :param user
     :return: A dict containing all settings:
              'username', 'password', 'host', 'port' and 'db'
     """
@@ -136,3 +139,12 @@ def get_db_settings(
         'db': get_db_variable(
             db=db, varname='database', docker_default=db)
     }
+
+
+def get_redis():
+    try:
+        redis_db = redis.StrictRedis(settings.REDIS_HOST, settings.REDIS_PORT)
+        redis_time = redis_db.time()
+    except redis.exceptions.ConnectionError:
+        redis_db = None
+    return redis_db
