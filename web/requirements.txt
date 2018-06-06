@@ -24,6 +24,7 @@ pycparser==2.18
 PyJWT==1.6.1
 python-dateutil==2.7.2
 pytz==2018.3
+redis==2.10.6
 requests==2.18.4
 six==1.11.0
 text-unidecode==1.2
