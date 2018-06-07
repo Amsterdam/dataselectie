@@ -69,7 +69,10 @@ class IndexBrkTask(index.ImportIndexTask):
 
     queryset = (
         models.Eigendom.objects
+        .prefetch_related('zakelijk_recht')
+        .prefetch_related('zakelijk_recht__aard_zakelijk_recht')
         .prefetch_related('kadastraal_object')
+        .prefetch_related('kadastraal_object__kadastrale_gemeente')
         .prefetch_related('kadastraal_object__buurten')
         .prefetch_related('kadastraal_object__wijken')
         .prefetch_related('kadastraal_object__ggws')

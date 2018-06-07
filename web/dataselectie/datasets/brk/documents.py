@@ -9,6 +9,7 @@ from django.utils.dateparse import parse_date
 
 from dataselectie import utils
 from datasets.brk import models as brk_models
+from datasets.bag import models as bag_models
 
 import elasticsearch_dsl as es
 
@@ -166,6 +167,26 @@ def get_omschrijving(clazz, code, code_field='code', omschrijving_field='omschri
     return lookup_tables[class_name].get(code)
 
 
+def get_woonplaats(nummeraanduiding):
+    openbare_ruimte_id = nummeraanduiding.openbare_ruimte_id
+    clazz = bag_models.OpenbareRuimte
+    class_name = clazz.__name__
+    if class_name not in lookup_tables:
+        lookup_tables[class_name] = {}
+        elements = clazz.objects.values('id', 'woonplaats_id')
+        for e in elements:
+            lookup_tables[class_name][e['id']] = e['woonplaats_id']
+    woonplaats_id =  lookup_tables[class_name].get(openbare_ruimte_id)
+    clazz = bag_models.Woonplaats
+    class_name = clazz.__name__
+    if class_name not in lookup_tables:
+        lookup_tables[class_name] = {}
+        elements = clazz.objects.values('id', 'naam')
+        for e in elements:
+            lookup_tables[class_name][e['id']] = e['naam']
+    return lookup_tables[class_name].get(woonplaats_id)
+
+
 def get_date(val):
     if val is None or val == '':
         result = None
@@ -181,10 +202,10 @@ def get_date(val):
 # Eigendommen for one kadastraal_object we keep a counter for kadastrale objecten. In that way
 # we can select the first kadastrale_object by having additional constraint : kadastraal_object_index == 0
 # To create we keep a Counter dictionary for each kadastraal_object.  This does not work correctly if
-# create the indexes in batches, because then we create a new empty Counter dictionary for each batch.
-# In order to account for this in the original query we order by kadastraal_object_id.
-# Then it could still be that on the end of one batch and beginning of another batch
-# there are duplicate kadastrale objects. But that will be very rare.
+# we create the indexes in batches, because then we create a new empty Counter dictionary for each batch,
+# and we will have identical kadastrale objecten in different batches with index 0
+# Therefore we try to keep the counter in a redis service. This will be accessed by all batches.
+# This works if we can connect to the redis server./ Otherwise the normal counter will be use
 kadastraal_object_index = Counter()
 redis_db = None
 use_redis = None
@@ -257,13 +278,15 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.huisnummer = vbo_list[0]._huisnummer
         doc.huisletter = vbo_list[0]._huisletter
         doc.huisnummer_toevoeging = vbo_list[0]._huisnummer_toevoeging
+        # doc.woonplaats = vbo_list[0]._woonplaats
         hoofdadres = vbo_list[0].hoofdadres
         if hoofdadres:
+            doc.woonplaats = get_woonplaats(hoofdadres)
             doc.postcode = hoofdadres.postcode
-            doc.woonplaats = str(hoofdadres.woonplaats) if hoofdadres.woonplaats else ''
         else:
             doc.postcode = None
             doc.woonplaats = None
+
         doc.adressen = []
 
         for vbo in vbo_list:
@@ -350,48 +373,3 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
             doc.sjt_postadres_postbus = postadres.postbus_adres()
 
     return doc
-
-
-# class KadastraalObject(es.DocType):
-#     class Meta:
-#         all = es.MetaField(enabled=False)
-#         doc_type = 'kadastraalobject'
-#         index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
-#
-#     kadastraal_object_id = es.Keyword()
-#     geo_point = es.GeoPoint()
-#     geo_poly = es.GeoShape()
-#     eigenaar_cat = es.Keyword(multi=True)
-#     grondeigenaar = es.Boolean(multi=True)
-#     aanschrijfbaar = es.Boolean(multi=True)
-#     appartementeigenaar = es.Boolean(multi=True)
-#
-#     buurt = es.Keyword(multi=True)
-#     wijk = es.Keyword(multi=True)
-#     ggw = es.Keyword(multi=True)
-#     stadsdeel = es.Keyword(multi=True)
-#
-#
-# def doc_from_kadastraalobject(kadastraalobject):
-#     eigendommen = kadastraalobject.eigendommen.all()
-#
-#     doc = KadastraalObject()
-#     doc.kadastraal_object_id = kadastraalobject.id
-#     if kadastraalobject.point_geom:
-#         doc.geo_point = kadastraalobject.point_geom.transform('wgs84', clone=True).coords
-#     if kadastraalobject.poly_geom:
-#         multipolygon_wgs84 = kadastraalobject.poly_geom.transform('wgs84', clone=True)
-#         # geoshape expects a dict with 'type' and 'coords'
-#         doc.geo_poly = json.loads(multipolygon_wgs84.geojson)
-#     doc.eigenaar_cat = [str(eigendom.eigenaar_categorie.id) for eigendom in eigendommen]
-#     doc.grondeigenaar = [eigendom.grondeigenaar for eigendom in eigendommen]
-#     doc.aanschrijfbaar = [eigendom.aanschrijfbaar for eigendom in eigendommen]
-#     doc.appartementeigenaar = [eigendom.appartementeigenaar for eigendom in eigendommen]
-#
-#     doc.buurt = [str(buurt.id) for buurt in kadastraalobject.buurten.all()]
-#     doc.wijk = [str(wijk.id) for wijk in kadastraalobject.wijken.all()]
-#     doc.ggw = [str(ggw.id) for ggw in kadastraalobject.ggws.all()]
-#     doc.stadsdeel = [str(stadsdeel.id) for stadsdeel in kadastraalobject.stadsdelen.all()]
-#
-#     return doc
-#
