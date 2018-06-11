@@ -265,3 +265,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             '[4.8932629,52.3732028],[4.8929459,52.3727335],[4.8906613,52.3727228],'
             '[4.890712,52.373579]]]}')
         self.assertDictEqual(dict_of_polygon, expected_dict)
+
+        fixture = {'shape': "[]"}
+        _prepare_queryparams_for_shape(fixture)
+
+        self.assertNotIn('shape', fixture)

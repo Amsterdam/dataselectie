@@ -47,11 +47,13 @@ def _prepare_queryparams_for_categorie(query_params):
 def _prepare_queryparams_for_shape(query_params):
     if 'shape' in query_params:
         points = json.loads(query_params['shape'])
-        # close ring and create Polygon
-        polygon = Polygon(points+[points[0]])
-        polygon.srid = SRID_WSG84
-        query_params['shape'] = polygon
-
+        if len(points) > 0:
+            # close ring and create Polygon
+            polygon = Polygon(points+[points[0]])
+            polygon.srid = SRID_WSG84
+            query_params['shape'] = polygon
+        else:
+            query_params.pop('shape', None)
 
 def _prepare_queryparams_for_zoomed_out(query_params):
     _prepare_queryparams_for_shape(query_params)
