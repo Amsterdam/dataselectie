@@ -302,6 +302,11 @@ def create_geo_data():
     create_niet_eigenperceelgroepen()
 
 
+def get_selection_shape():
+    return '[[4.8923386,52.36911],[4.8948249,52.3692279],[4.8964193,52.3683213],' \
+           '[4.8956741,52.3677415],[4.8940659,52.3672713],[4.8928666,52.3683111]]'
+
+
 def get_bbox_leaflet():
     # get the leaflet-like LatLngBounds
     return json.dumps({
