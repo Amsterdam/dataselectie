@@ -54,6 +54,7 @@ class Eigendom(es.DocType):
     indexnummer = es.Keyword()
 
     kadastrale_gemeentenaam = es.Keyword()
+    burgerlijke_gemeentenaam = es.Keyword()
     koopsom = es.Float()
     koopjaar = es.Integer()
     grootte = es.Float()
@@ -87,7 +88,6 @@ class Eigendom(es.DocType):
 
     sjt_id = es.Keyword()
     sjt_type = es.Keyword()
-    sjt_is_natuurlijk_persoon = es.Boolean()
     sjt_voornamen = es.Keyword()
     sjt_voorvoegsels = es.Keyword()
     sjt_geslachtsnaam = es.Keyword()
@@ -257,6 +257,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.indexletter = kot.indexletter
     doc.indexnummer = str(kot.indexnummer)
     doc.kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
+    doc.burgerlijke_gemeentenaam = kot.kadastrale_gemeente.gemeente_id
     doc.aanduiding = kot.get_aanduiding_spaties()
     doc.koopsom = kot.koopsom
     doc.koopjaar = kot.koopjaar
@@ -301,8 +302,6 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
                         str(vbo._huisnummer),
                         vbo._huisletter,
                         vbo._huisnummer_toevoeging] if s is not None))
-            if postcode: # Add postcode with comma
-                adres += ', ' + postcode
             doc.adressen.append(adres)
 
     if doc.adressen:
@@ -345,12 +344,12 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     kst = eigendom.kadastraal_subject
     if kst:
         doc.sjt_id = kst.id
-        doc.sjt_type = kst.type
-        doc.sjt_is_natuurlijk_persoon = kst.is_natuurlijk_persoon()
+        doc.sjt_type =  brk_models.Eigenaar.SUBJECT_TYPE_CHOICES[kst.type][1]
         doc.sjt_voornamen = kst.voornamen
         doc.sjt_voorvoegsels = kst.voorvoegsels
-        doc.sjt_geslachtsnaam = kst.naam
-        doc.sjt_naam = kst.volledige_naam()
+        if kst.is_natuurlijk_persoon():
+            doc.sjt_geslachtsnaam = kst.naam
+            doc.sjt_naam = kst.volledige_naam()
         doc.sjt_geslacht_omschrijving = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
         doc.sjt_geboortedatum = get_date(kst.geboortedatum)
         doc.sjt_geboorteplaats = kst.geboorteplaats
