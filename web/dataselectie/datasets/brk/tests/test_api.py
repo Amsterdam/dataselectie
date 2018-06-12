@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.management import call_command
-from django.test import Client, TestCase
+from django.test import Client, TestCase, tag
 from elasticsearch import Elasticsearch
 
 from datasets.bag.tests import fixture_utils as bag
@@ -19,6 +19,8 @@ from datasets.generic.tests.authorization import AuthorizationSetup
 
 BRK_BASE_QUERY = '/dataselectie/brk/?{}'
 BRK_GEO_QUERY = '/dataselectie/brk/geolocation/?{}'
+BRK_KOT_QUERY = '/dataselectie/brk/kot/?{}'
+BRK_EXPORT_QUERY = '/dataselectie/brk/export/?{}'
 
 log = logging.getLogger(__name__)
 
@@ -270,3 +272,43 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         _prepare_queryparams_for_shape(fixture)
 
         self.assertNotIn('shape', fixture)
+
+    @tag('brk')
+    def test_api_search(self):
+        q = {}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
+
+    @tag('brk')
+    def test_api_kot(self):
+        response = self.client.get(BRK_KOT_QUERY, **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+
+    @tag('brk')
+    def test_response_is_streaming(self):
+        """Verify that the response is streaming"""
+        response = self.client.get(BRK_EXPORT_QUERY, **self.header_auth_scope_brk_plus)
+        self.assertTrue(response.streaming)
+
+    @tag('brk')
+    def test_complete_export_eigendommen(self):
+        response = self.client.get(BRK_EXPORT_QUERY, **self.header_auth_scope_brk_plus)
+        # assert that response status is 200
+        self.assertEqual(response.status_code, 200)
+        result = (b''.join(response.streaming_content)).decode('utf-8').strip()
+        result = result.split('\r\n')
+        # 2 lines: headers + 1 item
+        self.assertEqual(len(result), 2)
+        self.assertTrue('AX001 S 00012 G 0023' in result[1])
+        self.assertTrue('SunCity' in result[1])
