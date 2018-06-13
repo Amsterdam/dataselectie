@@ -279,7 +279,6 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.huisnummer = vbo_list[0]._huisnummer
         doc.huisletter = vbo_list[0]._huisletter
         doc.huisnummer_toevoeging = vbo_list[0]._huisnummer_toevoeging
-        # doc.woonplaats = vbo_list[0]._woonplaats
         hoofdadres = vbo_list[0].hoofdadres
         if hoofdadres:
             doc.woonplaats = get_woonplaats(hoofdadres)
@@ -292,16 +291,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
         for vbo in vbo_list:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
-            hoofdadres = vbo.hoofdadres
-            if hoofdadres:
-                postcode = hoofdadres.postcode
-            else:
-                postcode = None
-            adres = _cleanup(' '.join(s for s in [
-                        vbo._openbare_ruimte_naam,
-                        str(vbo._huisnummer),
-                        vbo._huisletter,
-                        vbo._huisnummer_toevoeging] if s is not None))
+            adres = str(vbo)
             doc.adressen.append(adres)
 
     if doc.adressen:
