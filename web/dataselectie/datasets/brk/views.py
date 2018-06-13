@@ -193,7 +193,7 @@ class BrkCSV(BrkBase, CSVExportView):
     See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
     fields_and_headers = (
-        ('aanduiding', 'Kadastrale aanduiding'),
+        ('aanduiding', 'Kadastraal object'),
         ('kadastrale_gemeentecode', 'Kadastrale gemeentecode'),
         ('sectie', 'Sectie'),
         ('perceelnummer', 'Perceelnummer'),
@@ -203,7 +203,7 @@ class BrkCSV(BrkBase, CSVExportView):
         ('verblijfsobject_id', 'Verblijfsobjectidentificatie'),
         ('kadastrale_gemeentenaam', 'Kadastrale gemeentenaam'),
         ('burgerlijke_gemeentenaam', 'Gemeente'),
-        ('koopsom', 'Koopsom'),
+        ('koopsom', 'Koopsom in Euro\'s'),
         ('koopjaar', 'Koopjaar'),
         ('grootte', 'Grootte'),
         ('cultuurcode_bebouwd', 'Cultuur bebouwd'),
@@ -214,7 +214,6 @@ class BrkCSV(BrkBase, CSVExportView):
         ('sjt_voornamen', 'Voornamen'),
         ('sjt_voorvoegsels', 'Voorvoegsels'),
         ('sjt_geslachtsnaam', 'Geslachtsnaam'),
-        ('sjt_geslacht_oms', 'Geslacht'),
         ('sjt_geboortedatum', 'Geboortedatum'),
         ('sjt_geboorteplaats', 'Geboorteplaats'),
         ('sjt_geboorteland_code', 'Geboorteland'),
@@ -222,13 +221,13 @@ class BrkCSV(BrkBase, CSVExportView):
         ('sjt_statutaire_naam', 'Statutaire naam'),
         ('sjt_statutaire_zetel', 'Statutaire zetel'),
         ('sjt_statutaire_rechtsvorm', 'Statutaire rechtsvorm'),
-        ('sjt_rsin', 'RSIN'),
         ('sjt_kvknummer', 'KvK-nummer'),
+        ('sjt_rsin', 'RSIN'),
         ('sjt_woonadres', 'Woonadres'),
         ('sjt_woonadres_buitenland', 'Woonadres buitenland'),
         ('sjt_postadres', 'Postadres'),
-        ('sjt_postadres_buitenland', 'Postadres buitenland'),
         ('sjt_postadres_postbus', 'Postadres postbus'),
+        ('sjt_postadres_buitenland', 'Postadres buitenland'),
     )
 
     def handle_request(self, request, *args, **kwargs):
@@ -240,7 +239,7 @@ class BrkCSV(BrkBase, CSVExportView):
     csv_headers = [h[1] for h in fields_and_headers]
 
     def elastic_query(self, query):
-        result = meta_q(query, False, False)
+        result = meta_q(query, False, True)
         result.update({
             "_source": {
                 "exclude": ["eerste_adres"]

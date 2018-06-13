@@ -47,6 +47,7 @@ declare  -a bag_tables=(
 	"brk_kadastraalobjectverblijfsobjectrelatie"
 	"brk_kadastralegemeente"
 	"brk_kadastralesectie"
+	"brk_land"
 	"brk_rechtsvorm"
 	"brk_zakelijkrecht"
 	"brk_zakelijkrechtverblijfsobjectrelatie"

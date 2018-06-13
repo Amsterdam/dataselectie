@@ -85,6 +85,7 @@ class Eigendom(es.DocType):
 
     aard_zakelijk_recht = es.Keyword()
     zakelijk_recht_aandeel = es.Keyword()
+    zakelijk_recht_aandeel_float = es.Float()
 
     sjt_id = es.Keyword()
     sjt_type = es.Keyword()
@@ -95,7 +96,7 @@ class Eigendom(es.DocType):
     sjt_geslacht_oms = es.Keyword()
     sjt_geboortedatum = es.Date()
     sjt_geboorteplaats = es.Keyword()
-    sjt_geboorteland_code = es.Keyword()
+    sjt_geboorteland = es.Keyword()
     sjt_datum_overlijden = es.Date()
     sjt_statutaire_naam = es.Keyword()
     sjt_statutaire_zetel = es.Keyword()
@@ -330,6 +331,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.aard_zakelijk_recht = get_omschrijving(brk_models.AardZakelijkRecht, zrt.aard_zakelijk_recht_id)
         if zrt.teller is not None and zrt.noemer is not None:
             doc.zakelijk_recht_aandeel = f"{zrt.teller}/{zrt.noemer}"
+            doc.zakelijk_recht_aandeel_float = zrt.teller / zrt.noemer
 
     kst = eigendom.kadastraal_subject
     if kst:
@@ -343,7 +345,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.sjt_geslacht_omschrijving = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
         doc.sjt_geboortedatum = get_date(kst.geboortedatum)
         doc.sjt_geboorteplaats = kst.geboorteplaats
-        doc.sjt_geboorteland_code = kst.geboorteland_id
+        doc.sjt_geboorteland = get_omschrijving(brk_models.Land, kst.geboorteland_id)
         doc.sjt_datum_overlijden = get_date(kst.overlijdensdatum)
         doc.sjt_statutaire_naam = kst.statutaire_naam
         doc.sjt_statutaire_zetel = kst.statutaire_zetel
