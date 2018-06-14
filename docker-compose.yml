@@ -28,7 +28,6 @@ services:
     ports:
       - "8000:8000"
     environment:
-      JWT_SHARED_SECRET_KEY: atleast16characters
       UWSGI_HTTP: ":8000"
       UWSGI_MODULE: "dataselectie.wsgi:application"
       UWSGI_PROCESSES: 4
