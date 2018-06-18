@@ -285,8 +285,8 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
             doc.woonplaats = get_woonplaats(hoofdadres)
             doc.postcode = hoofdadres.postcode
         else:
-            doc.postcode = None
-            doc.woonplaats = None
+            doc.postcode = ''
+            doc.woonplaats = ''
 
         doc.adressen = []
 
@@ -294,6 +294,13 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
             doc.verblijfsobject_id.append(vbo.landelijk_id)
             adres = str(vbo)
             doc.adressen.append(adres)
+    else:
+        doc.openbare_ruimte_naam = ''
+        doc.huisnummer = ''
+        doc.huisletter = ''
+        doc.huisnummer_toevoeging = ''
+        doc.postcode = ''
+        doc.woonplaats = ''
 
     if doc.adressen:
         doc.eerste_adres = doc.adressen[0]
@@ -302,18 +309,32 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     if stadsdelen:
         doc.stadsdeel_naam = [stadsdeel.naam for stadsdeel in stadsdelen]
         doc.stadsdeel_code = [stadsdeel.code for stadsdeel in stadsdelen]
+    else:
+        doc.stadsdeel_naam = ['']
+        doc.stadsdeel_code = ['']
+
     ggws = kot.ggws.all()
     if ggws:
         doc.ggw_code = [ggw.code for ggw in ggws]
         doc.ggw_naam = [ggw.naam for ggw in ggws]
+    else:
+        doc.ggw_code = ['']
+        doc.ggw_naam = ['']
     wijken = kot.wijken.all()
     if wijken:
         doc.wijk_naam = [wijk.naam for wijk in wijken]
         doc.wijk_code = [wijk.code for wijk in wijken]
+    else:
+        doc.wijk_naam = ['']
+        doc.wijk_code = ['']
     buurten = kot.buurten.all()
     if buurten:
         doc.buurt_naam = [buurt.naam for buurt in buurten]
         doc.buurt_code = [buurt.code for buurt in buurten]
+    else:
+        doc.buurt_naam = ['']
+        doc.buurt_code = ['']
+
 
     if kot.point_geom:
         doc.geometrie_rd = kot.point_geom.transform('28992', clone=True).wkt
