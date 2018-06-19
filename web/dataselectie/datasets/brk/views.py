@@ -55,6 +55,7 @@ def _prepare_queryparams_for_shape(query_params):
         else:
             query_params.pop('shape', None)
 
+
 def _prepare_queryparams_for_zoomed_out(query_params):
     _prepare_queryparams_for_shape(query_params)
     _prepare_queryparams_for_categorie(query_params)

@@ -13,7 +13,6 @@ SRID_RD = 28992
 
 
 class BrkGeoFilter(GeoFilterSet):
-    location = GeometryFilter(name='geometrie', lookup_expr='intersects')
     shape = filters.CharFilter(method='filter_shape')
     bbox = filters.CharFilter(method='filter_bbox')
     categorie = filters.NumberFilter(method='filter_categorie')
@@ -25,7 +24,7 @@ class BrkGeoFilter(GeoFilterSet):
     stadsdeel = filters.CharFilter(method='filter_gebied')
 
     class Meta:
-        fields = ('categorie', 'eigenaar', 'location', 'bbox',
+        fields = ('categorie', 'eigenaar', 'bbox',
                   'buurt', 'wijk', 'ggw', 'stadsdeel', 'shape')
 
     def filter_bbox(self, queryset, name, value):
@@ -104,7 +103,7 @@ class BrkGroepGeoFilter(BrkGeoFilter):
     zoom = filters.NumberFilter(method='filter_geen_gebied')
 
     class Meta:
-        fields = ('categorie', 'eigenaar', 'location', 'bbox', 'buurt',
+        fields = ('categorie', 'eigenaar', 'bbox', 'buurt',
                   'wijk', 'ggw', 'stadsdeel', 'zoom')
 
     def filter_eigenaar(self, queryset, name, value):
