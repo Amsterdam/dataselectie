@@ -14,12 +14,13 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
                 ('geometrie', django.contrib.gis.db.models.fields.PointField(srid=4326)),
+                ('plot', django.contrib.gis.db.models.fields.PolygonField(srid=4326)),
                 ('aantal', models.IntegerField()),
             ],
             options={
                 'verbose_name': 'Appartementen',
                 'verbose_name_plural': 'AppartementenGroepen',
-                'db_table': 'geo_brk_eigendom_point',
+                'db_table': 'geo_brk_eigendom_point_index',
                 'managed': False,
             },
         ),
