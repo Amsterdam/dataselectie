@@ -187,8 +187,8 @@ mapselection_sql_commands = [
     #       Aggregated registry-objects per land plots
     """CREATE TABLE geo_brk_eigendom_point AS (Select
         kpp.poly_kot_id as kadastraal_object_id,
-        kpp.poly_geom as plot,
         eigendom.cat_id,
+        st_union(kpp.poly_geom) as plot,
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal,
         row_number() over () AS id
@@ -197,6 +197,7 @@ mapselection_sql_commands = [
         group by 1, 2)""",
     "CREATE INDEX ON geo_brk_eigendom_point (kadastraal_object_id)",
     "CREATE INDEX eigendom_point ON geo_brk_eigendom_point USING GIST (geometrie)",
+    "CREATE INDEX eigendom_plot ON geo_brk_eigendom_point USING GIST (plot)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots in full ownership, aggregated as unnested multi-polygons
@@ -238,9 +239,9 @@ mapselection_sql_commands = [
     "ALTER TABLE geo_brk_eigendom_point_index ALTER COLUMN id SET NOT NULL, ALTER COLUMN id SET DEFAULT nextval('point_index_seq')",
     "ALTER SEQUENCE point_index_seq OWNED BY geo_brk_eigendom_point_index.id",
     "SELECT setval('point_index_seq', MAX(id)) FROM geo_brk_eigendom_point_index ",
-    """INSERT INTO geo_brk_eigendom_point_index (kadastraal_object_id, cat_id, geometrie, aantal) Select
+    """INSERT INTO geo_brk_eigendom_point_index (kadastraal_object_id, plot, cat_id, geometrie, aantal) Select
         kpp.poly_kot_id as kadastraal_object_id,
-        kpp.poly_geom as plot,
+        st_union(kpp.poly_geom) as plot,
         99::INTEGER as cat_id,
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal
@@ -249,6 +250,7 @@ mapselection_sql_commands = [
         group by 1""",
     "CREATE INDEX ON geo_brk_eigendom_point_index (kadastraal_object_id)",
     "CREATE INDEX ON geo_brk_eigendom_point_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_eigendom_point_index USING GIST (plot)",
 
 
     #   Aggregated table for geoselection api

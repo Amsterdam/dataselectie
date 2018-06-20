@@ -1,12 +1,12 @@
-import logging
 import json
+import logging
 
 import factory
-from factory import fuzzy
 import faker
-from datasets.brk import models
-from django.db import connection
 from django.contrib.gis.geos import MultiPolygon, Polygon, Point
+from django.db import connection
+from factory import fuzzy
+
 from datasets.brk import geo_models
 from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
@@ -224,6 +224,9 @@ def create_appartementen():
             id=1,
             cat_id=3,
             geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
+            plot=Polygon(
+                [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
+                 [4.8949197, 52.3680168]], srid=SRID_WSG84)
         )
     ]
 
