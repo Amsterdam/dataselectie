@@ -24,6 +24,7 @@ class BrkEigenaarGeoModel(models.Model):
 
 class Appartementen(BrkEigenaarGeoModel):
     aantal = models.IntegerField()
+    plot = geo.PolygonField(srid=SRID_WSG84)
 
     class Meta:
         db_table = "geo_brk_eigendom_point_index"

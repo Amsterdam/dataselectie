@@ -2,7 +2,6 @@ import json
 
 from django.contrib.gis.geos import Polygon
 from django_filters import rest_framework as filters
-from rest_framework_gis.filters import GeometryFilter
 from rest_framework_gis.filterset import GeoFilterSet
 
 from datasets.bag import models as bag_models
@@ -29,20 +28,22 @@ class BrkGeoFilter(GeoFilterSet):
 
     def filter_bbox(self, queryset, name, value):
         if value:
-            bbox = json.loads(value)
-            points = (bbox['_southWest']['lng'], bbox['_northEast']['lat'],
-                      bbox['_northEast']['lng'], bbox['_southWest']['lat'])
-            box = Polygon.from_bbox(points)
-            box.srid = SRID_WSG84
-            box.transform(SRID_RD)
+            box = self._get_box(value)
             return queryset.filter(geometrie__intersects=box)
-
         return queryset
+
+    def _get_box(self, value):
+        bbox = json.loads(value)
+        points = (bbox['_southWest']['lng'], bbox['_northEast']['lat'],
+                  bbox['_northEast']['lng'], bbox['_southWest']['lat'])
+        box = Polygon.from_bbox(points)
+        box.srid = SRID_WSG84
+        box.transform(SRID_RD)
+        return box
 
     def filter_shape(self, queryset, name, value):
         if value:
             return queryset.filter(geometrie__intersects=value)
-
         return queryset
 
     def filter_categorie(self, queryset, name, value):
@@ -78,8 +79,22 @@ class BrkGeoFilter(GeoFilterSet):
 
 
 class AppartementenFilter(BrkGeoFilter):
+    shape = filters.CharFilter(method='filter_shape')
+    bbox = filters.CharFilter(method='filter_bbox')
+
     class Meta(BrkGeoFilter.Meta):
         model = geo_models.Appartementen
+
+    def filter_shape(self, queryset, name, value):
+        if value:
+            return queryset.filter(plot__intersects=value)
+        return queryset
+
+    def filter_bbox(self, queryset, name, value):
+        if value:
+            box = self._get_box(value)
+            return queryset.filter(plot__intersects=box)
+        return queryset
 
 
 class EigenPerceelFilter(BrkGeoFilter):

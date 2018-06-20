@@ -128,7 +128,7 @@ mapselection_sql_commands = [
     #   Linkup-table:
     #       all point-geometries from Registered properties grouped into their encompassing polygon-geometries
     """CREATE TABLE geo_brk_kot_point_in_poly AS (SELECT
-        poly.id as poly_kot_id, point.id as point_kot_id from brk_kadastraalobject poly, brk_kadastraalobject point 
+        poly.id as poly_kot_id, poly.poly_geom poly_geom, point.id as point_kot_id from brk_kadastraalobject poly, brk_kadastraalobject point 
         where poly.poly_geom is not null and point.point_geom is not NULL
         and st_within(point.point_geom, poly.poly_geom))""",
     "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
@@ -187,6 +187,7 @@ mapselection_sql_commands = [
     #       Aggregated registry-objects per land plots
     """CREATE TABLE geo_brk_eigendom_point AS (Select
         kpp.poly_kot_id as kadastraal_object_id,
+        kpp.poly_geom as plot,
         eigendom.cat_id,
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal,
@@ -227,6 +228,7 @@ mapselection_sql_commands = [
     #       Aggregated registry-objects per land plots
     """CREATE TABLE geo_brk_eigendom_point_index AS (Select
         kadastraal_object_id,
+        plot,
         cat_id,
         geometrie,
         aantal,
@@ -238,6 +240,7 @@ mapselection_sql_commands = [
     "SELECT setval('point_index_seq', MAX(id)) FROM geo_brk_eigendom_point_index ",
     """INSERT INTO geo_brk_eigendom_point_index (kadastraal_object_id, cat_id, geometrie, aantal) Select
         kpp.poly_kot_id as kadastraal_object_id,
+        kpp.poly_geom as plot,
         99::INTEGER as cat_id,
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal
