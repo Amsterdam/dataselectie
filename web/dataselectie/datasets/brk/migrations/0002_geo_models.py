@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.IntegerField(primary_key=True, serialize=False)),
                 ('geometrie', django.contrib.gis.db.models.fields.PointField(srid=4326)),
-                ('plot', django.contrib.gis.db.models.fields.PolygonField(srid=4326)),
+                ('plot', django.contrib.gis.db.models.fields.MultiPolygonField(srid=4326)),
                 ('aantal', models.IntegerField()),
             ],
             options={

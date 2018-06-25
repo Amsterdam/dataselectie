@@ -219,14 +219,15 @@ def create_geo_tables():
 
 
 def create_appartementen():
+
     return [
         geo_models.Appartementen.objects.get_or_create(
             id=1,
             cat_id=3,
             geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
-            plot=Polygon(
+            plot=MultiPolygon(Polygon(
                 [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
-                 [4.8949197, 52.3680168]], srid=SRID_WSG84)
+                 [4.8949197, 52.3680168]], srid=SRID_WSG84))
         )
     ]
 
