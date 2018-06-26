@@ -6,6 +6,9 @@ from rest_framework.status import HTTP_403_FORBIDDEN
 from datasets.brk.queries import meta_q
 from datasets.brk import models, geo_models, filters, serializers
 
+from datasets.bag import models as bag
+
+
 from datasets.generic.views_mixins import CSVExportView, stringify_item_value
 from datasets.generic.views_mixins import TableSearchView
 
@@ -54,6 +57,24 @@ def _prepare_queryparams_for_shape(query_params):
             query_params['shape'] = polygon
         else:
             query_params.pop('shape', None)
+
+
+def _lookup_ids_queryparams(query_params):
+    if 'eigenaar_cat' in query_params:
+        categorie = models.EigenaarCategorie.objects.filter(categorie=query_params['eigenaar_cat'])[0]
+        query_params['categorie'] = categorie.id
+    if 'stadsdeel_naam' in query_params:
+        stadsdeel = bag.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
+        query_params['stadsdeel'] = stadsdeel.id
+    if 'ggw_naam' in query_params:
+        ggw = bag.Gebiedsgerichtwerken.objects.filter(naam=query_params['ggw_naam'])[0]
+        query_params['ggw'] = ggw.id
+    if 'buurtcombinatie_naam' in query_params:
+        wijk = bag.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
+        query_params['wijk'] = wijk.id
+    if 'buurt_naam' in query_params:
+        buurt = bag.Buurt.objects.filter(naam=query_params['buurt_naam'])[0]
+        query_params['buurt'] = buurt.id
 
 
 def _prepare_queryparams_for_zoomed_out(query_params):
@@ -111,6 +132,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         return self.filter_queryset(model.objects)
 
     def get_zoomed_in(self):
+        _lookup_ids_queryparams(self.request.query_params)
         _prepare_queryparams_for_shape(self.request.query_params)
 
         #   eigenpercelen works with non-modified categorie
@@ -130,6 +152,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
     def get_zoomed_out(self):
+        _lookup_ids_queryparams(self.request.query_params)
         _prepare_queryparams_for_zoomed_out(self.request.query_params)
 
         appartementen = []

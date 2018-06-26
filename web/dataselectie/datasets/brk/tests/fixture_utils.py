@@ -205,6 +205,10 @@ def create_eigendom():
 def create_eigenaar_categorie():
     return [
         models.EigenaarCategorie.objects.get_or_create(
+            id=1,
+            categorie='Amsterdam',
+        ),
+        models.EigenaarCategorie.objects.get_or_create(
             id=3,
             categorie='De staat',
         )
