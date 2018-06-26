@@ -10,6 +10,11 @@ bagimport_sql_commands = [
     "CREATE INDEX ON bag_buurtcombinatie USING GIST (geometrie)",
     "CREATE INDEX ON bag_gebiedsgerichtwerken USING GIST (geometrie)",
     "CREATE INDEX ON bag_stadsdeel USING GIST (geometrie)",
+    "ALTER TABLE bag_buurt OWNER TO dataselectie",
+    "ALTER TABLE bag_buurtcombinatie OWNER TO dataselectie",
+    "ALTER TABLE bag_gebiedsgerichtwerken OWNER TO dataselectie",
+    "ALTER TABLE bag_stadsdeel OWNER TO dataselectie",
+    "ALTER TABLE brk_eigenaarcategorie OWNER TO dataselectie",
 ]
 
 dataselection_sql_commands = [
