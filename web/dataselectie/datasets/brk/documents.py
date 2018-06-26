@@ -38,11 +38,9 @@ class Eigendom(es.DocType):
 
     kadastraal_object_id = es.Keyword()
     kadastraal_object_index = es.Short()
+    eigenaar_type = es.Keyword(multi=True)
     eigenaar_cat_id = es.Integer()
     eigenaar_cat = es.Keyword()
-    grondeigenaar = es.Boolean()
-    aanschrijfbaar = es.Boolean()
-    appartementeigenaar = es.Boolean()
     aard_zakelijk_recht_akr = es.Keyword()
 
     eigendom_id = es.Keyword()
@@ -245,9 +243,13 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
                                         omschrijving_field='categorie')
-    doc.grondeigenaar = eigendom.grondeigenaar
-    doc.aanschrijfbaar = eigendom.aanschrijfbaar
-    doc.appartementeigenaar = eigendom.appartementeigenaar
+    doc.eigenaar_type = []
+    if eigendom.grondeigenaar:
+        doc.eigenaar_type.append('Grondeigenaar')
+    if eigendom.aanschrijfbaar:
+        doc.eigenaar_type.append('Pandeigenaar')
+    if eigendom.appartementeigenaar:
+        doc.eigenaar_type.append('Appartementseigenaar')
     doc.aard_zakelijk_recht_akr = eigendom.aard_zakelijk_recht_akr
 
     # kot_kadastrale_aanduiding = es.Keyword()  # <-- generated

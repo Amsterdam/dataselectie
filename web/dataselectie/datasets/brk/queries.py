@@ -34,30 +34,16 @@ def create_aggs():
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
+            'eigenaar_type': {
+                'terms': {
+                    'field': 'eigenaar_type',
+                    'size': agg_size,
+                    'order': {'_term': 'asc'},
+                }
+            },
             'eigenaar_cat': {
                 'terms': {
                     'field': 'eigenaar_cat',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
-            'grondeigenaar': {
-                'terms': {
-                    'field': 'grondeigenaar',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
-            'aanschrijfbaar': {
-                'terms': {
-                    'field': 'aanschrijfbaar',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
-            'appartementeigenaar': {
-                'terms': {
-                    'field': 'appartementeigenaar',
                     'size': agg_size,
                     'order': {'_term': 'asc'},
                 }

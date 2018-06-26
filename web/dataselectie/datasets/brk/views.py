@@ -27,8 +27,8 @@ class BrkBase(object):
     db = 'brk'
     q_func = meta_q
     keywords = [
+        'eigenaar_type',
         'eigenaar_categorie_id', 'eigenaar_cat',
-        'grondeigenaar', 'aanschrijfbaar','appartementeigenaar',
         'buurt_naam', 'buurt_code', 'wijk_code',
         'wijk_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code',
@@ -77,7 +77,7 @@ def _prepare_queryparams_for_zoomed_out(query_params):
     if not any(key in query_params for key in ['buurt', 'wijk', 'ggw', 'stadsdeel']):
         try:
             zoom = int(query_params['zoom'])
-        except:
+        except ValueError:
             zoom = 0
 
         # keep zoom between 8 and 12
@@ -168,19 +168,19 @@ class BrkKotSearch(BrkBase, TableSearchView):
         return super().handle_request(request, *args, **kwargs)
 
     def elastic_query(self, query):
-        result = meta_q(query, False, True)
+        result = meta_q(query)
         result.update({
             "_source": {
-                "include" : [
-                "kadastraal_object_id",
-                "aanduiding",
-                "eerste_adres",
+                "include": [
+                    "kadastraal_object_id",
+                    "aanduiding",
+                    "eerste_adres",
                 ]
             },
             "query": {
                 "bool": {
                     "filter": [
-                        {"term": {"kadastraal_object_index": 0} }
+                        {"term": {"kadastraal_object_index": 0}}
                     ]
                 }
             }
@@ -209,8 +209,8 @@ class BrkCSV(BrkBase, CSVExportView):
         ('grootte', 'Grootte (m2)'),
         ('cultuurcode_bebouwd', 'Cultuur bebouwd'),
         ('cultuurcode_onbebouwd', 'Cultuur onbebouwd'),
-        ('aard_zakelijk_recht','Aard zakelijk recht'),
-        ('zakelijk_recht_aandeel','Aandeel zakelijk recht'),
+        ('aard_zakelijk_recht', 'Aard zakelijk recht'),
+        ('zakelijk_recht_aandeel', 'Aandeel zakelijk recht'),
         ('sjt_type', 'Type subject'),
         ('sjt_voornamen', 'Voornamen'),
         ('sjt_voorvoegsels', 'Voorvoegsels'),

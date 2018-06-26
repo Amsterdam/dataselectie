@@ -37,6 +37,11 @@ paths:
           description: Pagina
           type: string
           pattern: '^[0-9]+$'
+        - name: eigenaar_type
+          required: false
+          in: query
+          description: Type eigenaar (Grondeigenaar, Pandeigenaar, Appartementseigenaar)
+          type: string
         - name: eigenaar_categorie_id
           required: false
           in: query
@@ -48,24 +53,6 @@ paths:
           in: query
           description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
           type: string
-        - name: grondeigenaar
-          required: false
-          in: query
-          description: Is grondeigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: aanschrijfbaar
-          required: false
-          in: query
-          description: Is aanschrijfbaar (pandeigenaar) (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: appartementeigenaar
-          required: false
-          in: query
-          description: Is appartements eigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
         - name: buurt_naam
           required: false
           in: query
@@ -149,29 +136,16 @@ paths:
           description: Categorie Id eigenaar (0..9)
           type: string
           pattern: '^[0-9]$'
+        - name: eigenaar_type
+          required: false
+          in: query
+          description: Type eigenaar (Grondeigenaar, Pandeigenaar, Appartementseigenaar)
+          type: string
         - name: eigenaar_cat
           required: false
           in: query
           description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
           type: string
-        - name: grondeigenaar
-          required: false
-          in: query
-          description: Is grondeigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: aanschrijfbaar
-          required: false
-          in: query
-          description: Is aanschrijfbaar (pandeigenaar) (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: appartementeigenaar
-          required: false
-          in: query
-          description: Is appartements eigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
         - name: buurt_naam
           required: false
           in: query
@@ -255,29 +229,16 @@ paths:
           description: Categorie Id eigenaar (0..9)
           type: string
           pattern: '^[0-9]$'
+        - name: eigenaar_type
+          required: false
+          in: query
+          description: Type eigenaar (Grondeigenaar, Pandeigenaar, Appartementseigenaar)
+          type: string
         - name: eigenaar_cat
           required: false
           in: query
           description: Categorie eigenaar (Natuurlijke persoon, Amsterdam, Overige gemeenten, De staat, Provincie, Waterschap, Woningcorporatie, VVE, Spoorwegen, Overig niet natuurlijk
           type: string
-        - name: grondeigenaar
-          required: false
-          in: query
-          description: Is grondeigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: aanschrijfbaar
-          required: false
-          in: query
-          description: Is aanschrijfbaar (pandeigenaar) (boolean)
-          type: string
-          pattern: '^(true|false)$'
-        - name: appartementeigenaar
-          required: false
-          in: query
-          description: Is appartements eigenaar (boolean)
-          type: string
-          pattern: '^(true|false)$'
         - name: buurt_naam
           required: false
           in: query
