@@ -77,7 +77,7 @@ def _prepare_queryparams_for_zoomed_out(query_params):
     if not any(key in query_params for key in ['buurt', 'wijk', 'ggw', 'stadsdeel']):
         try:
             zoom = int(query_params['zoom'])
-        except ValueError:
+        except:
             zoom = 0
 
         # keep zoom between 8 and 12
