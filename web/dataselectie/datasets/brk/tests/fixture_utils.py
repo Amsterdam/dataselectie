@@ -195,9 +195,9 @@ def create_eigendom():
             kadastraal_subject=kadastraal_subject,
             kadastraal_object=kadastraal_object,
             eigenaar_categorie_id=3,
-            grondeigenaar=True,
+            grondeigenaar=False,
             aanschrijfbaar=False,
-            appartementeigenaar=False
+            appartementeigenaar=True
         )
     ]
 
@@ -222,12 +222,13 @@ def create_geo_tables():
             c.execute(sql_command)
 
 
-def create_appartementen():
+def create_appartementen(kot):
 
     return [
         geo_models.Appartementen.objects.get_or_create(
             id=1,
             cat_id=3,
+            kadastraal_object=kot,
             geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
             plot=MultiPolygon(Polygon(
                 [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
@@ -236,11 +237,12 @@ def create_appartementen():
     ]
 
 
-def create_eigenpercelen():
+def create_eigenpercelen(kot):
     return [
         geo_models.EigenPerceel.objects.get_or_create(
             id=1,
             cat_id=3,
+            kadastraal_object=kot,
             geometrie=perceel_geometrie[1],
         ),
     ]
@@ -269,11 +271,12 @@ def create_eigenperceelgroepen():
     return objects
 
 
-def create_niet_eigenpercelen():
+def create_niet_eigenpercelen(kot):
     return [
         geo_models.NietEigenPerceel.objects.get_or_create(
             id=1,
             cat_id=3,
+            kadastraal_object=kot,
             geometrie=perceel_geometrie[2],
         )
     ]
@@ -302,11 +305,11 @@ def create_niet_eigenperceelgroepen():
     return objects
 
 
-def create_geo_data():
-    create_appartementen()
-    create_eigenpercelen()
+def create_geo_data(kot):
+    create_appartementen(kot)
+    create_eigenpercelen(kot)
     create_eigenperceelgroepen()
-    create_niet_eigenpercelen()
+    create_niet_eigenpercelen(kot)
     create_niet_eigenperceelgroepen()
 
 

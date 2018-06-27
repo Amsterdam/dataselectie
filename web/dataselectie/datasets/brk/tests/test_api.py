@@ -59,13 +59,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         bag.create_stadsdeel_fixtures()
 
         create_brk_data()
-        brk.create_eigendom()
+        eigendom = brk.create_eigendom()[0][0]
+        cls.kot = eigendom.kadastraal_object
 
         cls.rebuild_elastic_index()
 
     def setUp(self):
         brk.create_geo_tables()
-        brk.create_geo_data()
+        brk.create_geo_data(self.kot)
 
         self.client = Client()
         self.setup_authorization()
@@ -145,6 +146,27 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertValidMatching(response)
 
         q['buurt_naam'] = 'Stationsplein e.o.'
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidEmpty(response)
+
+    def test_get_geodata_eigenaar(self):
+        q = {'zoom': 11, 'bbox': brk.get_bbox_leaflet(),
+             'eigenaar_type': 'Pandeigenaar', 'eigenaar_cat': 'De staat'}
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidEmpty(response)
+        q['eigenaar_type'] = 'Appartementseigenaar'
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidMatching(response, appartementen=True)
+
+        q['zoom'] = 14
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidMatching(response, zoomed_in=True, appartementen=True)
+
+        q['eigenaar_type'] = 'Pandeigenaar'
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
@@ -234,13 +256,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
-    def assertValidMatching(self, response, zoomed_in=False):
+    def assertValidMatching(self, response, zoomed_in=False, appartementen=False):
         self.assertEqual(response.status_code, 200)
         if zoomed_in:
             self.assertEqual(len(response.json()['appartementen']), 1)
         else:
             self.assertEqual(len(response.json()['appartementen']), 0)
-        self.assertGeoJSON(response.json()['eigenpercelen'])
+        if not appartementen:
+            self.assertGeoJSON(response.json()['eigenpercelen'])
         self.assertGeoJSON(response.json()['niet_eigenpercelen'])
 
     def assertValidEmpty(self, response):

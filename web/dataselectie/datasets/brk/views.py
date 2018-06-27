@@ -63,6 +63,9 @@ def _lookup_ids_queryparams(query_params):
     if 'eigenaar_cat' in query_params:
         categorie = models.EigenaarCategorie.objects.filter(categorie=query_params['eigenaar_cat'])[0]
         query_params['categorie'] = categorie.id
+    if 'eigenaar_type' in query_params:
+        eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
+        query_params['eigenaar'] = eigenaar
     if 'stadsdeel_naam' in query_params:
         stadsdeel = bag.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
         query_params['stadsdeel'] = stadsdeel.id

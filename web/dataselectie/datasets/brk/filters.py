@@ -53,9 +53,9 @@ class BrkGeoFilter(GeoFilterSet):
 
     def filter_eigenaar(self, queryset, name, value):
         eigenaarfilter = {
-            1: lambda qs: qs.filter(kadastraal_object__eigendom__grondeigenaar=True),
-            2: lambda qs: qs.filter(kadastraal_object__eigendom__aanschrijfbaar=True),
-            3: lambda qs: qs.filter(kadastraal_object__eigendom__appartementeigenaar=True),
+            1: lambda qs: qs.filter(kadastraal_object__eigendommen__grondeigenaar=True),
+            2: lambda qs: qs.filter(kadastraal_object__eigendommen__aanschrijfbaar=True),
+            3: lambda qs: qs.filter(kadastraal_object__eigendommen__appartementeigenaar=True),
         }
         if value is not None and value in eigenaarfilter:
             queryset = eigenaarfilter[value](queryset).distinct()
