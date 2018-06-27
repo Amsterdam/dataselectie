@@ -48,20 +48,20 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 }
             },
-            'postcode': {
-                'terms': {
-                    'field': 'postcode',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'openbare_ruimte_naam': {
-                'terms': {
-                    'field': 'openbare_ruimte_naam',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
+            # 'postcode': {
+            #     'terms': {
+            #         'field': 'postcode',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     },
+            # },
+            # 'openbare_ruimte_naam': {
+            #     'terms': {
+            #         'field': 'openbare_ruimte_naam',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     }
+            # },
             'wijk_naam': {
                 'terms': {
                     'field': 'wijk_naam',
@@ -69,20 +69,20 @@ def create_aggs():
                      'order': {'_term': 'asc'},
                 },
             },
-            'wijk_code': {
-                'terms': {
-                    'field': 'wijk_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
-            'buurt_code': {
-                'terms': {
-                    'field': 'buurt_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
+            # 'wijk_code': {
+            #     'terms': {
+            #         'field': 'wijk_code',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     },
+            # },
+            # 'buurt_code': {
+            #     'terms': {
+            #         'field': 'buurt_code',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     },
+            # },
             'buurt_naam': {
                 'terms': {
                     'field': 'buurt_naam',
@@ -97,13 +97,13 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 }
             },
-            'ggw_code': {
-                'terms': {
-                    'field': 'ggw_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
+            # 'ggw_code': {
+            #     'terms': {
+            #         'field': 'ggw_code',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     }
+            # },
             'stadsdeel_naam': {
                 'terms': {
                     'field': 'stadsdeel_naam',
@@ -111,13 +111,13 @@ def create_aggs():
                     'order': {'_term': 'asc'},
                 }
             },
-            'stadsdeel_code': {
-                'terms': {
-                    'field': 'stadsdeel_code',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                }
-            },
+            # 'stadsdeel_code': {
+            #     'terms': {
+            #         'field': 'stadsdeel_code',
+            #         'size': agg_size,
+            #         'order': {'_term': 'asc'},
+            #     }
+            # },
         }
     }
     # Adding count aggregations
