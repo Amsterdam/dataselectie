@@ -228,12 +228,24 @@ def create_appartementen(kot):
         geo_models.Appartementen.objects.get_or_create(
             id=1,
             cat_id=3,
+            eigendom_cat=3,
+            kadastraal_object=kot,
+            geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
+            plot=MultiPolygon(Polygon(
+                [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
+                 [4.8949197, 52.3680168]], srid=SRID_WSG84))
+        ),
+        geo_models.Appartementen.objects.get_or_create(
+            id=2,
+            cat_id=3,
+            eigendom_cat=9,
             kadastraal_object=kot,
             geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
             plot=MultiPolygon(Polygon(
                 [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
                  [4.8949197, 52.3680168]], srid=SRID_WSG84))
         )
+
     ]
 
 
@@ -242,6 +254,14 @@ def create_eigenpercelen(kot):
         geo_models.EigenPerceel.objects.get_or_create(
             id=1,
             cat_id=3,
+            eigendom_cat=1,
+            kadastraal_object=kot,
+            geometrie=perceel_geometrie[1],
+        ),
+        geo_models.EigenPerceel.objects.get_or_create(
+            id=2,
+            cat_id=3,
+            eigendom_cat=9,
             kadastraal_object=kot,
             geometrie=perceel_geometrie[1],
         ),
@@ -276,6 +296,14 @@ def create_niet_eigenpercelen(kot):
         geo_models.NietEigenPerceel.objects.get_or_create(
             id=1,
             cat_id=3,
+            eigendom_cat=3,
+            kadastraal_object=kot,
+            geometrie=perceel_geometrie[2],
+        ),
+        geo_models.NietEigenPerceel.objects.get_or_create(
+            id=2,
+            cat_id=3,
+            eigendom_cat=9,
             kadastraal_object=kot,
             geometrie=perceel_geometrie[2],
         )

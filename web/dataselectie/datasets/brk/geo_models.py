@@ -16,6 +16,7 @@ class BrkEigenaarGeoModel(models.Model):
         brk.EigenaarCategorie,
         on_delete=models.CASCADE,
     )
+    eigendom_cat = models.IntegerField()
     geometrie = geo.PointField(srid=SRID_WSG84)
 
     class Meta:
@@ -27,7 +28,7 @@ class Appartementen(BrkEigenaarGeoModel):
     plot = geo.MultiPolygonField(srid=SRID_WSG84)
 
     class Meta:
-        db_table = "geo_brk_eigendom_point_index"
+        db_table = "geo_brk_detail_eigendom_point_index"
         verbose_name = "Appartementen"
         verbose_name_plural = "AppartementenGroepen"
         managed = False
@@ -36,7 +37,7 @@ class Appartementen(BrkEigenaarGeoModel):
 class EigenPerceel(BrkEigenaarGeoModel):
     geometrie = geo.MultiPolygonField(srid=SRID_WSG84)
     class Meta:
-        db_table = "geo_brk_eigendom_poly"
+        db_table = "geo_brk_detail_eigendom_poly_index"
         verbose_name = "EigenPerceel"
         verbose_name_plural = "EigenPercelen"
         managed = False
@@ -45,7 +46,7 @@ class EigenPerceel(BrkEigenaarGeoModel):
 class NietEigenPerceel(BrkEigenaarGeoModel):
     geometrie = geo.MultiPolygonField(srid=SRID_WSG84)
     class Meta:
-        db_table = "geo_brk_niet_eigendom_poly"
+        db_table = "geo_brk_detail_niet_eigendom_poly_index"
         verbose_name = "NietEigenPerceel"
         verbose_name_plural = "NietEigenPercelen"
         managed = False

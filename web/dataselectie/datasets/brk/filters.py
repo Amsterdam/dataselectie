@@ -52,13 +52,8 @@ class BrkGeoFilter(GeoFilterSet):
         return queryset
 
     def filter_eigenaar(self, queryset, name, value):
-        eigenaarfilter = {
-            1: lambda qs: qs.filter(kadastraal_object__eigendommen__grondeigenaar=True),
-            2: lambda qs: qs.filter(kadastraal_object__eigendommen__aanschrijfbaar=True),
-            3: lambda qs: qs.filter(kadastraal_object__eigendommen__appartementeigenaar=True),
-        }
-        if value is not None and value in eigenaarfilter:
-            queryset = eigenaarfilter[value](queryset).distinct()
+        if value:
+            queryset = queryset.filter(eigendom_cat=value)
         return queryset
 
     def filter_gebied(self, queryset, name, value):
@@ -108,8 +103,6 @@ class NietEigenPerceelFilter(BrkGeoFilter):
 
 
 class BrkGroepGeoFilter(BrkGeoFilter):
-    eigenaar = filters.NumberFilter(method='filter_eigenaar')
-
     buurt = filters.CharFilter(method='filter_gebied')
     wijk = filters.CharFilter(method='filter_gebied')
     ggw = filters.CharFilter(method='filter_gebied')
@@ -120,11 +113,6 @@ class BrkGroepGeoFilter(BrkGeoFilter):
     class Meta:
         fields = ('categorie', 'eigenaar', 'bbox', 'buurt',
                   'wijk', 'ggw', 'stadsdeel', 'zoom')
-
-    def filter_eigenaar(self, queryset, name, value):
-        if value:
-            queryset = queryset.filter(eigendom_cat=value)
-        return queryset
 
     def filter_gebied(self, queryset, name, value):
         if name and value:

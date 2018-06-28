@@ -66,6 +66,10 @@ def _lookup_ids_queryparams(query_params):
     if 'eigenaar_type' in query_params:
         eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
         query_params['eigenaar'] = eigenaar
+
+    if 'eigenaar' not in query_params:
+        query_params['eigenaar'] = 9
+
     if 'stadsdeel_naam' in query_params:
         stadsdeel = bag.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
         query_params['stadsdeel'] = stadsdeel.id
@@ -83,9 +87,6 @@ def _lookup_ids_queryparams(query_params):
 def _prepare_queryparams_for_zoomed_out(query_params):
     _prepare_queryparams_for_shape(query_params)
     _prepare_queryparams_for_categorie(query_params)
-
-    if 'eigenaar' not in query_params:
-        query_params['eigenaar'] = 9
 
     # only filter on the most detailed level
     if 'buurt' in query_params:
