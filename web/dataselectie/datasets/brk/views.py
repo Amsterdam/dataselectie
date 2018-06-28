@@ -1,6 +1,9 @@
+from collections import defaultdict
+
 import authorization_levels
 import json
 from django.contrib.gis.geos import Polygon
+from django.db import connection
 from rest_framework.status import HTTP_403_FORBIDDEN
 
 from datasets.brk.queries import meta_q
@@ -19,6 +22,69 @@ from rest_framework import status
 from rest_framework.response import Response
 
 SRID_WSG84 = 4326
+
+
+def rec_defaultdict():
+    """
+    Make a recursive defaultdict. You can do:
+        x = rec_defaultdict()
+        x['a']['b']['c']['d']=1
+        print(x['a']['b']['c']['d'])
+    :return recursice defaultdict:
+    """
+    return defaultdict(rec_defaultdict)
+
+
+def make_gebieden_lookup():
+    """
+    Create a dictionary that contains for each combination of gebied_type and value combination sof other gebied types
+    and values that are allowed/present in the data.
+
+    For example
+
+    { "stadsdeel_naam":
+        { "Noord": {
+            "stadsdeel_naam":{ "Noord" },
+            "ggw_naam": {"Oost", "Dod-Noord", "West"}
+            "wijk_naam": {...},
+            "buurt_naam": {...},
+        ...
+        },
+      "ggw_naam": {
+        "Oost", {
+            "stadsdeel_naam": { "Noord"},
+            ...
+
+    Thios can be used to filter aggregates with allowed values for request parameters
+    :return lookup_default_dict:
+    """
+    lookup = rec_defaultdict()
+    sql = '''
+    select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as wijk_naam , b.naam as buurt_naam 
+from bag_buurt b
+full outer join bag_gebiedsgerichtwerken ggw on ggw.id = gebiedsgerichtwerken_id
+full outer join bag_buurtcombinatie bc on bc.id = b.buurtcombinatie_id
+full join bag_stadsdeel s on s.id = b.stadsdeel_id
+union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt_naam
+    '''
+    with connection.cursor() as cursor:
+        cursor.execute(sql)
+        for row in cursor.fetchall():
+            drow = {
+                'stadsdeel_naam': row[0],
+                'ggw_naam': row[1],
+                'wijk_naam': row[2],
+                'buurt_naam': row[3]
+            }
+            for key1, value1 in drow.items():
+                for key2, value2 in drow.items():
+                    if value1 is not None and value2 is not None:
+                        if key1 in lookup and value1 in lookup[key1] and key2 in lookup[key1][value1]:
+                            lookup[key1][value1][key2].add(value2)
+                        else:
+                            lookup[key1][value1][key2] = {value2}
+
+    return lookup
 
 
 class BrkBase(object):
@@ -40,6 +106,61 @@ class BrkBase(object):
     keyword_mapping = {
     }
     raw_fields = []
+
+    gebieden_lookup = None
+
+    @staticmethod
+    def get_gebieden_lookup():
+        """
+        Do make_gebieden_lookup only once.
+        Keep in class variable BrkBase.gebieden_lookup
+        :return:
+        """
+        if BrkBase.gebieden_lookup is None:
+            if BrkBase.gebieden_lookup is None:
+                BrkBase.gebieden_lookup = make_gebieden_lookup()
+        return BrkBase.gebieden_lookup
+
+    def custom_aggs(self, elastic_data, request):
+        """
+        Do custom filtering on aggs. If we have parameters for gebieden
+        we filter out aggregate buckets that are not related to the gebieden
+        """
+        filter_params = {'stadsdeel_naam', 'ggw_naam', 'wijk_naam', 'buurt_naam'}
+
+        query_params = request.GET
+        query_filter_params = filter_params.intersection(set(query_params))
+
+        if not query_filter_params:
+            return
+
+        lookup = self.get_gebieden_lookup()
+
+        aggs_list = elastic_data['aggs_list']
+
+        # loop over all filter_aggregations
+        for key, value in aggs_list.items():
+            if key not in filter_params:
+                continue
+
+            allowed_key_values = None
+            for qfp_key in query_filter_params:
+                qfp_value = query_params[qfp_key]
+                if allowed_key_values is None:
+                    allowed_key_values = lookup[qfp_key][qfp_value][key]
+                else:
+                    allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
+
+            bucketlist = value['buckets']
+            newbucket = []
+            for bucketitem in bucketlist:
+                if bucketitem['key'] not in allowed_key_values:
+                    continue
+                newbucket.append(bucketitem)
+
+            # replace bucket list with cleaned up version
+            value['doc_count'] = len(newbucket)
+            value['buckets'] = newbucket
 
 
 def _prepare_queryparams_for_categorie(query_params):
