@@ -107,19 +107,26 @@ class BrkBase(object):
     }
     raw_fields = []
 
+
+class BrkAggBase(BrkBase):
+    """
+    Base class for searching with aggregations. This class adds
+    the custom_aggs method to postprocess aggregations
+    """
+
     gebieden_lookup = None
 
     @staticmethod
     def get_gebieden_lookup():
         """
         Do make_gebieden_lookup only once.
-        Keep in class variable BrkBase.gebieden_lookup
+        Keep in class variable BrkAggBase.gebieden_lookup
         :return:
         """
-        if BrkBase.gebieden_lookup is None:
-            if BrkBase.gebieden_lookup is None:
-                BrkBase.gebieden_lookup = make_gebieden_lookup()
-        return BrkBase.gebieden_lookup
+        if BrkAggBase.gebieden_lookup is None:
+            if BrkAggBase.gebieden_lookup is None:
+                BrkAggBase.gebieden_lookup = make_gebieden_lookup()
+        return BrkAggBase.gebieden_lookup
 
     def custom_aggs(self, elastic_data, request):
         """
@@ -293,7 +300,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
 
-class BrkSearch(BrkBase, TableSearchView):
+class BrkSearch(BrkAggBase, TableSearchView):
     def handle_request(self, request, *args, **kwargs):
         if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
             raise PermissionDenied("scope BRK/RSN required")
@@ -309,7 +316,7 @@ class BrkSearch(BrkBase, TableSearchView):
         return result
 
 
-class BrkKotSearch(BrkBase, TableSearchView):
+class BrkKotSearch(BrkAggBase, TableSearchView):
     def handle_request(self, request, *args, **kwargs):
         if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
             raise PermissionDenied("scope BRK/RSN required")
