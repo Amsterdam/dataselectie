@@ -173,7 +173,9 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         # make queryparams on underlying request-object mutable:
         request._request.GET = request.query_params.copy()
-        filters.modify_queryparams_for_shape(self.request.query_params)
+        err = filters.modify_queryparams_for_shape(self.request.query_params)
+        if err:
+            return Response(err, status=status.HTTP_400_BAD_REQUEST)
 
         if 'zoom' in self.request.query_params:
             zoom = int(self.request.query_params.get('zoom'))
