@@ -11,7 +11,7 @@ from datasets.generic.views_mixins import CSVExportView, stringify_item_value
 from datasets.generic.views_mixins import TableSearchView
 
 from django.core.exceptions import PermissionDenied
-from django.contrib.gis.db.models import Collect
+from django.contrib.gis.db.models import Collect, Union
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -197,14 +197,14 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         #   eigenpercelen works with non-modified categorie ...
         perceel_queryset = self.filter(geo_models.EigenPerceel)
-        eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
+        eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
 
         #   ... then appartementen en niet-eigenpercelen require modified categorie
         filters.modify_queryparams_for_detail_other(self.request.query_params)
 
         appartementen = self.filter(geo_models.Appartementen).all()
         perceel_queryset = self.filter(geo_models.NietEigenPerceel)
-        niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
+        niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
 
         return {"appartementen": appartementen,
                 "eigenpercelen": eigenpercelen['geom'],
