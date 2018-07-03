@@ -215,9 +215,12 @@ def modify_queryparams_for_shape(query_params):
             polygon.srid = SRID_WSG84
             query_params['shape'] = polygon
 
+            zoom = int(query_params['zoom']) if 'zoom' in query_params else 0
+            query_params['zoom'] = max(zoom, 13)
+
             area_square_meters = polygon.transform(SRID_RD, clone=True).area
-            zoom = int(query_params['zoom']) if 'zoom' in query_params and area_square_meters < 250000 else 12
-            query_params['zoom'] = max(12, zoom)
+            if area_square_meters > 250000:
+                query_params['zoom'] = 12
         else:
             query_params.pop('shape', None)
 
