@@ -3,9 +3,8 @@ import json
 from django.contrib.gis.geos import Polygon
 from django_filters import rest_framework as filters
 from rest_framework_gis.filterset import GeoFilterSet
-
 from datasets.bag import models as bag_models
-from datasets.brk import geo_models
+from datasets.brk import models, geo_models
 
 SRID_WSG84 = 4326
 SRID_RD = 28992
@@ -142,3 +141,97 @@ filter_class = {
     geo_models.EigenPerceelGroep: EigenPerceelGroepFilter,
     geo_models.NietEigenPerceelGroep: NietEigenPerceelGroepFilter
 }
+
+
+def _prepare_queryparams_for_categorie(query_params):
+    """Adds catch-all category if queryparam `category` is missing """
+    if 'categorie' not in query_params:
+        query_params['categorie'] = 99
+
+
+def _prepare_queryparams_for_eigenaar(query_params):
+    """Adds catch-all category if queryparam `eigenaar` is missing """
+    if 'eigenaar' not in query_params:
+        query_params['eigenaar'] = 9
+
+
+def _lookup_ids_queryparams(query_params):
+    """Find, and add as queryparam, id's for gebieden en eigenaars """
+    if 'eigenaar_cat' in query_params:
+        categorie = models.EigenaarCategorie.objects.filter(categorie=query_params['eigenaar_cat'])[0]
+        query_params['categorie'] = categorie.id
+    if 'eigenaar_type' in query_params:
+        eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
+        query_params['eigenaar'] = eigenaar
+
+    if 'stadsdeel_naam' in query_params:
+        stadsdeel = bag_models.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
+        query_params['stadsdeel'] = stadsdeel.id
+    if 'ggw_naam' in query_params:
+        ggw = bag_models.Gebiedsgerichtwerken.objects.filter(naam=query_params['ggw_naam'])[0]
+        query_params['ggw'] = ggw.id
+    if 'buurtcombinatie_naam' in query_params:
+        wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
+        query_params['wijk'] = wijk.id
+    if 'buurt_naam' in query_params:
+        buurt = bag_models.Buurt.objects.filter(naam=query_params['buurt_naam'])[0]
+        query_params['buurt'] = buurt.id
+
+
+def _prepare_queryparams_for_group_filter(query_params):
+    """Remove all but the smallest gebieden queryparam """
+    _prepare_queryparams_for_categorie(query_params)
+
+    # only filter on the most detailed level
+    if 'buurt' in query_params:
+        query_params.pop('wijk', None)
+        query_params.pop('ggw', None)
+        query_params.pop('stadsdeel', None)
+    if 'wijk' in query_params:
+        query_params.pop('ggw', None)
+        query_params.pop('stadsdeel', None)
+    if 'ggw' in query_params:
+        query_params.pop('stadsdeel', None)
+
+    if not any(key in query_params for key in ['buurt', 'wijk', 'ggw', 'stadsdeel']):
+        try:
+            zoom = int(query_params['zoom'])
+        except:
+            zoom = 0
+
+        # keep zoom between 8 and 12
+        query_params['zoom'] = max(8, min(zoom, 12))
+    else:
+        query_params['zoom'] = None
+
+
+def modify_queryparams_for_shape(query_params):
+    """Translates queryaram `shape` to Polygon, or removes it `zoom` param is modified """
+    if 'shape' in query_params:
+        points = json.loads(query_params['shape'])
+        if len(points) > 2:
+            # close ring and create Polygon
+            polygon = Polygon(points+[points[0]])
+            polygon.srid = SRID_WSG84
+            query_params['shape'] = polygon
+
+            area_square_meters = polygon.transform(SRID_RD, clone=True).area
+            zoom = int(query_params['zoom']) if 'zoom' in query_params and area_square_meters < 250000 else 12
+            query_params['zoom'] = max(12, zoom)
+        else:
+            query_params.pop('shape', None)
+
+
+def modify_queryparams_for_detail_eigen(query_params):
+    _lookup_ids_queryparams(query_params)
+    _prepare_queryparams_for_eigenaar(query_params)
+
+
+def modify_queryparams_for_detail_other(query_params):
+    _prepare_queryparams_for_categorie(query_params)
+
+
+def modify_queryparams_for_overview(query_params):
+    _lookup_ids_queryparams(query_params)
+    _prepare_queryparams_for_eigenaar(query_params)
+    _prepare_queryparams_for_group_filter(query_params)

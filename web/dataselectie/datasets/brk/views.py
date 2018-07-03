@@ -1,16 +1,11 @@
 from collections import defaultdict
 
 import authorization_levels
-import json
-from django.contrib.gis.geos import Polygon
-from django.db import connection
 from rest_framework.status import HTTP_403_FORBIDDEN
+from django.db import connection
 
 from datasets.brk.queries import meta_q
 from datasets.brk import models, geo_models, filters, serializers
-
-from datasets.bag import models as bag
-
 
 from datasets.generic.views_mixins import CSVExportView, stringify_item_value
 from datasets.generic.views_mixins import TableSearchView
@@ -22,6 +17,7 @@ from rest_framework import status
 from rest_framework.response import Response
 
 SRID_WSG84 = 4326
+SRID_RD = 28992
 
 
 def rec_defaultdict():
@@ -170,75 +166,6 @@ class BrkAggBase(BrkBase):
             value['buckets'] = newbucket
 
 
-def _prepare_queryparams_for_categorie(query_params):
-    if 'categorie' not in query_params:
-        query_params['categorie'] = 99
-
-
-def _prepare_queryparams_for_shape(query_params):
-    if 'shape' in query_params:
-        points = json.loads(query_params['shape'])
-        if len(points) > 0:
-            # close ring and create Polygon
-            polygon = Polygon(points+[points[0]])
-            polygon.srid = SRID_WSG84
-            query_params['shape'] = polygon
-        else:
-            query_params.pop('shape', None)
-
-
-def _lookup_ids_queryparams(query_params):
-    if 'eigenaar_cat' in query_params:
-        categorie = models.EigenaarCategorie.objects.filter(categorie=query_params['eigenaar_cat'])[0]
-        query_params['categorie'] = categorie.id
-    if 'eigenaar_type' in query_params:
-        eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
-        query_params['eigenaar'] = eigenaar
-
-    if 'eigenaar' not in query_params:
-        query_params['eigenaar'] = 9
-
-    if 'stadsdeel_naam' in query_params:
-        stadsdeel = bag.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
-        query_params['stadsdeel'] = stadsdeel.id
-    if 'ggw_naam' in query_params:
-        ggw = bag.Gebiedsgerichtwerken.objects.filter(naam=query_params['ggw_naam'])[0]
-        query_params['ggw'] = ggw.id
-    if 'buurtcombinatie_naam' in query_params:
-        wijk = bag.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
-        query_params['wijk'] = wijk.id
-    if 'buurt_naam' in query_params:
-        buurt = bag.Buurt.objects.filter(naam=query_params['buurt_naam'])[0]
-        query_params['buurt'] = buurt.id
-
-
-def _prepare_queryparams_for_zoomed_out(query_params):
-    _prepare_queryparams_for_shape(query_params)
-    _prepare_queryparams_for_categorie(query_params)
-
-    # only filter on the most detailed level
-    if 'buurt' in query_params:
-        query_params.pop('wijk', None)
-        query_params.pop('ggw', None)
-        query_params.pop('stadsdeel', None)
-    if 'wijk' in query_params:
-        query_params.pop('ggw', None)
-        query_params.pop('stadsdeel', None)
-    if 'ggw' in query_params:
-        query_params.pop('stadsdeel', None)
-
-    if not any(key in query_params for key in ['buurt', 'wijk', 'ggw', 'stadsdeel']):
-        try:
-            zoom = int(query_params['zoom'])
-        except:
-            zoom = 0
-
-        # keep zoom between 8 and 12
-        query_params['zoom'] = max(8, min(zoom, 12))
-    else:
-        query_params['zoom'] = None
-
-
 class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         if not request.is_authorized_for(authorization_levels.SCOPE_BRK_RSN):
@@ -246,6 +173,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         # make queryparams on underlying request-object mutable:
         request._request.GET = request.query_params.copy()
+        filters.modify_queryparams_for_shape(self.request.query_params)
 
         if 'zoom' in self.request.query_params:
             zoom = int(self.request.query_params.get('zoom'))
@@ -264,18 +192,17 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         return self.filter_queryset(model.objects)
 
     def get_zoomed_in(self):
-        _lookup_ids_queryparams(self.request.query_params)
-        _prepare_queryparams_for_shape(self.request.query_params)
+        # first peroform genaral modifications to queryparams
+        filters.modify_queryparams_for_detail_eigen(self.request.query_params)
 
-        #   eigenpercelen works with non-modified categorie
+        #   eigenpercelen works with non-modified categorie ...
         perceel_queryset = self.filter(geo_models.EigenPerceel)
         eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        #   appartementen en niet-eigenpercelen require modified categorie
-        _prepare_queryparams_for_categorie(self.request.query_params)
+        #   ... then appartementen en niet-eigenpercelen require modified categorie
+        filters.modify_queryparams_for_detail_other(self.request.query_params)
 
         appartementen = self.filter(geo_models.Appartementen).all()
-
         perceel_queryset = self.filter(geo_models.NietEigenPerceel)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
@@ -284,8 +211,8 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
     def get_zoomed_out(self):
-        _lookup_ids_queryparams(self.request.query_params)
-        _prepare_queryparams_for_zoomed_out(self.request.query_params)
+        # first peroform genaral modifications to queryparams
+        filters.modify_queryparams_for_overview(self.request.query_params)
 
         appartementen = []
 

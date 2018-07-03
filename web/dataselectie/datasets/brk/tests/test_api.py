@@ -13,7 +13,7 @@ from elasticsearch import Elasticsearch
 from datasets.bag.tests import fixture_utils as bag
 from datasets.brk.tests import fixture_utils as brk
 from datasets.brk.tests.factories import create_brk_data
-from datasets.brk.views import _prepare_queryparams_for_shape
+from datasets.brk.filters import modify_queryparams_for_shape
 # Project
 from datasets.generic.tests.authorization import AuthorizationSetup
 
@@ -281,7 +281,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         fixture = {
             'shape': "[[4.890712,52.373579],[4.8920548,52.3736018],[4.8932629,52.3732028],"
                      "[4.8929459,52.3727335],[4.8906613,52.3727228]]"}
-        _prepare_queryparams_for_shape(fixture)
+        modify_queryparams_for_shape(fixture)
 
         self.assertIsInstance(fixture['shape'], Polygon)
         dict_of_polygon = json.loads(fixture['shape'].geojson)
@@ -292,8 +292,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertDictEqual(dict_of_polygon, expected_dict)
 
         fixture = {'shape': "[]"}
-        _prepare_queryparams_for_shape(fixture)
-
+        modify_queryparams_for_shape(fixture)
+        self.assertNotIn('zoom', fixture)
         self.assertNotIn('shape', fixture)
 
     @tag('brk')
