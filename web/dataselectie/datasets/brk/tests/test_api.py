@@ -186,7 +186,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         q['zoom'] = 11
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
-        self.assertValidMatching(response)
+        self.assertValidMatching(response, zoomed_in=True)
 
         q['buurt_naam'] = 'Stationsplein e.o.'
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
