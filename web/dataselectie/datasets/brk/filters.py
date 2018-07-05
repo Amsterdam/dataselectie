@@ -227,12 +227,9 @@ def modify_queryparams_for_shape(query_params):
     return None
 
 
-def modify_queryparams_for_detail_eigen(query_params):
+def modify_queryparams_for_detail(query_params):
     _lookup_ids_queryparams(query_params)
     _prepare_queryparams_for_eigenaar(query_params)
-
-
-def modify_queryparams_for_detail_other(query_params):
     _prepare_queryparams_for_categorie(query_params)
 
 
@@ -240,3 +237,7 @@ def modify_queryparams_for_overview(query_params):
     _lookup_ids_queryparams(query_params)
     _prepare_queryparams_for_eigenaar(query_params)
     _prepare_queryparams_for_group_filter(query_params)
+
+
+def remove_bbox_for_extent(query_params):
+    query_params.pop('bbox', None)
