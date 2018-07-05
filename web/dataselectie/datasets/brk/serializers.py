@@ -14,10 +14,11 @@ class BrkAppartementenSerializer(serializers.Serializer):
 
 
 class BrkGeoLocationSerializer(serializers.Serializer):
+    extent = serializers.ListSerializer(child=serializers.FloatField())
     appartementen = BrkAppartementenSerializer(many=True)
     eigenpercelen = fields.GeometryField()
     niet_eigenpercelen = fields.GeometryField()
 
     class Meta:
-        inlcude_fields = ('appartementen', 'eigenpercelen', 'niet_eigenpercelen')
+        inlcude_fields = ('extent', 'appartementen', 'eigenpercelen', 'niet_eigenpercelen')
 

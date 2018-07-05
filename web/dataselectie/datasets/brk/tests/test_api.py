@@ -265,12 +265,14 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         if not appartementen:
             self.assertGeoJSON(response.json()['eigenpercelen'], zoomed_in)
         self.assertGeoJSON(response.json()['niet_eigenpercelen'], zoomed_in)
+        self.assertEqual(len(response.json()['extent']), 4)
 
     def assertValidEmpty(self, response):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json()['appartementen']), 0)
         self.assertIsNone(response.json()['eigenpercelen'])
         self.assertIsNone(response.json()['niet_eigenpercelen'])
+        self.assertIsNone(response.json()['extent'])
 
     def assertGeoJSON(self, geojson, zoomed_in=False):
         self.assertIsInstance(geojson, dict)
