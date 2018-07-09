@@ -219,7 +219,7 @@ def modify_queryparams_for_shape(query_params):
             query_params['zoom'] = max(zoom, 13)
 
             area_square_meters = polygon.transform(SRID_RD, clone=True).area
-            if area_square_meters > 600000:
+            if area_square_meters > 6000000:
                 return "Shape area too big"
         else:
             query_params.pop('shape', None)
