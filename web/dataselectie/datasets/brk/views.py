@@ -205,10 +205,10 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         return None if union is None else union.extent
 
-    def _get_extent(self, *geo_models):
-        filters.remove_bbox_for_extent(self.request.query_params)
+    def _get_extent(self):
+        filters.remove_bbox_and_zoom_for_extent(self.request.query_params)
         extents = []
-        for geo_model in geo_models:
+        for geo_model in [geo_models.EigenPerceel, geo_models.NietEigenPerceel]:
             filtered_queryset = self.filter(geo_model)
             extents.append(filtered_queryset.aggregate(box=Extent('geometrie'))['box'])
         return self._extent(extents)
@@ -224,7 +224,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         perceel_queryset = self.filter(geo_models.NietEigenPerceel)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
 
-        extent = self._get_extent(geo_models.EigenPerceel, geo_models.NietEigenPerceel)
+        extent = self._get_extent()
 
         return {"extent": extent,
                 "appartementen": appartementen,
@@ -243,7 +243,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
         niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
 
-        extent = self._get_extent(geo_models.EigenPerceelGroep, geo_models.NietEigenPerceelGroep)
+        extent = self._get_extent()
 
         return {"extent": extent,
                 "appartementen": appartementen,

@@ -239,5 +239,6 @@ def modify_queryparams_for_overview(query_params):
     _prepare_queryparams_for_group_filter(query_params)
 
 
-def remove_bbox_for_extent(query_params):
+def remove_bbox_and_zoom_for_extent(query_params):
     query_params.pop('bbox', None)
+    query_params.pop('zoom', None)
