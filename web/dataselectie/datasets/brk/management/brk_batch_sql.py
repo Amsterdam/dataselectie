@@ -33,7 +33,7 @@ dataselection_sql_commands = [
             SELECT row_number() over (), kadastraal_object_id, buurt_id FROM (
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
                 FROM brk_kadastraalobject kot, bag_buurt buurt
-                WHERE kot.poly_geom is not null AND ST_Within(kot.poly_geom, buurt.geometrie) 
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, buurt.geometrie) 
                 UNION
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
                 FROM brk_kadastraalobject kot, bag_buurt buurt
@@ -48,7 +48,7 @@ dataselection_sql_commands = [
             SELECT row_number() over (), kadastraal_object_id, buurt_combi_id FROM (
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
                 FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
-                WHERE kot.poly_geom is not null AND ST_Within(kot.poly_geom, wijk.geometrie) 
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, wijk.geometrie) 
                 UNION
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
                 FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
@@ -63,7 +63,7 @@ dataselection_sql_commands = [
             SELECT row_number() over (), kadastraal_object_id, ggw_id FROM (
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
                 FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
-                WHERE kot.poly_geom is not null AND ST_Within(kot.poly_geom, ggw.geometrie)
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, ggw.geometrie)
                 UNION
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
                 FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
@@ -78,7 +78,7 @@ dataselection_sql_commands = [
             SELECT row_number() over (), kadastraal_object_id, stadsdeel_id FROM (
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
                 FROM brk_kadastraalobject kot, bag_stadsdeel sd
-                WHERE kot.poly_geom is not null AND ST_Within(kot.poly_geom, sd.geometrie) 
+                WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, sd.geometrie) 
                 UNION
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
                 FROM brk_kadastraalobject kot, bag_stadsdeel sd
