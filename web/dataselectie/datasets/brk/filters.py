@@ -206,7 +206,7 @@ def _prepare_queryparams_for_group_filter(query_params):
 
 
 def modify_queryparams_for_shape(query_params):
-    """Translates queryaram `shape` to Polygon, or removes it `zoom` param is modified """
+    """Translates queryaram `shape` to Polygon, or removes it. Also `zoom` param is modified """
     if 'shape' in query_params:
         points = json.loads(query_params['shape'])
         if len(points) > 2:
@@ -216,7 +216,7 @@ def modify_queryparams_for_shape(query_params):
             query_params['shape'] = polygon
 
             zoom = int(query_params['zoom']) if 'zoom' in query_params else 0
-            query_params['zoom'] = max(zoom, 13)
+            query_params['zoom'] = max(zoom, 12)
 
             area_square_meters = polygon.transform(SRID_RD, clone=True).area
             if area_square_meters > 6000000:

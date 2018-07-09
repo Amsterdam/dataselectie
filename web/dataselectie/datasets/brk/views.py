@@ -12,7 +12,7 @@ from datasets.generic.views_mixins import TableSearchView
 
 from django.core.exceptions import PermissionDenied
 from django.contrib.gis.geos import Polygon
-from django.contrib.gis.db.models import Collect, Union, Extent
+from django.contrib.gis.db.models import Union, Extent
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
@@ -238,10 +238,10 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
         appartementen = []
 
         perceel_queryset = self.filter(geo_models.EigenPerceelGroep)
-        eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
+        eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
 
         perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
-        niet_eigenpercelen = perceel_queryset.aggregate(geom=Collect('geometrie'))
+        niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
 
         extent = self._get_extent()
 

@@ -117,7 +117,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                        **self.header_auth_scope_brk_plus)
             self.assertEqual(response.status_code, 200)
-            self.assertGeoJSON(response.json()['eigenpercelen'], zoomed_in=(zoom > 12))
+            self.assertGeoJSON(response.json()['eigenpercelen'])
 
     def test_get_geodata_nieteigenpercelen(self):
         q = {'eigenaar_cat': 'De staat', 'bbox': brk.get_bbox_leaflet()}
@@ -127,7 +127,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                        **self.header_auth_scope_brk_plus)
             self.assertEqual(response.status_code, 200)
-            self.assertGeoJSON(response.json()['niet_eigenpercelen'], zoomed_in=(zoom > 12))
+            self.assertGeoJSON(response.json()['niet_eigenpercelen'])
 
     def test_get_geodata_gebied_buurt(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'buurt_naam': 'Stationsplein e.o.'}
@@ -186,7 +186,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         q['zoom'] = 11
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
-        self.assertValidMatching(response, zoomed_in=True)
+        self.assertValidMatching(response)
 
         q['buurt_naam'] = 'Stationsplein e.o.'
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
@@ -263,8 +263,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         else:
             self.assertEqual(len(response.json()['appartementen']), 0)
         if not appartementen:
-            self.assertGeoJSON(response.json()['eigenpercelen'], zoomed_in)
-        self.assertGeoJSON(response.json()['niet_eigenpercelen'], zoomed_in)
+            self.assertGeoJSON(response.json()['eigenpercelen'])
+        self.assertGeoJSON(response.json()['niet_eigenpercelen'])
         self.assertEqual(len(response.json()['extent']), 4)
 
     def assertValidEmpty(self, response):
@@ -274,13 +274,10 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertIsNone(response.json()['niet_eigenpercelen'])
         self.assertIsNone(response.json()['extent'])
 
-    def assertGeoJSON(self, geojson, zoomed_in=False):
+    def assertGeoJSON(self, geojson):
         self.assertIsInstance(geojson, dict)
         self.assertIn('type', geojson)
-        if zoomed_in:
-            self.assertIn('coordinates', geojson)
-        else:
-            self.assertIn('geometries', geojson)
+        self.assertIn('coordinates', geojson)
 
     def test_shape_parameter(self):
         fixture = {
