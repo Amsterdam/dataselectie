@@ -174,9 +174,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
 
         # make queryparams on underlying request-object mutable:
         request._request.GET = request.query_params.copy()
-        err = filters.modify_queryparams_for_shape(self.request.query_params)
-        if err:
-            return Response(err, status=status.HTTP_400_BAD_REQUEST)
+        modify_for_shape = filters.modify_queryparams_for_shape(self.request.query_params)
 
         if 'zoom' in self.request.query_params:
             zoom = int(self.request.query_params.get('zoom'))
@@ -187,7 +185,7 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_in())
                 return Response(serialize.data)
 
-        serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_out())
+        serialize = serializers.BrkGeoLocationSerializer(self.get_zoomed_out(modify_for_shape=modify_for_shape))
         return Response(serialize.data)
 
     def filter(self, model):
@@ -231,18 +229,20 @@ class BrkGeoLocationSearch(BrkBase, generics.ListAPIView):
                 "eigenpercelen": eigenpercelen['geom'],
                 "niet_eigenpercelen": niet_eigenpercelen['geom']}
 
-    def get_zoomed_out(self):
-        # first peroform genaral modifications to queryparams
-        filters.modify_queryparams_for_overview(self.request.query_params)
+    def get_zoomed_out(self, modify_for_shape=False):
+        if modify_for_shape:
+            filters.modify_queryparams_for_detail(self.request.query_params)
+            eigen_perceel_queryset = self.filter(geo_models.EigenPerceel)
+            filters.modify_queryparams_for_overview(self.request.query_params)
+            niet_eigen_perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
+        else:
+            filters.modify_queryparams_for_overview(self.request.query_params)
+            eigen_perceel_queryset = self.filter(geo_models.EigenPerceelGroep)
+            niet_eigen_perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
 
         appartementen = []
-
-        perceel_queryset = self.filter(geo_models.EigenPerceelGroep)
-        eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
-
-        perceel_queryset = self.filter(geo_models.NietEigenPerceelGroep)
-        niet_eigenpercelen = perceel_queryset.aggregate(geom=Union('geometrie'))
-
+        eigenpercelen = eigen_perceel_queryset.aggregate(geom=Union('geometrie'))
+        niet_eigenpercelen = niet_eigen_perceel_queryset.aggregate(geom=Union('geometrie'))
         extent = self._get_extent()
 
         return {"extent": extent,

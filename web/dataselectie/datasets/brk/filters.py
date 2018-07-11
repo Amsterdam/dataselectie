@@ -217,10 +217,12 @@ def modify_queryparams_for_shape(query_params):
 
             zoom = int(query_params['zoom']) if 'zoom' in query_params else 0
             query_params['zoom'] = max(zoom, 12)
+            if zoom < 13:
+                return True
         else:
             query_params.pop('shape', None)
 
-    return None
+    return False
 
 
 def modify_queryparams_for_detail(query_params):
