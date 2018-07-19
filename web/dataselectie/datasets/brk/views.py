@@ -86,7 +86,7 @@ union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt
 
 class BrkBase(object):
     """
-    Base class mixing for data settings
+    Base class mixin for data settings
     """
     model = models.KadastraalObject
     index = 'DS_BRK_INDEX'
