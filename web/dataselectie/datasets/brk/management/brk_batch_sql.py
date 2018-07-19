@@ -309,11 +309,11 @@ mapselection_sql_commands = [
     "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id)",
     "SELECT UpdateGeometrySRID('geo_brk_detail_niet_eigendom_poly_index','geometrie',4326)",
     "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index USING GIST (geometrie)",
-    """INSERT INTO geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id, eigendom_cat, geometrie, cat_id) Select
+    """INSERT INTO geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id, cat_id, eigendom_cat, geometrie) Select
         kadastraal_object_id,
-        eigendom_cat,
-        st_multi(st_union(geometrie)) as geometrie,
-        99::INTEGER as cat_id
+        cat_id,
+        9::INTEGER as eigendom_cat,
+        st_multi(st_union(geometrie)) as geometrie
         from geo_brk_detail_niet_eigendom_poly_index
         group by 1, 2""",
 
