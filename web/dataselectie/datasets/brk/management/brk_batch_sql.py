@@ -316,13 +316,6 @@ mapselection_sql_commands = [
         99::INTEGER as cat_id
         from geo_brk_detail_niet_eigendom_poly_index
         group by 1, 2""",
-    """INSERT INTO geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id, cat_id, eigendom_cat, geometrie) Select
-        kadastraal_object_id,
-        cat_id,
-        9::INTEGER as eigendom_cat,
-        st_multi(st_union(geometrie)) as geometrie
-        from geo_brk_detail_niet_eigendom_poly_index
-        group by 1, 2""",
 
     #   Aggregated table for geoselection api
     #       Land plots for aggregated registry-objects
