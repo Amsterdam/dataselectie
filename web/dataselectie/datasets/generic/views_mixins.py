@@ -106,9 +106,11 @@ class ElasticSearchMixin(object):
     filters = {}
     # A set of optional keywords to filter the results further
     keywords = ()
-    geo_fields = {
-        'shape': ['centroid', 'geo_polygon'],
-    }
+    geo_fields = [
+        {'query_param': 'shape',
+         'es_doc_field': 'centroid',
+         'es_query_type': 'geo_polygon'}
+    ]
     keyword_mapping = {}
     request = None
 
@@ -214,7 +216,7 @@ class ElasticSearchMixin(object):
     def _add_geo_filters(self, request_parameters, filters):
         """ Adding geo filters """
 
-        def stringyfy(val):
+        def unmarshal(val):
             """Checking if val needs to be converted from string"""
             if isinstance(val, str):
                 try:
@@ -224,14 +226,28 @@ class ElasticSearchMixin(object):
                     val = []
             return val
 
-        for term, geo_type in self.geo_fields.items():
-            val = request_parameters.get(term, None)
+        for geo_dict in self.geo_fields:
+            val = request_parameters.get(geo_dict['query_param'], None)
             if val is not None:
-                val = stringyfy(val)
+                val = unmarshal(val)
                 # Only adding filter if at least 3 points are given
                 if (len(val)) > 2:
-                    filters.append(
-                        {geo_type[1]: {geo_type[0]: {'points': val}}})
+                    if geo_dict['es_query_type'] == 'geo_polygon':
+                        filters.append(
+                            {'geo_polygon': {geo_dict['es_doc_field']: {'points': val}}})
+                    elif geo_dict['es_query_type'] == 'geo_shape':
+                        val.append(val[0]) #close polygon
+                        filters.append({
+                            "geo_shape": {
+                                geo_dict['es_doc_field']: {
+                                    "shape": {
+                                        "type": "polygon",
+                                        "coordinates" : [val]
+                                    },
+                                    "relation": "intersects"
+                                }
+                            }
+                        })
 
     def load_from_elastic(self):
         """

@@ -11,9 +11,9 @@ from django.test import Client, TestCase, tag
 from elasticsearch import Elasticsearch
 
 from datasets.bag.tests import fixture_utils as bag
+from datasets.brk.filters import modify_queryparams_for_shape
 from datasets.brk.tests import fixture_utils as brk
 from datasets.brk.tests.factories import create_brk_data
-from datasets.brk.filters import modify_queryparams_for_shape
 # Project
 from datasets.generic.tests.authorization import AuthorizationSetup
 
@@ -313,12 +313,48 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
 
     @tag('brk')
+    def test_api_search_with_shape(self):
+        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
+
+        q = {'shape': "[[25.0,25.0],[25.0,75.0],[75.0,75.0],[75.0,25.0]]"}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 0)
+
+    @tag('brk')
     def test_api_kot(self):
         response = self.client.get(BRK_KOT_QUERY, **self.header_auth_scope_brk_plus)
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
         self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+
+    @tag('brk')
+    def test_api_kot_with_shape(self):
+        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
+        response = self.client.get(BRK_KOT_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+
+        q = {'shape': "[[25.0,25.0],[25.0,75.0],[75.0,75.0],[75.0,25.0]]"}
+        response = self.client.get(BRK_KOT_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 0)
 
     @tag('brk')
     def test_response_is_streaming(self):
@@ -337,3 +373,6 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('AX001 S 00012 G 0023' in result[1])
         self.assertTrue('SunCity' in result[1])
+
+
+# https://acc.api.data.amsterdam.nl/dataselectie/brk/kot/?dataset=ves&page=1&shape=%5B%5B4.9395883,52.4149826%5D,%5B4.9438692,52.4121412%5D,%5B4.9387305,52.4116675%5D%5D

@@ -100,6 +100,11 @@ class BrkBase(object):
         'stadsdeel_naam', 'stadsdeel_code',
         'openbare_ruimte_naam', 'postcode'
     ]
+    geo_fields = [
+        {'query_param': 'shape',
+         'es_doc_field': 'geometrie',
+         'es_query_type': 'geo_shape'}
+    ]
     keyword_mapping = {
     }
     raw_fields = []
