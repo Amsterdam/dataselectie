@@ -1,6 +1,7 @@
 import logging
 
 from django.conf import settings
+from django.db.models import Q
 
 from dataselectie import utils
 from datasets.brk import models
@@ -83,6 +84,9 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
+        # Only index eigendommen that with either a 'eigenaar', 'aanschrijfbaar'
+        # or 'appartementeigenaar' as subject
+        .filter(Q(grondeigenaar=True) | Q(aanschrijfbaar=True) | Q(appartementeigenaar=True))
         # Order by kadastraal_object_id because we keep track of kadastraal_objects_oid to count them
         # Therefore we do not want to minimize to have the same kadastraal_object_id in different
         # batches

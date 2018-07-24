@@ -373,6 +373,3 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('AX001 S 00012 G 0023' in result[1])
         self.assertTrue('SunCity' in result[1])
-
-
-# https://acc.api.data.amsterdam.nl/dataselectie/brk/kot/?dataset=ves&page=1&shape=%5B%5B4.9395883,52.4149826%5D,%5B4.9438692,52.4121412%5D,%5B4.9387305,52.4116675%5D%5D

@@ -243,6 +243,25 @@ mapselection_sql_commands = [
     "SELECT UpdateGeometrySRID('geo_brk_niet_eigendom_poly_all','geometrie',4326)",
     "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
 
+    #   Base table for geoselection api,
+    #       categorized registry-objects
+    """CREATE TABLE geo_brk_eigendomselectie AS (SELECT
+        row_number() over () AS id,
+        eigendom.kadastraal_object_id,
+        eigendom.cat_id,
+        0::integer as eigendom_cat,
+        st_transform(kot.poly_geom, 4326) poly_geom,
+        st_transform(kot.point_geom, 4326) point_geom
+    FROM
+    (SELECT be.kadastraal_object_id, be.cat_id, cat.eigendom_cat
+    FROM brk_eigendom be, brk_eigendomcategorie cat
+    WHERE be.id = cat.eigendom_id
+    GROUP BY 1, 2, 3) eigendom, brk_kadastraalobject kot
+    WHERE kot.id = eigendom.kadastraal_object_id)""",
+    "CREATE INDEX ON geo_brk_eigendomselectie (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (poly_geom)",
+    "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (point_geom)",
+
     #   Aggregated table for geoselection api
     #       Aggregated registry-objects per land plots
     """CREATE TABLE geo_brk_detail_eigendom_point_index AS (Select
@@ -253,7 +272,7 @@ mapselection_sql_commands = [
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal,
         row_number() over () AS id
-        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendommen eigendom, brk_kadastraalobject kot 
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
         where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
         group by 1, 2, 3)""",
     "CREATE SEQUENCE detail_point_index_seq",
@@ -293,8 +312,8 @@ mapselection_sql_commands = [
         possible_cats.cat_id,
         possible_cats.eigendom_cat,
         ST_ForcePolygonCCW(niet_eigendom.poly_geom) as geometrie
-        FROM geo_brk_eigendommen niet_eigendom, 
-            (select distinct kpp.poly_kot_id, eigendom.cat_id, eigendom.eigendom_cat from geo_brk_eigendommen eigendom, geo_brk_kot_point_in_poly kpp
+        FROM geo_brk_eigendomselectie niet_eigendom, 
+            (select distinct kpp.poly_kot_id, eigendom.cat_id, eigendom.eigendom_cat from geo_brk_eigendomselectie eigendom, geo_brk_kot_point_in_poly kpp
               where kpp.point_kot_id = eigendom.kadastraal_object_id) possible_cats
         WHERE possible_cats.poly_kot_id = niet_eigendom.kadastraal_object_id
         AND niet_eigendom.kadastraal_object_id = possible_cats.poly_kot_id 
@@ -325,7 +344,7 @@ mapselection_sql_commands = [
         eigendom.cat_id,
         eigendom.eigendom_cat,
         ST_ForcePolygonCCW(eigendom.poly_geom) as geometrie
-        FROM geo_brk_eigendommen eigendom
+        FROM geo_brk_eigendomselectie eigendom
         WHERE poly_geom is not null
         )""",
     "CREATE SEQUENCE eigendom_poly_index_seq",
