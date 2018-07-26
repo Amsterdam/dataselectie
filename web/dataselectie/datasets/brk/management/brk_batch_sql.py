@@ -121,6 +121,8 @@ mapselection_sql_commands = [
     "DROP TABLE IF EXISTS geo_brk_detail_niet_eigendom_poly_index",
     "DROP TABLE IF EXISTS geo_brk_detail_eigendom_point_index",
 
+    "DROP TABLE IF EXISTS geo_brk_eigendomselectie",
+
     "DROP TABLE IF EXISTS geo_brk_eigendom_poly_index",
     "DROP TABLE IF EXISTS geo_brk_niet_eigendom_poly_index",
 

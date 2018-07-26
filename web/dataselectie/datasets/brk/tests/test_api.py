@@ -62,10 +62,10 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         eigendom = brk.create_eigendom()[0][0]
         cls.kot = eigendom.kadastraal_object
 
+        brk.create_geo_tables()
         cls.rebuild_elastic_index()
 
     def setUp(self):
-        brk.create_geo_tables()
         brk.create_geo_data(self.kot)
 
         self.client = Client()

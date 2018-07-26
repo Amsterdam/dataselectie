@@ -376,6 +376,21 @@ class KadastraalObject(models.Model):
         )
 
 
+class ApparementsPlot(models.Model):
+    appartement = models.OneToOneField(
+        KadastraalObject,
+        db_column='point_kot_id',
+        on_delete=models.CASCADE,
+        primary_key=True,
+        related_name='appartementsplot'
+    )
+    plot = geo.MultiPolygonField(srid=SRID_WSG84, db_column='poly_geom')
+
+    class Meta:
+        db_table = 'geo_brk_kot_point_in_poly'
+        managed = False
+
+
 class KadastraalObjectVerblijfsobjectRelatie(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     kadastraal_object = models.ForeignKey(

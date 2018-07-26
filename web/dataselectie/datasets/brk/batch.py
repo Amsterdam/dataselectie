@@ -81,6 +81,7 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_object__stadsdelen')
         .prefetch_related('kadastraal_object__verblijfsobjecten')
         .prefetch_related('kadastraal_object__verblijfsobjecten__adressen')
+        .prefetch_related('kadastraal_object__appartementsplot')
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
