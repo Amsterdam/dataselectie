@@ -171,6 +171,18 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
+    def test_get_geodata_appartement_geen_eigenaar(self):
+        q = {'zoom': 14, 'bbox': brk.get_bbox_leaflet(),
+             'eigenaar_type': 'Appartementseigenaar'}
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidMatching(response, zoomed_in=True, appartementen=True)
+
+        q['zoom'] = 11
+        response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        self.assertValidMatching(response, appartementen=True)
+
     def test_get_geodata_with_shape(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(),
              'buurt_naam': 'Stationsplein e.o.', 'shape': brk.get_selection_shape()}

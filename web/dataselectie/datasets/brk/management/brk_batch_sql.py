@@ -249,7 +249,7 @@ mapselection_sql_commands = [
         row_number() over () AS id,
         eigendom.kadastraal_object_id,
         eigendom.cat_id,
-        0::integer as eigendom_cat,
+        eigendom.eigendom_cat,
         st_transform(kot.poly_geom, 4326) poly_geom,
         st_transform(kot.point_geom, 4326) point_geom
     FROM
