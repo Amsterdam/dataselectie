@@ -344,7 +344,7 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.geometrie_wgs84 = geometrie_wgs84.wkt
         doc.geometrie = json.loads(geometrie_wgs84.geojson)
     if hasattr(kot, 'appartementsplot'):
-        doc.geometrie = kot.appartementsplot.plot.geojson
+        doc.geometrie = json.loads(kot.appartementsplot.plot.geojson)
 
     zrt = eigendom.zakelijk_recht
     if zrt:
