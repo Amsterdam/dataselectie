@@ -270,7 +270,7 @@ mapselection_sql_commands = [
         kpp.poly_kot_id as kadastraal_object_id,
         eigendom.cat_id,
         eigendom.eigendom_cat,
-        st_union(kpp.poly_geom) as plot,
+        st_multi(st_union(kpp.poly_geom)) as plot,
         st_centroid(st_union(eigendom.point_geom)) as geometrie,
         count(eigendom.point_geom) as aantal,
         row_number() over () AS id

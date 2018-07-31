@@ -1,21 +1,19 @@
 from collections import defaultdict
 
 import authorization_levels
-from rest_framework.status import HTTP_403_FORBIDDEN
-from django.db import connection
-
-from datasets.brk.queries import meta_q
-from datasets.brk import models, geo_models, filters, serializers
-
-from datasets.generic.views_mixins import CSVExportView, stringify_item_value
-from datasets.generic.views_mixins import TableSearchView
-
-from django.core.exceptions import PermissionDenied
-from django.contrib.gis.geos import Polygon
 from django.contrib.gis.db.models import Union, Extent
+from django.contrib.gis.geos import Polygon
+from django.core.exceptions import PermissionDenied
+from django.db import connection
 from rest_framework import generics
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework.status import HTTP_403_FORBIDDEN
+
+from datasets.brk import models, geo_models, filters, serializers
+from datasets.brk.queries import meta_q
+from datasets.generic.views_mixins import CSVExportView, stringify_item_value
+from datasets.generic.views_mixins import TableSearchView
 
 SRID_WSG84 = 4326
 SRID_RD = 28992
