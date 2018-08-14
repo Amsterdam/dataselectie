@@ -144,9 +144,8 @@ filter_class = {
 
 
 def _prepare_queryparams_for_categorie(query_params):
-    """Adds catch-all category if queryparam `category` is missing
-        unless we only see 'appartementsrechten' """
-    if 'categorie' not in query_params and query_params['eigenaar'] is not 3:
+    """Adds catch-all category if queryparam `category` is missing """
+    if 'categorie' not in query_params:
         query_params['categorie'] = 99
 
 

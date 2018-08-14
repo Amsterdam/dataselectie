@@ -286,24 +286,36 @@ mapselection_sql_commands = [
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (geometrie)",
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (plot)",
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index (kadastraal_object_id)",
-    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, eigendom_cat, plot, cat_id, geometrie, aantal) Select
-        kadastraal_object_id,
-        eigendom_cat,
-        st_multi(st_union(plot)) as plot,
-        99::INTEGER as cat_id,
-        st_centroid(st_union(geometrie)) as geometrie,
-        sum(aantal) as aantal
-        from geo_brk_detail_eigendom_point_index
-        group by 1, 2""",
     """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
-        kadastraal_object_id,
-        cat_id,
+        kpp.poly_kot_id as kadastraal_object_id,
+        99::INTEGER as cat_id,
+        eigendom.eigendom_cat,
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
+    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
+        kpp.poly_kot_id as kadastraal_object_id,
+        eigendom.cat_id,
         9::INTEGER as eigendom_cat,
-        st_multi(st_union(plot)) as plot,
-        st_centroid(st_union(geometrie)) as geometrie,
-        sum(aantal) as aantal
-        from geo_brk_detail_eigendom_point_index
-        group by 1, 2""",
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
+    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
+        kpp.poly_kot_id as kadastraal_object_id,
+        99::INTEGER as cat_id,
+        9::INTEGER as eigendom_cat,
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
 
 
     #   Aggregated table for geoselection api
