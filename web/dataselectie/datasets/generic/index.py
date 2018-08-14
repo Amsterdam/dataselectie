@@ -124,9 +124,9 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
     log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
     batch_size = 200
-    for i in range(0, qs_count+batch_size, batch_size):
+    for i in range(0, qs_count, batch_size):
 
-        if i > qs_count:
+        if i+batch_size > qs_count:
             qs_ss = qs_s[i:]
         else:
             qs_ss = qs_s[i:i+batch_size]

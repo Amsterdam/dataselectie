@@ -85,9 +85,11 @@ class IndexBrkTask(index.ImportIndexTask):
         .prefetch_related('kadastraal_subject')
         .prefetch_related('kadastraal_subject__postadres')
         .prefetch_related('kadastraal_subject__woonadres')
+
         # Only index eigendommen that with either a 'eigenaar', 'aanschrijfbaar'
         # or 'appartementeigenaar' as subject
         .filter(Q(grondeigenaar=True) | Q(aanschrijfbaar=True) | Q(appartementeigenaar=True))
+
         # Order by kadastraal_object_id because we keep track of kadastraal_objects_oid to count them
         # Therefore we do not want to minimize to have the same kadastraal_object_id in different
         # batches
@@ -99,18 +101,6 @@ class IndexBrkTask(index.ImportIndexTask):
 
     def get_queryset(self):
         return self.queryset.order_by('zakelijk_recht__id')
-
-    # queryset = models.KadastraalObject.objects \
-    #     .prefetch_related('eigendommen') \
-    #     .prefetch_related('buurten') \
-    #     .prefetch_related('wijken') \
-    #     .prefetch_related('ggws') \
-    #     .prefetch_related('stadsdelen') \
-    #     .filter(id__in=models.Eigendom.objects.values_list('kadastraal_object_id', flat=True)) \
-    #     .order_by('id')
-    #
-    # def convert(self, obj):
-    #     return documents.doc_from_zakelijkrecht(obj)
 
 
 class BuildIndexBRKJob(object):
