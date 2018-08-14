@@ -72,6 +72,7 @@ class CreateDocTypeTask(object):
         for dt in self.doc_types:
             idx.doc_type(dt)
         idx.create()
+        idx.refresh()
 
 
 def return_qs_parts(qs, modulo, modulo_value, sequential=False):
