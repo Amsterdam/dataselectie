@@ -99,18 +99,6 @@ CREATE TABLE public.brk_eigendomggw (
 
 ALTER TABLE public.brk_eigendomggw OWNER TO dataselectie;
 
---
--- Name: brk_eigendomstadsdeel; Type: TABLE; Schema: public; Owner: dataselectie
---
-
-CREATE TABLE public.brk_eigendomstadsdeel (
-    row_number bigint,
-    kadastraal_object_id character varying(60),
-    stadsdeel_id character varying(14)
-);
-
-
-ALTER TABLE public.brk_eigendomstadsdeel OWNER TO dataselectie;
 
 --
 -- Name: brk_eigendomwijk; Type: TABLE; Schema: public; Owner: dataselectie
@@ -137,7 +125,7 @@ ALTER TABLE public.brk_eigenaarcategorie OWNER TO dataselectie;
 --
 
 CREATE TABLE public.brk_kadastraalobject (
-    id character varying(60) NOT NULL,
+    id character varying(60) PRIMARY KEY NOT NULL,
     aanduiding character varying(17) NOT NULL,
     date_modified timestamp with time zone NOT NULL,
     perceelnummer integer NOT NULL,
@@ -174,6 +162,22 @@ CREATE TABLE brk_kadastraalobjectverblijfsobjectrelatie
   kadastraal_object_id VARCHAR(60)              NOT NULL,
   verblijfsobject_id   VARCHAR(14)
 );
+
+
+--
+-- Name: brk_eigendomstadsdeel; Type: TABLE; Schema: public; Owner: dataselectie
+--
+-- We need to add a foreign key for the model if a ManyRelatedManager uses a through model
+
+CREATE TABLE public.brk_eigendomstadsdeel (
+    row_number bigint,
+    kadastraal_object_id character varying(60) references brk_kadastraalobject(id),
+    stadsdeel_id character varying(14) references bag_stadsdeel(id)
+);
+
+
+ALTER TABLE public.brk_eigendomstadsdeel OWNER TO dataselectie;
+
 
 --
 -- Name: brk_eigenaar; Type: TABLE; Schema: public; Owner: -
@@ -290,6 +294,10 @@ ALTER TABLE public.brk_kadastraalobject OWNER TO dataselectie;
 ALTER TABLE public.brk_kadastraalobjectverblijfsobjectrelatie OWNER TO dataselectie;
 ALTER TABLE public.brk_kadastralegemeente OWNER TO dataselectie;
 ALTER TABLE public.brk_zakelijkrecht OWNER TO dataselectie;
+
+-- ALTER TABLE public.brk_eigendomstadsdeel 
+-- ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
+-- ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id);
 
 --
 -- PostgreSQL database dump complete

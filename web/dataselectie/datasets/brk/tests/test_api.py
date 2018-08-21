@@ -61,6 +61,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         create_brk_data()
         eigendom = brk.create_eigendom()[0][0]
         cls.kot = eigendom.kadastraal_object
+        log.info( cls.kot.stadsdelen.all())
 
         brk.create_geo_tables()
         cls.rebuild_elastic_index()
@@ -385,3 +386,34 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('AX001 S 00012 G 0023' in result[1])
         self.assertTrue('SunCity' in result[1])
+
+    @tag('brk')
+    def test_api_search_filter1(self):
+        # q = {'stadsdeel_naam': 'Noord'}
+        q = {}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
+        agg_stadsdeel_naam = result['aggs_list']['stadsdeel_naam']
+        self.assertEqual(len(agg_stadsdeel_naam['buckets']), 1)
+        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['key'], 'Noord')
+        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['doc_count'] == 1)
+
+
+@tag('brk')
+def test_api_search_filter1(self):
+    q = {'stadsdeel_naam': 'Oost'}
+    response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                               **self.header_auth_scope_brk_plus)
+    result = response.json()
+    self.assertEqual(result['object_count'], 0)
+
+
+

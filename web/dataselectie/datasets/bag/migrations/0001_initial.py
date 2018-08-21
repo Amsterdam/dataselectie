@@ -585,6 +585,12 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name='buurt',
+            name='gebiedsgerichtwerken',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='buurten',
+                                    to='bag.Gebiedsgerichtwerken'),
+        ),
+        migrations.AddField(
+            model_name='buurt',
             name='stadsdeel',
             field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE,
                                     related_name='buurten', to='bag.Stadsdeel'),
