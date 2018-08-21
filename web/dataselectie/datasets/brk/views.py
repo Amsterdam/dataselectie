@@ -57,7 +57,7 @@ def make_gebieden_lookup():
     sql = '''
     select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as wijk_naam , b.naam as buurt_naam 
 from bag_buurt b
-full outer join bag_gebiedsgerichtwerken ggw on ggw.id = gebiedsgerichtwerken_id
+full outer join bag_gebiedsgerichtwerken ggw on ggw.id = b.gebiedsgerichtwerken_id
 full outer join bag_buurtcombinatie bc on bc.id = b.buurtcombinatie_id
 full join bag_stadsdeel s on s.id = b.stadsdeel_id
 union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt_naam

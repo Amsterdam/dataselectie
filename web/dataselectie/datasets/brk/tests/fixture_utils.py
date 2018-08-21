@@ -7,9 +7,11 @@ from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.db import connection
 from factory import fuzzy
 
+from datasets.bag.tests.fixture_utils import create_stadsdeel_fixtures, create_gebiedsgericht_werken_fixtures
 from datasets.brk import geo_models
 from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
+from datasets.brk.models import EigendomStadsdeel
 from datasets.generic import kadaster
 from .fixtures_geometrie import perceel_geometrie, appartement_plot
 
@@ -146,6 +148,22 @@ class ZakelijkRechtFactory(factory.DjangoModelFactory):
     aard_zakelijk_recht = factory.SubFactory(AardZakelijkRechtFactory)
 
 
+def create_eigendom_stadsdelen_objects(kadastraal_object):
+    stadsdelen = create_stadsdeel_fixtures()
+    eigendom_stadsdelen = []
+    for stadsdeel in stadsdelen:
+        eigendom_stadsdeel = EigendomStadsdeel.objects.get_or_create(
+            kadastraal_object = kadastraal_object,
+            stadsdeel = stadsdeel[0])
+        # eigendom_stadsdeel[0].save()
+        # eigendom_stadsdelen.append(eigendom_stadsdeel)
+    return eigendom_stadsdelen
+
+class EigendomStadsdeelFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.EigendomStadsdeel
+
+
 def create_kadastraal_object():
     """
     depends on kadastrale gemeente / kadastrale sectie
@@ -166,7 +184,7 @@ def create_kadastraal_object():
         sectie='S'
     )
 
-    return KadastraalObjectFactory(
+    kadastraal_object = KadastraalObjectFactory(
             kadastrale_gemeente=kadastrale_gemeente,
             perceelnummer=12,  # must be 5 long!
             indexletter='G',
@@ -177,6 +195,11 @@ def create_kadastraal_object():
             status_code='X3'
         )
 
+    eigendom_stadsdelen = create_eigendom_stadsdelen_objects(kadastraal_object)
+    log.info(kadastraal_object.stadsdelen.all())
+
+    return kadastraal_object
+
 
 def create_eigendom():
     """
@@ -185,6 +208,7 @@ def create_eigendom():
     """
     create_eigenaar_categorie()
     kadastraal_object = create_kadastraal_object()
+    log.info(kadastraal_object.stadsdelen.all())
     kadastraal_subject = EigenaarFactory.create()
     zakelijkrecht = ZakelijkRechtFactory.create()
 
@@ -197,7 +221,7 @@ def create_eigendom():
             eigenaar_categorie_id=3,
             grondeigenaar=False,
             aanschrijfbaar=False,
-            appartementeigenaar=True
+            appartementeigenaar=True,
         )
     ]
 
