@@ -119,7 +119,7 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
     log.debug('PART %d/%d Count: %d', modulo, modulo_value, qs.count())
 
     if not qs_count:
-        raise StopIteration
+        return
 
     log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
@@ -134,8 +134,6 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
         log.debug('Batch %4d %4d', i, i + batch_size)
 
         yield qs_ss, i/qs_count
-
-    raise StopIteration
 
 
 class ImportIndexTask(object):
