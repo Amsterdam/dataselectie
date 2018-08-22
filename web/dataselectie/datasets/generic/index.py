@@ -103,6 +103,10 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
                 end = chunk_size * (modulo_value + 1)
                 end_id = qs.all()[end].pk
                 qs_s = qs_s.filter(pk__lt=end_id)
+                log.info('PART %d/%d start_id : %s end_id : %s', modulo, modulo_value, start_id, end_id)
+            else:
+                log.info('PART %d/%d start_id : %s ', modulo, modulo_value, start_id)
+
         else:
             # In non-sequential mode only integer primary keys are possible
             qs_s = (
@@ -116,10 +120,10 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
 
     qs_count = qs_s.count()
 
-    log.debug('PART %d/%d Count: %d', modulo, modulo_value, qs.count())
+    log.info('PART %d/%d Count: %d', modulo, modulo_value, qs_count)
 
     if not qs_count:
-        raise StopIteration
+        return
 
     log.debug(f'PART {modulo_value}/{modulo} {qs_count}')
 
@@ -135,8 +139,6 @@ def return_qs_parts(qs, modulo, modulo_value, sequential=False):
 
         yield qs_ss, i/qs_count
 
-    raise StopIteration
-
 
 class ImportIndexTask(object):
     queryset = None
@@ -148,6 +150,9 @@ class ImportIndexTask(object):
     )
 
     index = None
+
+    def __init__(self):
+        self.part = ''
 
     def get_queryset(self):
         return self.queryset.order_by('id')
@@ -175,7 +180,9 @@ class ImportIndexTask(object):
         numerator = settings.PARTIAL_IMPORT['numerator']
         denominator = settings.PARTIAL_IMPORT['denominator']
 
-        log.info("PART: %s OF %s", numerator + 1, denominator)
+        self.part = '%s OF %s' % (numerator + 1, denominator)
+
+        log.info("PART: %s", self.part)
 
         for qs_p, progres in return_qs_parts(qs, denominator, numerator, self.sequential):
             yield qs_p, progres
@@ -193,8 +200,8 @@ class ImportIndexTask(object):
             total_left = (1 / (progress + 0.001)) * elapsed - elapsed
 
             progres_msg = \
-                '%.3f : duration: %.2f left: %.2f' % (
-                    progress, elapsed, total_left
+                'PART: %s %.3f : duration: %.2f left: %.2f' % (
+                    self.part, progress, elapsed, total_left
                 )
 
             log.info(progres_msg)
