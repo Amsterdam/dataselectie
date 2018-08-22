@@ -11,7 +11,7 @@ from datasets.brk import geo_models
 from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
 from datasets.generic import kadaster
-from .fixtures_geometrie import perceel_geometrie
+from .fixtures_geometrie import perceel_geometrie, appartement_plot
 
 log = logging.getLogger(__name__)
 
@@ -224,26 +224,44 @@ def create_geo_tables():
 
 def create_appartementen(kot):
 
+    appartement_centroid = Point(4.895, 52.368, srid=SRID_WSG84)
+
     return [
         geo_models.Appartementen.objects.get_or_create(
             id=1,
             cat_id=3,
             eigendom_cat=3,
             kadastraal_object=kot,
-            geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
-            plot=MultiPolygon(Polygon(
-                [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
-                 [4.8949197, 52.3680168]], srid=SRID_WSG84))
+            geometrie=appartement_centroid,
+            plot=appartement_plot,
+            aantal=2
         ),
         geo_models.Appartementen.objects.get_or_create(
             id=2,
             cat_id=3,
             eigendom_cat=9,
             kadastraal_object=kot,
-            geometrie=Point(4.895, 52.368, srid=SRID_WSG84),
-            plot=MultiPolygon(Polygon(
-                [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
-                 [4.8949197, 52.3680168]], srid=SRID_WSG84))
+            geometrie=appartement_centroid,
+            plot=appartement_plot,
+            aantal=2
+        ),
+        geo_models.Appartementen.objects.get_or_create(
+            id=3,
+            cat_id=99,
+            eigendom_cat=3,
+            kadastraal_object=kot,
+            geometrie=appartement_centroid,
+            plot=appartement_plot,
+            aantal=2
+        ),
+        geo_models.Appartementen.objects.get_or_create(
+            id=4,
+            cat_id=99,
+            eigendom_cat=9,
+            kadastraal_object=kot,
+            geometrie=appartement_centroid,
+            plot=appartement_plot,
+            aantal=2
         )
 
     ]
@@ -298,15 +316,29 @@ def create_niet_eigenpercelen(kot):
             cat_id=3,
             eigendom_cat=3,
             kadastraal_object=kot,
-            geometrie=perceel_geometrie[2],
+            geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
             id=2,
             cat_id=3,
             eigendom_cat=9,
             kadastraal_object=kot,
-            geometrie=perceel_geometrie[2],
-        )
+            geometrie=appartement_plot,
+        ),
+        geo_models.NietEigenPerceel.objects.get_or_create(
+            id=3,
+            cat_id=99,
+            eigendom_cat=3,
+            kadastraal_object=kot,
+            geometrie=appartement_plot,
+        ),
+        geo_models.NietEigenPerceel.objects.get_or_create(
+            id=4,
+            cat_id=99,
+            eigendom_cat=9,
+            kadastraal_object=kot,
+            geometrie=appartement_plot,
+        ),
     ]
 
 

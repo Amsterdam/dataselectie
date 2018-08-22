@@ -171,7 +171,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
-    def test_get_geodata_appartement_geen_eigenaar(self):
+    def test_get_geodata_appartement_geen_eigenaar_cat(self):
         q = {'zoom': 14, 'bbox': brk.get_bbox_leaflet(),
              'eigenaar_type': 'Appartementseigenaar'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
