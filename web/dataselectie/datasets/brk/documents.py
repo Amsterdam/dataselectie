@@ -79,7 +79,7 @@ class Eigendom(es.DocType):
     buurt_code = es.Keyword(multi=True)
     geometrie_rd = es.Keyword(index=False, ignore_above=256)
     geometrie_wgs84 = es.Keyword(index=False, ignore_above=256)
-    geometrie = es.GeoShape()
+    geometrie = es.GeoShape(precision='1 meters', distance_error_pct='0.1')
 
     aard_zakelijk_recht = es.Keyword()
     zakelijk_recht_aandeel = es.Keyword()
