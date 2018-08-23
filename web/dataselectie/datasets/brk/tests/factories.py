@@ -1,5 +1,10 @@
 # Project
 from django.db import connection
+import logging
+
+l = logging.getLogger('django.db.backends')
+l.setLevel(logging.DEBUG)
+l.addHandler(logging.StreamHandler())
 
 create_brk_table = """--
 --
@@ -20,16 +25,21 @@ SET row_security = off;
 
 SET search_path = public, pg_catalog;
 
-DROP TABLE IF EXISTS public.brk_kadastraalobject;
-DROP TABLE IF EXISTS brk_kadastraalobjectverblijfsobjectrelatie;
-DROP TABLE IF EXISTS public.brk_eigendom;
-
-DROP TABLE IF EXISTS public.brk_eigendomwijk;
-DROP TABLE IF EXISTS public.brk_eigendomstadsdeel;
-DROP TABLE IF EXISTS public.brk_eigendomggw;
-DROP TABLE IF EXISTS public.brk_eigendomcategorie;
-DROP TABLE IF EXISTS public.brk_eigendombuurt;
-DROP TABLE IF EXISTS public.brk_eigenaarcategorie;
+DROP TABLE IF EXISTS public.brk_kadastraalobject CASCADE;
+DROP TABLE IF EXISTS brk_kadastraalobjectverblijfsobjectrelatie CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendom CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomwijk CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomstadsdeel CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomggw CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomcategorie CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendombuurt CASCADE;
+DROP TABLE IF EXISTS public.brk_eigenaarcategorie CASCADE;
+DROP TABLE IF EXISTS public.brk_adres CASCADE;
+DROP TABLE IF EXISTS public.brk_eigenaar CASCADE;
+DROP TABLE IF EXISTS public.brk_gemeente CASCADE;
+DROP TABLE IF EXISTS public.brk_kadastralesectie CASCADE;
+DROP TABLE IF EXISTS public.brk_kadastralegemeente CASCADE;
+DROP TABLE IF EXISTS public.brk_zakelijkrecht CASCADE;
 
 SET search_path = public, pg_catalog;
 
@@ -295,9 +305,9 @@ ALTER TABLE public.brk_kadastraalobjectverblijfsobjectrelatie OWNER TO dataselec
 ALTER TABLE public.brk_kadastralegemeente OWNER TO dataselectie;
 ALTER TABLE public.brk_zakelijkrecht OWNER TO dataselectie;
 
--- ALTER TABLE public.brk_eigendomstadsdeel 
--- ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
--- ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id);
+ALTER TABLE public.brk_eigendomstadsdeel 
+ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
+ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id);
 
 --
 -- PostgreSQL database dump complete

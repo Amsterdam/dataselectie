@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.management import call_command
-from django.test import Client, TestCase, tag
+from django.test import Client, TestCase, tag, TransactionTestCase
 from elasticsearch import Elasticsearch
 
 from datasets.bag.tests import fixture_utils as bag
@@ -25,10 +25,20 @@ BRK_EXPORT_QUERY = '/dataselectie/brk/export/?{}'
 log = logging.getLogger(__name__)
 
 
-class ESTestCase(TestCase):
+class ESTestCase(TransactionTestCase):
     """
     TestCase for using with elastic search to reset the elastic index
     """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.setUpTestData()
+
+    @classmethod
+    def setUpTestData(cls):
+        """Load initial data for the TestCase."""
+        pass
 
     @classmethod
     def rebuild_elastic_index(cls):
@@ -50,7 +60,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @classmethod
     def setUpTestData(cls):
-        super(ESTestCase, cls).setUpTestData()
+        # super(ESTestCase, cls).setUpTestData()
 
         bag.create_gemeente_fixture()
         bag.create_buurt_combinaties()
@@ -407,13 +417,10 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(agg_stadsdeel_naam['buckets'][0]['doc_count'] == 1)
 
 
-@tag('brk')
-def test_api_search_filter1(self):
-    q = {'stadsdeel_naam': 'Oost'}
-    response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+    @tag('brk')
+    def test_api_search_filter1(self):
+        q = {'stadsdeel_naam': 'Oost'}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
                                **self.header_auth_scope_brk_plus)
-    result = response.json()
-    self.assertEqual(result['object_count'], 0)
-
-
-
+        result = response.json()
+        self.assertEqual(result['object_count'], 0)
