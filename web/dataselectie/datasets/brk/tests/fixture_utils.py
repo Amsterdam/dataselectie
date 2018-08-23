@@ -13,7 +13,8 @@ from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
 from datasets.brk.models import EigendomStadsdeel
 from datasets.generic import kadaster
-from .fixtures_geometrie import perceel_geometrie, appartement_plot
+from .fixtures_geometrie import perceel_geometrie, appartement_plot, stadsdeel_noord_en_centrum_plot, \
+    midden_op_het_ij_point
 
 log = logging.getLogger(__name__)
 
@@ -22,15 +23,17 @@ SRID_RD = 28992
 
 f = faker.Factory.create(locale='nl_NL')
 
+
 def random_poly():
     return MultiPolygon(
         Polygon(
             ((0.0, 0.0), (0.0, 50.0), (50.0, 50.0), (50.0, 0.0), (0.0, 0.0))))
 
+
 class GemeenteFactory(factory.DjangoModelFactory):
     class Meta:
         model = models.Gemeente
-        django_get_or_create = ('gemeente', )
+        django_get_or_create = ('gemeente',)
 
     gemeente = factory.LazyAttribute(lambda o: f.city())
     geometrie = random_poly()
@@ -118,17 +121,16 @@ class EigenaarFactory(factory.DjangoModelFactory):
 
     pk = fuzzy.FuzzyText(length=60)
     type = fuzzy.FuzzyChoice(
-            choices=(models.Eigenaar.SUBJECT_TYPE_NATUURLIJK,
-                     models.Eigenaar.SUBJECT_TYPE_NIET_NATUURLIJK))
+        choices=(models.Eigenaar.SUBJECT_TYPE_NATUURLIJK,
+                 models.Eigenaar.SUBJECT_TYPE_NIET_NATUURLIJK))
     bron = fuzzy.FuzzyChoice(
-            choices=(models.Eigenaar.BRON_KADASTER,
-                     models.Eigenaar.BRON_REGISTRATIE))
+        choices=(models.Eigenaar.BRON_KADASTER,
+                 models.Eigenaar.BRON_REGISTRATIE))
     woonadres = factory.SubFactory(AdresFactory)
     postadres = factory.SubFactory(AdresFactory)
 
 
 class AardZakelijkRechtFactory(factory.DjangoModelFactory):
-
     pk = fuzzy.FuzzyText(length=10)
 
     class Meta:
@@ -153,11 +155,12 @@ def create_eigendom_stadsdelen_objects(kadastraal_object):
     eigendom_stadsdelen = []
     for stadsdeel in stadsdelen:
         eigendom_stadsdeel = EigendomStadsdeel.objects.get_or_create(
-            kadastraal_object = kadastraal_object,
-            stadsdeel = stadsdeel[0])
+            kadastraal_object=kadastraal_object,
+            stadsdeel=stadsdeel[0])
         # eigendom_stadsdeel[0].save()
         # eigendom_stadsdelen.append(eigendom_stadsdeel)
     return eigendom_stadsdelen
+
 
 class EigendomStadsdeelFactory(factory.DjangoModelFactory):
     class Meta:
@@ -185,18 +188,19 @@ def create_kadastraal_object():
     )
 
     kadastraal_object = KadastraalObjectFactory(
-            kadastrale_gemeente=kadastrale_gemeente,
-            perceelnummer=12,  # must be 5 long!
-            indexletter='G',
-            indexnummer=23,
-            sectie=sectie,
-            soort_grootte_id='SBCD',
-            register9_tekst='12345789',
-            status_code='X3'
-        )
+        kadastrale_gemeente=kadastrale_gemeente,
+        perceelnummer=12,  # must be 5 long!
+        indexletter='G',
+        indexnummer=23,
+        sectie=sectie,
+        soort_grootte_id='SBCD',
+        register9_tekst='12345789',
+        status_code='X3',
+        poly_geom=stadsdeel_noord_en_centrum_plot,
+        point_geom=midden_op_het_ij_point
+    )
 
     eigendom_stadsdelen = create_eigendom_stadsdelen_objects(kadastraal_object)
-    log.info(kadastraal_object.stadsdelen.all())
 
     return kadastraal_object
 
@@ -208,7 +212,6 @@ def create_eigendom():
     """
     create_eigenaar_categorie()
     kadastraal_object = create_kadastraal_object()
-    log.info(kadastraal_object.stadsdelen.all())
     kadastraal_subject = EigenaarFactory.create()
     zakelijkrecht = ZakelijkRechtFactory.create()
 
@@ -247,7 +250,6 @@ def create_geo_tables():
 
 
 def create_appartementen(kot):
-
     appartement_centroid = Point(4.895, 52.368, srid=SRID_WSG84)
 
     return [
