@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import authorization_levels
 from django.contrib.gis.db.models import Union, Extent
 from django.contrib.gis.geos import Polygon
@@ -19,20 +17,9 @@ SRID_WSG84 = 4326
 SRID_RD = 28992
 
 
-def rec_defaultdict():
-    """
-    Make a recursive defaultdict. You can do:
-        x = rec_defaultdict()
-        x['a']['b']['c']['d']=1
-        print(x['a']['b']['c']['d'])
-    :return recursice defaultdict:
-    """
-    return defaultdict(rec_defaultdict)
-
-
 def make_gebieden_lookup():
     """
-    Create a dictionary that contains for each combination of gebied_type and value combination sof other gebied types
+    Create a dictionary that contains for each combination of gebied_type and value combination of other gebied types
     and values that are allowed/present in the data.
 
     For example
@@ -53,7 +40,7 @@ def make_gebieden_lookup():
     Thios can be used to filter aggregates with allowed values for request parameters
     :return lookup_default_dict:
     """
-    lookup = rec_defaultdict()
+    lookup = dict()
     sql = '''
     select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as wijk_naam , b.naam as buurt_naam 
 from bag_buurt b
@@ -74,11 +61,14 @@ union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt
             for key1, value1 in drow.items():
                 for key2, value2 in drow.items():
                     if value1 is not None and value2 is not None:
-                        if key1 in lookup and value1 in lookup[key1] and key2 in lookup[key1][value1]:
+                        if key1 not in lookup:
+                            lookup[key1] = dict()
+                        if value1 not in lookup[key1]:
+                            lookup[key1][value1] = dict()
+                        if key2 in lookup[key1][value1]:
                             lookup[key1][value1][key2].add(value2)
                         else:
                             lookup[key1][value1][key2] = {value2}
-
     return lookup
 
 
@@ -154,9 +144,15 @@ class BrkAggBase(BrkBase):
             for qfp_key in query_filter_params:
                 qfp_value = query_params[qfp_key]
                 if allowed_key_values is None:
-                    allowed_key_values = lookup[qfp_key][qfp_value][key]
+                    if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value] and \
+                            key in lookup[qfp_key][qfp_value]:
+                        allowed_key_values = lookup[qfp_key][qfp_value][key]
+                    else:
+                        allowed_key_values = set()
                 else:
-                    allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
+                    if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value] and \
+                            key in lookup[qfp_key][qfp_value]:
+                        allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
 
             bucketlist = value['buckets']
             newbucket = []
