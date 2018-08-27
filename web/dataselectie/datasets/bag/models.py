@@ -184,6 +184,7 @@ class Buurt(mixins.GeldigheidMixin, Hoofdklasse):
         null=True, on_delete=models.CASCADE)
 
     class Meta:
+        managed = False
         verbose_name = "Buurt"
         verbose_name_plural = "Buurten"
         ordering = ('vollcode',)

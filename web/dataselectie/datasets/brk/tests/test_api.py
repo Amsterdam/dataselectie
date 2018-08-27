@@ -337,7 +337,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @tag('brk')
     def test_api_search_with_shape(self):
-        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
+        q = {'shape': "[[4.91, 52.38],[4.93, 52.38],[4.93, 52.40],[4.91, 52.40]]"}
         response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         result = response.json()
@@ -365,7 +365,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @tag('brk')
     def test_api_kot_with_shape(self):
-        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
+        q = {'shape': "[[4.91, 52.38], [4.93, 52.38], [4.93, 52.40], [4.91, 52.40]]"}
         response = self.client.get(BRK_KOT_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         result = response.json()
@@ -399,8 +399,11 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @tag('brk')
     def test_api_search_filter1(self):
-        # q = {'stadsdeel_naam': 'Noord'}
-        q = {}
+        '''
+        Filter op Stadsdeel Noord. Dit geeft een resultaat dat in twee stadsdelen zit, maar omdat er
+        gefilterd wordt op Noord in  in de aggregaties alleen Noord zichtbaar
+        '''
+        q = {'stadsdeel_naam': 'Noord'}
         response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         result = response.json()
@@ -414,11 +417,11 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         agg_stadsdeel_naam = result['aggs_list']['stadsdeel_naam']
         self.assertEqual(len(agg_stadsdeel_naam['buckets']), 1)
         self.assertEqual(agg_stadsdeel_naam['buckets'][0]['key'], 'Noord')
-        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['doc_count'] == 1)
+        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['doc_count'], 1)
 
 
     @tag('brk')
-    def test_api_search_filter1(self):
+    def test_api_search_filter2(self):
         q = {'stadsdeel_naam': 'Oost'}
         response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
                                **self.header_auth_scope_brk_plus)

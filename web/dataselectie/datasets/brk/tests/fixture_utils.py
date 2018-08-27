@@ -314,7 +314,8 @@ def create_eigenpercelen(kot):
 
 def create_eigenperceelgroepen():
     objects = []
-    id = 0
+    # id = geo_models.EigenPerceelGroep.objects.raw('select coalesce(max(id), 0) from geo_brk_eigendom_poly_index')[0]
+    id = 100
 
     for category in [3, 99]:
         for eigendom_cat in [1, 9]:
@@ -338,28 +339,28 @@ def create_eigenperceelgroepen():
 def create_niet_eigenpercelen(kot):
     return [
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=1,
+            id=201,
             cat_id=3,
             eigendom_cat=3,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=2,
+            id=202,
             cat_id=3,
             eigendom_cat=9,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=3,
+            id=203,
             cat_id=99,
             eigendom_cat=3,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=4,
+            id=204,
             cat_id=99,
             eigendom_cat=9,
             kadastraal_object=kot,
@@ -370,7 +371,7 @@ def create_niet_eigenpercelen(kot):
 
 def create_niet_eigenperceelgroepen():
     objects = []
-    id = 0
+    id = 300
 
     for category in [3, 99]:
         for eigendom_cat in [3, 9]:
