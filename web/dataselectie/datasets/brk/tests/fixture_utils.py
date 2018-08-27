@@ -196,6 +196,39 @@ def create_kadastraal_object():
         soort_grootte_id='SBCD',
         register9_tekst='12345789',
         status_code='X3',
+    )
+
+    return kadastraal_object
+
+def create_kadastraal_object1():
+    """
+    depends on kadastrale gemeente / kadastrale sectie
+    :return: A list of kot fixtures
+    """
+
+    gemeente = GemeenteFactory(
+        gemeente='SunCity',
+    )
+
+    kadastrale_gemeente = KadastraleGemeenteFactory(
+        pk='AX001',
+        gemeente=gemeente,
+        naam='SunCity',
+    )
+
+    sectie = KadastraleSectieFactory(
+        sectie='S'
+    )
+
+    kadastraal_object = KadastraalObjectFactory(
+        kadastrale_gemeente=kadastrale_gemeente,
+        perceelnummer=12,  # must be 5 long!
+        indexletter='G',
+        indexnummer=23,
+        sectie=sectie,
+        soort_grootte_id='SBCD',
+        register9_tekst='12345789',
+        status_code='X3',
         poly_geom=stadsdeel_noord_en_centrum_plot,
         point_geom=midden_op_het_ij_point
     )
@@ -205,6 +238,8 @@ def create_kadastraal_object():
     return kadastraal_object
 
 
+
+
 def create_eigendom():
     """
     depends on kadastraal object and categroie fixtures
@@ -212,6 +247,30 @@ def create_eigendom():
     """
     create_eigenaar_categorie()
     kadastraal_object = create_kadastraal_object()
+    kadastraal_subject = EigenaarFactory.create()
+    zakelijkrecht = ZakelijkRechtFactory.create()
+
+    return [
+
+        models.Eigendom.objects.get_or_create(
+            zakelijk_recht=zakelijkrecht,
+            kadastraal_subject=kadastraal_subject,
+            kadastraal_object=kadastraal_object,
+            eigenaar_categorie_id=3,
+            grondeigenaar=False,
+            aanschrijfbaar=False,
+            appartementeigenaar=True,
+        )
+    ]
+
+
+def create_eigendom1():
+    """
+    depends on kadastraal object and categroie fixtures
+    :return: a list of eigendom objects
+    """
+    create_eigenaar_categorie()
+    kadastraal_object = create_kadastraal_object1()
     kadastraal_subject = EigenaarFactory.create()
     zakelijkrecht = ZakelijkRechtFactory.create()
 

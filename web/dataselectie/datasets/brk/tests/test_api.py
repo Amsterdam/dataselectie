@@ -140,6 +140,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             self.assertEqual(response.status_code, 200)
             self.assertGeoJSON(response.json()['niet_eigenpercelen'])
 
+    @tag('geo')
     def test_get_geodata_gebied_buurt(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'buurt_naam': 'Stationsplein e.o.'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
@@ -258,6 +259,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
+    @tag('geo')
     def test_get_geodata_gebied_stadsdeel(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'stadsdeel_naam': 'Noord'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
@@ -337,7 +339,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @tag('brk')
     def test_api_search_with_shape(self):
-        q = {'shape': "[[4.91, 52.38],[4.93, 52.38],[4.93, 52.40],[4.91, 52.40]]"}
+        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
         response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         result = response.json()
@@ -365,7 +367,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @tag('brk')
     def test_api_kot_with_shape(self):
-        q = {'shape': "[[4.91, 52.38], [4.93, 52.38], [4.93, 52.40], [4.91, 52.40]]"}
+        q = {'shape': "[[3.3135576333212353, 47.97476588287572],[3.3135390644506812, 47.975214773576475],[3.31420758007582, 47.97522724021333],[3.3142261429684208, 47.97477834935932]]"}
         response = self.client.get(BRK_KOT_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         result = response.json()
@@ -396,6 +398,32 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('AX001 S 00012 G 0023' in result[1])
         self.assertTrue('SunCity' in result[1])
+
+class FilterApiTest(ESTestCase, AuthorizationSetup):
+
+    @classmethod
+    def setUpTestData(cls):
+        # super(ESTestCase, cls).setUpTestData()
+
+        bag.create_gemeente_fixture()
+        bag.create_buurt_combinaties()
+        bag.create_buurt_fixtures()
+        bag.create_gebiedsgericht_werken_fixtures()
+        bag.create_stadsdeel_fixtures()
+
+        create_brk_data()
+        eigendom = brk.create_eigendom1()[0][0]
+        cls.kot = eigendom.kadastraal_object
+        log.info(cls.kot.stadsdelen.all())
+
+        brk.create_geo_tables()
+        cls.rebuild_elastic_index()
+
+    def setUp(self):
+        brk.create_geo_data(self.kot)
+
+        self.client = Client()
+        self.setup_authorization()
 
     @tag('brk')
     def test_api_search_filter1(self):
