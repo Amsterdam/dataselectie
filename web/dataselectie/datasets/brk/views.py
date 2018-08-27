@@ -143,16 +143,13 @@ class BrkAggBase(BrkBase):
             allowed_key_values = None
             for qfp_key in query_filter_params:
                 qfp_value = query_params[qfp_key]
-                if allowed_key_values is None:
-                    if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value] and \
-                            key in lookup[qfp_key][qfp_value]:
+                if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value]:
+                    if allowed_key_values is None:
                         allowed_key_values = lookup[qfp_key][qfp_value][key]
                     else:
-                        allowed_key_values = set()
-                else:
-                    if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value] and \
-                            key in lookup[qfp_key][qfp_value]:
                         allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
+                else:
+                    allowed_key_values = set()
 
             bucketlist = value['buckets']
             newbucket = []
