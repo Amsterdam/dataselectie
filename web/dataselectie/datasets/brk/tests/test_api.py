@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.gis.geos import Polygon
 from django.core.management import call_command
-from django.test import Client, TestCase, tag
+from django.test import Client, TestCase, tag, TransactionTestCase
 from elasticsearch import Elasticsearch
 
 from datasets.bag.tests import fixture_utils as bag
@@ -25,10 +25,20 @@ BRK_EXPORT_QUERY = '/dataselectie/brk/export/?{}'
 log = logging.getLogger(__name__)
 
 
-class ESTestCase(TestCase):
+class ESTestCase(TransactionTestCase):
     """
     TestCase for using with elastic search to reset the elastic index
     """
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.setUpTestData()
+
+    @classmethod
+    def setUpTestData(cls):
+        """Load initial data for the TestCase."""
+        pass
 
     @classmethod
     def rebuild_elastic_index(cls):
@@ -50,7 +60,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
 
     @classmethod
     def setUpTestData(cls):
-        super(ESTestCase, cls).setUpTestData()
+        # super(ESTestCase, cls).setUpTestData()
 
         bag.create_gemeente_fixture()
         bag.create_buurt_combinaties()
@@ -61,6 +71,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         create_brk_data()
         eigendom = brk.create_eigendom()[0][0]
         cls.kot = eigendom.kadastraal_object
+        log.info( cls.kot.stadsdelen.all())
 
         brk.create_geo_tables()
         cls.rebuild_elastic_index()
@@ -129,6 +140,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
             self.assertEqual(response.status_code, 200)
             self.assertGeoJSON(response.json()['niet_eigenpercelen'])
 
+    @tag('geo')
     def test_get_geodata_gebied_buurt(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'buurt_naam': 'Stationsplein e.o.'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
@@ -247,6 +259,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
+    @tag('geo')
     def test_get_geodata_gebied_stadsdeel(self):
         q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'stadsdeel_naam': 'Noord'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
@@ -385,3 +398,60 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('AX001 S 00012 G 0023' in result[1])
         self.assertTrue('SunCity' in result[1])
+
+class FilterApiTest(ESTestCase, AuthorizationSetup):
+
+    @classmethod
+    def setUpTestData(cls):
+        # super(ESTestCase, cls).setUpTestData()
+
+        bag.create_gemeente_fixture()
+        bag.create_buurt_combinaties()
+        bag.create_buurt_fixtures()
+        bag.create_gebiedsgericht_werken_fixtures()
+        bag.create_stadsdeel_fixtures()
+
+        create_brk_data()
+        eigendom = brk.create_eigendom1()[0][0]
+        cls.kot = eigendom.kadastraal_object
+        log.info(cls.kot.stadsdelen.all())
+
+        brk.create_geo_tables()
+        cls.rebuild_elastic_index()
+
+    def setUp(self):
+        brk.create_geo_data(self.kot)
+
+        self.client = Client()
+        self.setup_authorization()
+
+    @tag('brk')
+    def test_api_search_filter1(self):
+        '''
+        Filter op Stadsdeel Noord. Dit geeft een resultaat dat in twee stadsdelen zit, maar omdat er
+        gefilterd wordt op Noord in  in de aggregaties alleen Noord zichtbaar
+        '''
+        q = {'stadsdeel_naam': 'Noord'}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                   **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 1)
+        obj0 = result['object_list'][0]
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
+        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
+        self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
+        agg_stadsdeel_naam = result['aggs_list']['stadsdeel_naam']
+        self.assertEqual(len(agg_stadsdeel_naam['buckets']), 1)
+        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['key'], 'Noord')
+        self.assertEqual(agg_stadsdeel_naam['buckets'][0]['doc_count'], 1)
+
+
+    @tag('brk')
+    def test_api_search_filter2(self):
+        q = {'stadsdeel_naam': 'Oost'}
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                               **self.header_auth_scope_brk_plus)
+        result = response.json()
+        self.assertEqual(result['object_count'], 0)

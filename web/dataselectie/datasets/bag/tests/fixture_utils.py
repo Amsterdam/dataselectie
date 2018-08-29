@@ -17,7 +17,7 @@ def create_stadsdeel_fixtures():
         ),
         models.Stadsdeel.objects.get_or_create(
             id="03630000000019", code="N", naam="Noord", vervallen=False,
-            gemeente_id="03630000000000", geometrie=gebied_geometrie['off']
+            gemeente_id="03630000000000", geometrie=gebied_geometrie['noord']
         ),
     ]
 

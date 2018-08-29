@@ -7,11 +7,14 @@ from django.contrib.gis.geos import MultiPolygon, Polygon, Point
 from django.db import connection
 from factory import fuzzy
 
+from datasets.bag.tests.fixture_utils import create_stadsdeel_fixtures, create_gebiedsgericht_werken_fixtures
 from datasets.brk import geo_models
 from datasets.brk import models
 from datasets.brk.management import brk_batch_sql
+from datasets.brk.models import EigendomStadsdeel
 from datasets.generic import kadaster
-from .fixtures_geometrie import perceel_geometrie, appartement_plot
+from .fixtures_geometrie import perceel_geometrie, appartement_plot, stadsdeel_noord_en_centrum_plot, \
+    midden_op_het_ij_point
 
 log = logging.getLogger(__name__)
 
@@ -20,15 +23,17 @@ SRID_RD = 28992
 
 f = faker.Factory.create(locale='nl_NL')
 
+
 def random_poly():
     return MultiPolygon(
         Polygon(
             ((0.0, 0.0), (0.0, 50.0), (50.0, 50.0), (50.0, 0.0), (0.0, 0.0))))
 
+
 class GemeenteFactory(factory.DjangoModelFactory):
     class Meta:
         model = models.Gemeente
-        django_get_or_create = ('gemeente', )
+        django_get_or_create = ('gemeente',)
 
     gemeente = factory.LazyAttribute(lambda o: f.city())
     geometrie = random_poly()
@@ -116,17 +121,16 @@ class EigenaarFactory(factory.DjangoModelFactory):
 
     pk = fuzzy.FuzzyText(length=60)
     type = fuzzy.FuzzyChoice(
-            choices=(models.Eigenaar.SUBJECT_TYPE_NATUURLIJK,
-                     models.Eigenaar.SUBJECT_TYPE_NIET_NATUURLIJK))
+        choices=(models.Eigenaar.SUBJECT_TYPE_NATUURLIJK,
+                 models.Eigenaar.SUBJECT_TYPE_NIET_NATUURLIJK))
     bron = fuzzy.FuzzyChoice(
-            choices=(models.Eigenaar.BRON_KADASTER,
-                     models.Eigenaar.BRON_REGISTRATIE))
+        choices=(models.Eigenaar.BRON_KADASTER,
+                 models.Eigenaar.BRON_REGISTRATIE))
     woonadres = factory.SubFactory(AdresFactory)
     postadres = factory.SubFactory(AdresFactory)
 
 
 class AardZakelijkRechtFactory(factory.DjangoModelFactory):
-
     pk = fuzzy.FuzzyText(length=10)
 
     class Meta:
@@ -144,6 +148,23 @@ class ZakelijkRechtFactory(factory.DjangoModelFactory):
     _kadastraal_subject_naam = fuzzy.FuzzyText(length=50)
     kadastraal_object_status = fuzzy.FuzzyText(length=50)
     aard_zakelijk_recht = factory.SubFactory(AardZakelijkRechtFactory)
+
+
+def create_eigendom_stadsdelen_objects(kadastraal_object):
+    stadsdelen = create_stadsdeel_fixtures()
+    eigendom_stadsdelen = []
+    for stadsdeel in stadsdelen:
+        eigendom_stadsdeel = EigendomStadsdeel.objects.get_or_create(
+            kadastraal_object=kadastraal_object,
+            stadsdeel=stadsdeel[0])
+        # eigendom_stadsdeel[0].save()
+        # eigendom_stadsdelen.append(eigendom_stadsdeel)
+    return eigendom_stadsdelen
+
+
+class EigendomStadsdeelFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.EigendomStadsdeel
 
 
 def create_kadastraal_object():
@@ -166,16 +187,57 @@ def create_kadastraal_object():
         sectie='S'
     )
 
-    return KadastraalObjectFactory(
-            kadastrale_gemeente=kadastrale_gemeente,
-            perceelnummer=12,  # must be 5 long!
-            indexletter='G',
-            indexnummer=23,
-            sectie=sectie,
-            soort_grootte_id='SBCD',
-            register9_tekst='12345789',
-            status_code='X3'
-        )
+    kadastraal_object = KadastraalObjectFactory(
+        kadastrale_gemeente=kadastrale_gemeente,
+        perceelnummer=12,  # must be 5 long!
+        indexletter='G',
+        indexnummer=23,
+        sectie=sectie,
+        soort_grootte_id='SBCD',
+        register9_tekst='12345789',
+        status_code='X3',
+    )
+
+    return kadastraal_object
+
+def create_kadastraal_object1():
+    """
+    depends on kadastrale gemeente / kadastrale sectie
+    :return: A list of kot fixtures
+    """
+
+    gemeente = GemeenteFactory(
+        gemeente='SunCity',
+    )
+
+    kadastrale_gemeente = KadastraleGemeenteFactory(
+        pk='AX001',
+        gemeente=gemeente,
+        naam='SunCity',
+    )
+
+    sectie = KadastraleSectieFactory(
+        sectie='S'
+    )
+
+    kadastraal_object = KadastraalObjectFactory(
+        kadastrale_gemeente=kadastrale_gemeente,
+        perceelnummer=12,  # must be 5 long!
+        indexletter='G',
+        indexnummer=23,
+        sectie=sectie,
+        soort_grootte_id='SBCD',
+        register9_tekst='12345789',
+        status_code='X3',
+        poly_geom=stadsdeel_noord_en_centrum_plot,
+        point_geom=midden_op_het_ij_point
+    )
+
+    eigendom_stadsdelen = create_eigendom_stadsdelen_objects(kadastraal_object)
+
+    return kadastraal_object
+
+
 
 
 def create_eigendom():
@@ -197,7 +259,31 @@ def create_eigendom():
             eigenaar_categorie_id=3,
             grondeigenaar=False,
             aanschrijfbaar=False,
-            appartementeigenaar=True
+            appartementeigenaar=True,
+        )
+    ]
+
+
+def create_eigendom1():
+    """
+    depends on kadastraal object and categroie fixtures
+    :return: a list of eigendom objects
+    """
+    create_eigenaar_categorie()
+    kadastraal_object = create_kadastraal_object1()
+    kadastraal_subject = EigenaarFactory.create()
+    zakelijkrecht = ZakelijkRechtFactory.create()
+
+    return [
+
+        models.Eigendom.objects.get_or_create(
+            zakelijk_recht=zakelijkrecht,
+            kadastraal_subject=kadastraal_subject,
+            kadastraal_object=kadastraal_object,
+            eigenaar_categorie_id=3,
+            grondeigenaar=False,
+            aanschrijfbaar=False,
+            appartementeigenaar=True,
         )
     ]
 
@@ -223,7 +309,6 @@ def create_geo_tables():
 
 
 def create_appartementen(kot):
-
     appartement_centroid = Point(4.895, 52.368, srid=SRID_WSG84)
 
     return [
@@ -288,7 +373,8 @@ def create_eigenpercelen(kot):
 
 def create_eigenperceelgroepen():
     objects = []
-    id = 0
+    # id = geo_models.EigenPerceelGroep.objects.raw('select coalesce(max(id), 0) from geo_brk_eigendom_poly_index')[0]
+    id = 100
 
     for category in [3, 99]:
         for eigendom_cat in [1, 9]:
@@ -312,28 +398,28 @@ def create_eigenperceelgroepen():
 def create_niet_eigenpercelen(kot):
     return [
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=1,
+            id=201,
             cat_id=3,
             eigendom_cat=3,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=2,
+            id=202,
             cat_id=3,
             eigendom_cat=9,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=3,
+            id=203,
             cat_id=99,
             eigendom_cat=3,
             kadastraal_object=kot,
             geometrie=appartement_plot,
         ),
         geo_models.NietEigenPerceel.objects.get_or_create(
-            id=4,
+            id=204,
             cat_id=99,
             eigendom_cat=9,
             kadastraal_object=kot,
@@ -344,7 +430,7 @@ def create_niet_eigenpercelen(kot):
 
 def create_niet_eigenperceelgroepen():
     objects = []
-    id = 0
+    id = 300
 
     for category in [3, 99]:
         for eigendom_cat in [3, 9]:

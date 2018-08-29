@@ -13,5 +13,14 @@ appartement_plot = MultiPolygon(Polygon(
     [[4.8949197, 52.3680168], [4.8949279, 52.3679315], [4.8952468, 52.3680187], [4.8951273, 52.3681178],
      [4.8949197, 52.3680168]], srid=SRID_WSG84))
 
+#stadsdeel_noord_en_centrum_plot = MultiPolygon(Polygon(
+#    [[4.90, 52.37], [4.90, 52.39], [4.92, 52.39], [4.92, 52.37], [4.90, 52.37]], srid=SRID_WSG84))
+
+stadsdeel_noord_en_centrum_plot = MultiPolygon(Polygon(
+    [[121819, 487013], [121819, 489239], [123195, 489239],[123195, 487013], [121819, 487013]], srid = SRID_RD))
+
+
+midden_op_het_ij_point = Point(122507, 488126, srid=SRID_RD)
+
 for k, geom in perceel_geometrie.items():
     geom.srid = SRID_RD

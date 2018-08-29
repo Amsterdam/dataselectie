@@ -150,7 +150,7 @@ DATAPUNT_AUTHZ = {
         '/dataselectie/bag/',
         '/dataselectie/api-docs'
     ),
-    'ALWAYS_OK': False #LOCAL
+    'ALWAYS_OK': False
 }
 
 
