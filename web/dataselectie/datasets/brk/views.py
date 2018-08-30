@@ -304,7 +304,7 @@ class BrkCSV(BrkBase, CSVExportView):
         ('indexnummer', 'Indexnummer'),
         ('adressen', 'Adressen'),
         ('verblijfsobject_id', 'Verblijfsobjectidentificatie'),
-        ('kadastrale_gemeentenaam', 'Kadastrale gemeentenaam'),
+        ('kadastrale_gemeentenaam', 'Kadastrale gemeente'),
         ('burgerlijke_gemeentenaam', 'Gemeente'),
         ('koopsom', 'Koopsom (euro)'),
         ('koopjaar', 'Koopjaar'),
@@ -355,9 +355,14 @@ class BrkCSV(BrkBase, CSVExportView):
         return item
 
     def sanitize_fields(self, item, field_names):
-        item.update(
-            {field_name: stringify_item_value(item.get(field_name, None))
-             for field_name in field_names})
+        updates = {}
+        for field_name in field_names:
+            if field_name == 'zakelijk_recht_aandeel':
+                zakelijk_recht_aandeel = stringify_item_value(item.get(field_name, None))
+                updates[field_name] = '"{}"'.format(zakelijk_recht_aandeel) if zakelijk_recht_aandeel else ''
+            else:
+                updates[field_name] = stringify_item_value(item.get(field_name, None))
+        item.update(updates)
 
     def paginate(self, offset, q):
         if 'size' in q:
