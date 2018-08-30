@@ -37,7 +37,7 @@ def make_gebieden_lookup():
             "stadsdeel_naam": { "Noord"},
             ...
 
-    Thios can be used to filter aggregates with allowed values for request parameters
+    This can be used to filter aggregates with allowed values for request parameters
     :return lookup_default_dict:
     """
     lookup = dict()
