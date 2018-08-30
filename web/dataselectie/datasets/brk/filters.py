@@ -163,15 +163,14 @@ def _lookup_ids_queryparams(query_params):
     if 'eigenaar_type' in query_params:
         eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
         query_params['eigenaar'] = eigenaar
-
     if 'stadsdeel_naam' in query_params:
         stadsdeel = bag_models.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
         query_params['stadsdeel'] = stadsdeel.id
     if 'ggw_naam' in query_params:
         ggw = bag_models.Gebiedsgerichtwerken.objects.filter(naam=query_params['ggw_naam'])[0]
         query_params['ggw'] = ggw.id
-    if 'buurtcombinatie_naam' in query_params:
-        wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
+    if 'wijk_naam' in query_params:
+        wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['wijk_naam'])[0]
         query_params['wijk'] = wijk.id
     if 'buurt_naam' in query_params:
         buurt = bag_models.Buurt.objects.filter(naam=query_params['buurt_naam'])[0]

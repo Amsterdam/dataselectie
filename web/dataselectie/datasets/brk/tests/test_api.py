@@ -218,12 +218,12 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertValidEmpty(response)
 
     def test_get_geodata_gebied_wijk(self):
-        q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'buurtcombinatie_naam': 'Grachtengordel-West'}
+        q = {'eigenaar_cat': 'De staat', 'zoom': 14, 'bbox': brk.get_bbox_leaflet(), 'wijk_naam': 'Grachtengordel-West'}
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)
 
-        q['buurtcombinatie_naam'] = 'Burgwallen-Oude Zijde'
+        q['wijk_naam'] = 'Burgwallen-Oude Zijde'
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         self.assertValidMatching(response, zoomed_in=True)
@@ -233,7 +233,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
                                    **self.header_auth_scope_brk_plus)
         self.assertValidMatching(response)
 
-        q['buurtcombinatie_naam'] = 'Grachtengordel-West'
+        q['wijk_naam'] = 'Grachtengordel-West'
         response = self.client.get(BRK_GEO_QUERY.format(urlencode(q)),
                                    **self.header_auth_scope_brk_plus)
         self.assertValidEmpty(response)

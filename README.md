@@ -21,7 +21,7 @@ naar vestigingen.
 De dataselectie gebruikt data van de andere services en heeft geen eigen import process.
 dataselectie maakt wel een eigen indices in elastic.
 
-Op dit moment worden de bag en HR databases gebruikt, omdat daar de data is opgeslagen.
+Op dit moment worden de bag, hr en brk databases gebruikt, omdat daar de data is opgeslagen.
 Die moet ook via docker compose starten.
 
 ### Lokaal setup
