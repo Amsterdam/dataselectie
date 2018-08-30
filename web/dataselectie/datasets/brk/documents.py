@@ -256,9 +256,9 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.kadastrale_gemeentecode = kot.kadastrale_gemeente_id
     doc.sectie = get_omschrijving(brk_models.KadastraleSectie, kot.sectie_id, code_field='id',
                                   omschrijving_field='sectie')
-    doc.perceelnummer = str(kot.perceelnummer)
+    doc.perceelnummer = f'{kot.perceelnummer:05d}'
     doc.indexletter = kot.indexletter
-    doc.indexnummer = str(kot.indexnummer)
+    doc.indexnummer = f'{kot.indexnummer:04d}'
     doc.kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
     doc.burgerlijke_gemeentenaam = kot.kadastrale_gemeente.gemeente_id
     doc.aanduiding = kot.get_aanduiding_spaties()
