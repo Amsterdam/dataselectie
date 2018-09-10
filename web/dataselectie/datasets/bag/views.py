@@ -53,10 +53,13 @@ class BagBase(object):
         'buurt_naam', 'buurt_code', 'buurtcombinatie_code',
         'buurtcombinatie_naam', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code', 'postcode', 'woonplaats',
-        '_openbare_ruimte_naam', 'openbare_ruimte'
+        '_openbare_ruimte_naam', 'openbare_ruimte', 'wijk_code', 'wijk_naam'
     ]
     keyword_mapping = {
         'openbare_ruimte': 'naam',
+        'buurtcombinatie_code': 'wijk_code',
+        'buurtcombinatie_naam': 'wijk_naam',
+
     }
     raw_fields = []
 
@@ -87,8 +90,8 @@ class BagCSV(BagBase, CSVExportView):
         ('stadsdeel_code', 'Code stadsdeel'),
         ('ggw_naam', 'Naam gebiedsgerichtwerkengebied'),
         ('ggw_code', 'Code gebiedsgerichtwerkengebied'),
-        ('buurtcombinatie_naam', 'Naam Wijk'),
-        ('buurtcombinatie_code', 'Code Wijk'),
+        ('wijk_naam', 'Naam Wijk'),
+        ('wijk_code', 'Code Wijk'),
         ('buurt_naam', 'Naam buurt'),
         ('buurt_code', 'Code buurt'),
         ('bouwblok', 'Code bouwblok'),
