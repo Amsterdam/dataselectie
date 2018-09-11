@@ -41,8 +41,6 @@ CREATE TABLE hr_dataselectie (
 );
 
 
-ALTER TABLE hr_dataselectie OWNER TO postgres;
-
 --
 -- PostgreSQL database dump complete
 --
