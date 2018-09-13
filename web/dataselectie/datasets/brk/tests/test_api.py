@@ -331,8 +331,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
-        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
-        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'Amsterdam')
+        self.assertEqual(obj0['aanduiding'], 'ASD10 S 00012 G 0023')
         agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
@@ -345,8 +345,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
-        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
-        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'Amsterdam')
+        self.assertEqual(obj0['aanduiding'], 'ASD10 S 00012 G 0023')
         agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
@@ -363,7 +363,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
-        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        self.assertEqual(obj0['aanduiding'], 'ASD10 S 00012 G 0023')
 
     @tag('brk')
     def test_api_kot_with_shape(self):
@@ -373,7 +373,7 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
-        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        self.assertEqual(obj0['aanduiding'], 'ASD10 S 00012 G 0023')
 
         q = {'shape': "[[25.0,25.0],[25.0,75.0],[75.0,75.0],[75.0,25.0]]"}
         response = self.client.get(BRK_KOT_QUERY.format(urlencode(q)),
@@ -396,8 +396,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         result = result.split('\r\n')
         # 2 lines: headers + 1 item
         self.assertEqual(len(result), 2)
-        self.assertTrue('AX001 S 00012 G 0023' in result[1])
-        self.assertTrue('SunCity' in result[1])
+        self.assertTrue('ASD10 S 00012 G 0023' in result[1])
+        self.assertTrue('Amsterdam' in result[1])
 
 class FilterApiTest(ESTestCase, AuthorizationSetup):
 
@@ -437,8 +437,8 @@ class FilterApiTest(ESTestCase, AuthorizationSetup):
         result = response.json()
         self.assertEqual(result['object_count'], 1)
         obj0 = result['object_list'][0]
-        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'SunCity')
-        self.assertEqual(obj0['aanduiding'], 'AX001 S 00012 G 0023')
+        self.assertEqual(obj0['burgerlijke_gemeentenaam'], 'Amsterdam')
+        self.assertEqual(obj0['aanduiding'], 'ASD10 S 00012 G 0023')
         agg_eigenaar_cat = result['aggs_list']['eigenaar_cat']
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['key'], 'De staat')
         self.assertEqual(agg_eigenaar_cat['buckets'][0]['doc_count'], 1)
