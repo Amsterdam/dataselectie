@@ -32,12 +32,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendombuurt AS (
             SELECT row_number() over (), kadastraal_object_id, buurt_id FROM (
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-                FROM brk_kadastraalobject kot, bag_buurt buurt
+                FROM brk_kadastraalobject kot, bag_buurt buurt, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, buurt.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-                FROM brk_kadastraalobject kot, bag_buurt buurt
+                FROM brk_kadastraalobject kot, bag_buurt buurt, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, buurt.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendombuurt (kadastraal_object_id, buurt_id)",
@@ -47,12 +51,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomwijk AS (
             SELECT row_number() over (), kadastraal_object_id, buurt_combi_id FROM (
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, wijk.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, wijk.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomwijk (kadastraal_object_id, buurt_combi_id)",
@@ -62,12 +70,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomggw AS (
             SELECT row_number() over (), kadastraal_object_id, ggw_id FROM (
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, ggw.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, ggw.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomggw (kadastraal_object_id, ggw_id)",
@@ -77,12 +89,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomstadsdeel AS (
             SELECT row_number() over (), kadastraal_object_id, stadsdeel_id FROM (
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, sd.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, sd.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     # Add foreign keys because they are for 'through' ManyMany relation in models

@@ -174,13 +174,13 @@ def create_kadastraal_object():
     """
 
     gemeente = GemeenteFactory(
-        gemeente='SunCity',
+        gemeente='Amsterdam',
     )
 
     kadastrale_gemeente = KadastraleGemeenteFactory(
-        pk='AX001',
+        pk='ASD10',
         gemeente=gemeente,
-        naam='SunCity',
+        naam='Amsterdam',
     )
 
     sectie = KadastraleSectieFactory(
@@ -207,13 +207,13 @@ def create_kadastraal_object1():
     """
 
     gemeente = GemeenteFactory(
-        gemeente='SunCity',
+        gemeente='Amsterdam',
     )
 
     kadastrale_gemeente = KadastraleGemeenteFactory(
-        pk='AX001',
+        pk='ASD10',
         gemeente=gemeente,
-        naam='SunCity',
+        naam='Amsterdam',
     )
 
     sectie = KadastraleSectieFactory(
