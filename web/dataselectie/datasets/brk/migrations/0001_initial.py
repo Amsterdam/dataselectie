@@ -117,7 +117,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='EigendomStadsdeel',
             fields=[
-                ('id', models.IntegerField(primary_key=True, serialize=False)),
+                ('row_number', models.BigIntegerField(primary_key=True, serialize=False)),
             ],
             options={
                 'managed': False,

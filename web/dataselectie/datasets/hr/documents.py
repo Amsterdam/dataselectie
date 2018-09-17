@@ -60,6 +60,8 @@ class Inschrijving(es.DocType):
 
     bezoekadres_buurt_code = es.Keyword()
     bezoekadres_buurt_naam = es.Keyword()
+    bezoekadres_wijk_code = es.Keyword()
+    bezoekadres_wijk_naam = es.Keyword()
     bezoekadres_buurtcombinatie_code = es.Keyword()
     bezoekadres_buurtcombinatie_naam = es.Keyword()
     bezoekadres_ggw_code = es.Keyword()
@@ -176,12 +178,12 @@ def add_bag_info(doc, ves):
             str(buurt.code)
         )
         doc.bezoekadres_buurt_naam = buurt.naam
-        # Buurtcombinatie
-        doc.bezoekadres_buurtcombinatie_code = '%s%s' % (
+        # Wijk. In BAG heet het nog steeds buurtcombinatie
+        doc.bezoekadres_buurtcombinatie_code = doc.bezoekadres_wijk_code = '%s%s' % (
             str(buurt.stadsdeel.code),
             str(buurt.buurtcombinatie.code)
         )
-        doc.bezoekadres_buurtcombinatie_naam = buurt.buurtcombinatie.naam
+        doc.bezoekadres_buurtcombinatie_naam = doc.bezoekadres_wijk_naam = buurt.buurtcombinatie.naam
         # Stadsdeel
         doc.bezoekadres_stadsdeel_naam = buurt.stadsdeel.naam
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
