@@ -169,6 +169,9 @@ def _lookup_ids_queryparams(query_params):
     if 'ggw_naam' in query_params:
         ggw = bag_models.Gebiedsgerichtwerken.objects.filter(naam=query_params['ggw_naam'])[0]
         query_params['ggw'] = ggw.id
+    if 'buurtcombinatie_naam' in query_params:
+        wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
+        query_params['wijk'] = wijk.id
     if 'wijk_naam' in query_params:
         wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['wijk_naam'])[0]
         query_params['wijk'] = wijk.id
