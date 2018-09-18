@@ -32,8 +32,6 @@ class Nummeraanduiding(es.DocType):
 
     buurt_code = es.Keyword()
     buurt_naam = es.Keyword()
-    wijk_code = es.Keyword()
-    wijk_naam = es.Keyword()
     buurtcombinatie_code = es.Keyword()
     buurtcombinatie_naam = es.Keyword()
     ggw_code = es.Keyword()
@@ -111,7 +109,7 @@ def update_doc_with_adresseerbaar_object(doc, item):
             str(buurt.code)
         )
 
-        doc.buurtcombinatie_code = doc.wijk_code = '%s%s' % (
+        doc.buurtcombinatie_code = '%s%s' % (
             str(buurt.stadsdeel.code),
             str(buurt.buurtcombinatie.code)
         )
@@ -182,8 +180,6 @@ def  doc_from_nummeraanduiding(
         ('_openbare_ruimte_naam', '_openbare_ruimte_naam'),
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
         ('buurtcombinatie_naam',
-         'adresseerbaar_object.buurt.buurtcombinatie.naam'),
-        ('wijk_naam',
          'adresseerbaar_object.buurt.buurtcombinatie.naam'),
         ('status', 'adresseerbaar_object.status.omschrijving'),
         ('stadsdeel_code', 'stadsdeel.code'),

@@ -77,13 +77,6 @@ def create_aggs() -> dict:
                     'order': {'_term': 'asc'},
                 },
             },
-            'wijk_naam': {
-                'terms': {
-                    'field': 'bezoekadres_wijk_naam',
-                    'size': agg_size,
-                    'order': {'_term': 'asc'},
-                },
-            },
             'buurt_naam': {
                 'terms': {
                     'field': 'bezoekadres_buurt_naam',
