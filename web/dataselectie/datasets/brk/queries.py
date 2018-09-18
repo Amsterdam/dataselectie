@@ -55,13 +55,6 @@ def create_aggs():
                      'order': {'_term': 'asc'},
                 },
             },
-            'wijk_naam': {
-                'terms': {
-                    'field': 'wijk_naam',
-                    'size': agg_size,
-                     'order': {'_term': 'asc'},
-                },
-            },
             'buurt_naam': {
                 'terms': {
                     'field': 'buurt_naam',

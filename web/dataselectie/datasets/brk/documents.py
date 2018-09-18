@@ -73,8 +73,6 @@ class Eigendom(es.DocType):
     stadsdeel_code = es.Keyword(multi=True)
     ggw_naam = es.Keyword(multi=True)
     ggw_code = es.Keyword(multi=True)
-    wijk_naam = es.Keyword(multi=True)
-    wijk_code = es.Keyword(multi=True)
     buurtcombinatie_naam = es.Keyword(multi=True)
     buurtcombinatie_code = es.Keyword(multi=True)
     buurt_naam = es.Keyword(multi=True)
@@ -326,11 +324,11 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
         doc.ggw_naam = ['']
     buurtcombinaties = kot.wijken.all()
     if buurtcombinaties:
-        doc.buurtcombinatie_naam = doc.wijk_naam = [buurtcombinatie.naam for buurtcombinatie in buurtcombinaties]
-        doc.buurtcombinatie_code = doc.wijk_code = [buurtcombinatie.code for buurtcombinatie in buurtcombinaties]
+        doc.buurtcombinatie_naam = [buurtcombinatie.naam for buurtcombinatie in buurtcombinaties]
+        doc.buurtcombinatie_code = [buurtcombinatie.code for buurtcombinatie in buurtcombinaties]
     else:
-        doc.buurtcombinatie_naam = doc.wijk_naam = ['']
-        doc.buurtcombinatie_code = doc.wijk_code = ['']
+        doc.buurtcombinatie_naam = ['']
+        doc.buurtcombinatie_code = ['']
     buurten = kot.buurten.all()
     if buurten:
         doc.buurt_naam = [buurt.naam for buurt in buurten]

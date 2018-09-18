@@ -84,8 +84,7 @@ class BrkBase(object):
         'eigenaar_type',
         'eigenaar_categorie_id', 'eigenaar_cat',
         'buurt_naam', 'buurt_code', 'buurtcombinatie_naam',
-        'buurtcombinatie_code', 'wijk_code',
-        'wijk_naam', 'ggw_naam', 'ggw_code',
+        'buurtcombinatie_code', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code',
         'openbare_ruimte_naam', 'postcode'
     ]
@@ -124,7 +123,7 @@ class BrkAggBase(BrkBase):
         Do custom filtering on aggs. If we have parameters for gebieden
         we filter out aggregate buckets that are not related to the gebieden
         """
-        filter_params = {'stadsdeel_naam', 'ggw_naam', 'buurtcombinatie_naam', 'wijk_naam', 'buurt_naam'}
+        filter_params = {'stadsdeel_naam', 'ggw_naam', 'buurtcombinatie_naam', 'buurt_naam'}
 
         query_params = request.GET
         query_filter_params = filter_params.intersection(set(query_params))
@@ -137,15 +136,13 @@ class BrkAggBase(BrkBase):
         aggs_list = elastic_data['aggs_list']
 
         # loop over all filter_aggregations
-        for real_key, value in aggs_list.items():
-            if real_key not in filter_params:
+        for key, value in aggs_list.items():
+            if key not in filter_params:
                 continue
-            key = 'buurtcombinatie_naam' if real_key == 'wijk_naam' else real_key
 
             allowed_key_values = None
-            for real_qfp_key in query_filter_params:
-                qfp_value = query_params[real_qfp_key]
-                qfp_key = 'buurtcombinatie_naam' if real_qfp_key == 'wijk_naam' else real_qfp_key
+            for qfp_key in query_filter_params:
+                qfp_value = query_params[qfp_key]
                 if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value]:
                     if allowed_key_values is None:
                         allowed_key_values = lookup[qfp_key][qfp_value][key]
