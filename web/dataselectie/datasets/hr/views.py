@@ -35,12 +35,10 @@ class HrBase(object):
         'rechtsvorm', 'aantal_werkzame_personen',
         'dataset',
         'bijzondere_rechtstoestand',
-        'wijk_naam'
     ]
     keyword_mapping = {
         'buurt_naam': 'bezoekadres_buurt_naam',
-        'buurtcombinatie_naam': 'bezoekadres_wijk_naam',
-        'wijk_naam': 'bezoekadres_wijk_naam',
+        'buurtcombinatie_naam': 'bezoekadres_buurtcombinatie_naam',
         'ggw_naam': 'bezoekadres_ggw_naam',
         'stadsdeel_naam': 'bezoekadres_stadsdeel_naam',
         'postcode': 'bezoekadres_postcode',

@@ -102,8 +102,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertIn('subcategorie', res['aggs_list'])
         self.assertIn('buurt_naam', res['aggs_list'])
         self.assertIn('buckets', res['aggs_list']['buurt_naam'])
-        self.assertIn('wijk_naam', res['aggs_list'])
-        self.assertIn('buckets', res['aggs_list']['wijk_naam'])
+        self.assertIn('buurtcombinatie_naam', res['aggs_list'])
+        self.assertIn('buckets', res['aggs_list']['buurtcombinatie_naam'])
 
         # test sorting
         names = [obj['handelsnaam'] for obj in res['object_list']]

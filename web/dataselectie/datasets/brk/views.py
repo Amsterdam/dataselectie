@@ -28,7 +28,7 @@ def make_gebieden_lookup():
         { "Noord": {
             "stadsdeel_naam":{ "Noord" },
             "ggw_naam": {"Oost", "Dod-Noord", "West"}
-            "wijk_naam": {...},
+            "buurtcombinatie_naam": {...},
             "buurt_naam": {...},
         ...
         },
@@ -42,12 +42,12 @@ def make_gebieden_lookup():
     """
     lookup = dict()
     sql = '''
-    select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as wijk_naam , b.naam as buurt_naam 
+    select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as buurtcombinatie_naam, b.naam as buurt_naam
 from bag_buurt b
 full outer join bag_gebiedsgerichtwerken ggw on ggw.id = b.gebiedsgerichtwerken_id
 full outer join bag_buurtcombinatie bc on bc.id = b.buurtcombinatie_id
 full join bag_stadsdeel s on s.id = b.stadsdeel_id
-union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt_naam
+union select '' as stadsdeel_naam, '' as ggw_naam, '' as buurtcombinatie_naam, '' as buurt_naam
     '''
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -55,7 +55,7 @@ union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt
             drow = {
                 'stadsdeel_naam': row[0],
                 'ggw_naam': row[1],
-                'wijk_naam': row[2],
+                'buurtcombinatie_naam': row[2],
                 'buurt_naam': row[3]
             }
             for key1, value1 in drow.items():
@@ -83,8 +83,8 @@ class BrkBase(object):
     keywords = [
         'eigenaar_type',
         'eigenaar_categorie_id', 'eigenaar_cat',
-        'buurt_naam', 'buurt_code', 'wijk_code',
-        'wijk_naam', 'ggw_naam', 'ggw_code',
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_naam',
+        'buurtcombinatie_code', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code',
         'openbare_ruimte_naam', 'postcode'
     ]
@@ -123,7 +123,7 @@ class BrkAggBase(BrkBase):
         Do custom filtering on aggs. If we have parameters for gebieden
         we filter out aggregate buckets that are not related to the gebieden
         """
-        filter_params = {'stadsdeel_naam', 'ggw_naam', 'wijk_naam', 'buurt_naam'}
+        filter_params = {'stadsdeel_naam', 'ggw_naam', 'buurtcombinatie_naam', 'buurt_naam'}
 
         query_params = request.GET
         query_filter_params = filter_params.intersection(set(query_params))
