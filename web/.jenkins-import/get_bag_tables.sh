@@ -40,6 +40,7 @@ declare  -a bag_tables=(
 	"brk_eigendom"
 	"brk_eigenaar"
 	"brk_eigenaarcategorie"
+	"brk_erfpacht"
 	"brk_gemeente"
 	"brk_geslacht"
 	"brk_kadastercodeomschrijving"
