@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS public.brk_eigendomstadsdeel CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendomggw CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendomcategorie CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendombuurt CASCADE;
+DROP TABLE IF EXISTS public.brk_erfpacht CASCADE;
 DROP TABLE IF EXISTS public.brk_eigenaarcategorie CASCADE;
 DROP TABLE IF EXISTS public.brk_adres CASCADE;
 DROP TABLE IF EXISTS public.brk_eigenaar CASCADE;
