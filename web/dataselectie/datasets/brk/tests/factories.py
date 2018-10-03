@@ -240,6 +240,15 @@ CREATE TABLE public.brk_eigendom (
 );
 
 --
+-- Name: brk_erfpacht; Type: TABLE; Schema: public; Owner: postgres
+--
+CREATE TABLE public.brk_erfpacht
+(
+    kadastraal_object_id character varying(60),
+    uitgegeven_door character varying(24)
+);
+
+--
 -- Name: brk_gemeente; Type: TABLE; Schema: public; Owner: -
 --
 
