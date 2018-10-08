@@ -33,7 +33,7 @@ dc run --rm importer python manage.py import --bagdbconstraints
 dc run --rm importer python manage.py migrate contenttypes
 
 # create dataselectie BRK tables and views
-dc run --rm importer python manage.py brk_tables_views
+dc run --rm importer python manage.py brk_tables_views --validate
 dc exec -T database backup-db.sh dataselectie
 
 dc run --rm database chmod -R 777 /tmp/backups
