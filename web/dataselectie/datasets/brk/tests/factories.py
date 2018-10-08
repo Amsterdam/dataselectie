@@ -33,6 +33,7 @@ DROP TABLE IF EXISTS public.brk_eigendomstadsdeel CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendomggw CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendomcategorie CASCADE;
 DROP TABLE IF EXISTS public.brk_eigendombuurt CASCADE;
+DROP TABLE IF EXISTS public.brk_erfpacht CASCADE;
 DROP TABLE IF EXISTS public.brk_eigenaarcategorie CASCADE;
 DROP TABLE IF EXISTS public.brk_adres CASCADE;
 DROP TABLE IF EXISTS public.brk_eigenaar CASCADE;
@@ -237,6 +238,15 @@ CREATE TABLE public.brk_eigendom (
     grondeigenaar boolean,
     aanschrijfbaar boolean,
     appartementeigenaar boolean
+);
+
+--
+-- Name: brk_erfpacht; Type: TABLE; Schema: public; Owner: postgres
+--
+CREATE TABLE public.brk_erfpacht
+(
+    kadastraal_object_id character varying(60),
+    uitgegeven_door character varying(24)
 );
 
 --
