@@ -89,6 +89,17 @@ class AdresFactory(factory.DjangoModelFactory):
     openbareruimte_naam = fuzzy.FuzzyText(length=80)
 
 
+class PostAdresFactory(factory.DjangoModelFactory):
+    class Meta:
+        model = models.Adres
+
+    pk = fuzzy.FuzzyText(length=32)
+    openbareruimte_naam = fuzzy.FuzzyText(length=80)
+    postbus_nummer = 123
+    postbus_postcode = '1234AA'
+    postbus_woonplaats = 'Amsterdam'
+
+
 # class NatuurlijkPersoonFactory(factory.DjangoModelFactory):
 #     class Meta:
 #         model = models.KadastraalSubject
@@ -127,7 +138,7 @@ class EigenaarFactory(factory.DjangoModelFactory):
         choices=(models.Eigenaar.BRON_KADASTER,
                  models.Eigenaar.BRON_REGISTRATIE))
     woonadres = factory.SubFactory(AdresFactory)
-    postadres = factory.SubFactory(AdresFactory)
+    postadres = factory.SubFactory(PostAdresFactory)
 
 
 class AardZakelijkRechtFactory(factory.DjangoModelFactory):

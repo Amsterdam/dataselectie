@@ -400,6 +400,8 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertEqual(len(result), 2)
         self.assertTrue('ASD10 S 00012 G 0023' in result[1])
         self.assertTrue('Amsterdam' in result[1])
+        self.assertTrue('Postbus 123 1234AA Amsterdam' in result[1])
+
 
 class FilterApiTest(ESTestCase, AuthorizationSetup):
 

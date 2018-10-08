@@ -360,6 +360,10 @@ class BrkCSV(BrkBase, CSVExportView):
             if field_name == 'zakelijk_recht_aandeel':
                 zakelijk_recht_aandeel = stringify_item_value(item.get(field_name, None))
                 updates[field_name] = '"{}"'.format(zakelijk_recht_aandeel) if zakelijk_recht_aandeel else ''
+            elif field_name == 'sjt_postadres_postbus':
+                value = stringify_item_value(item.get(field_name, None))
+                if value and not value.lower().startswith('postbus'):
+                    updates[field_name] = 'Postbus ' + value
             else:
                 updates[field_name] = stringify_item_value(item.get(field_name, None))
         item.update(updates)
