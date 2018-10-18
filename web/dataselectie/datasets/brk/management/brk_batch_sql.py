@@ -111,11 +111,14 @@ dataselection_sql_commands = [
     #   Normalisation-table:
     #       all combinations of eigendom and eigendomcategorie
     """CREATE TABLE brk_eigendomcategorie AS (
-        SELECT id AS eigendom_id, 1::INTEGER  as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = true::boolean
+        SELECT id AS eigendom_id, 0::INTEGER as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = false::boolean
+            AND aanschrijfbaar = false::boolean AND appartementeigenaar = false::boolean
         UNION
-        SELECT id AS eigendom_id, 2::INTEGER  as eigendom_cat FROM brk_eigendom WHERE aanschrijfbaar = true::boolean
+        SELECT id AS eigendom_id, 1::INTEGER as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = true::boolean
         UNION
-        SELECT id AS eigendom_id, 3::INTEGER  as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
+        SELECT id AS eigendom_id, 2::INTEGER as eigendom_cat FROM brk_eigendom WHERE aanschrijfbaar = true::boolean
+        UNION
+        SELECT id AS eigendom_id, 3::INTEGER as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
     "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
     "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",

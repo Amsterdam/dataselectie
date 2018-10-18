@@ -43,7 +43,8 @@ def check_table_counts(table_data: list):
 
     if error:
         LOG.error(msg)
-        raise ValueError(all_msg)
+#        For now only report error
+#        raise ValueError(all_msg)
     else:
         LOG.debug(all_msg)
 
