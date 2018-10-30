@@ -24,15 +24,16 @@ def sql_count(table):
 def check_table_counts(table_data: list):
     """
     Given list with tuples of count - table name
-    check if current table counts are close
+    check if current table counts are not more then 50% off
     """
     error = False
     all_msg = ("Table count errors \n"
                "Count,    Target,    Table,           Status \n")
 
-    for target, deviation, table in table_data:
+    for target, table in table_data:
         count = sql_count(table)
-        if abs(count - target) > deviation or count == 0:
+        allowed_deviation = target / 2
+        if abs(count - target) > allowed_deviation or count == 0:
             status = '<FAIL>'
             error = True
         else:
@@ -43,8 +44,7 @@ def check_table_counts(table_data: list):
 
     if error:
         LOG.error(msg)
-#        For now only report error
-#        raise ValueError(all_msg)
+        raise ValueError(all_msg)
     else:
         LOG.debug(all_msg)
 
@@ -57,19 +57,19 @@ def check_table_targets():
 
     # Count  table
     tables_targets = [
-        # counts from 8-10-2018
-        # counts, allowed deviation, table
-        (384106 ,  38000, "geo_brk_kot_point_in_poly"),
-        (543922 ,  54000, "geo_brk_eigendommen"),
-        (59441  ,  5900,  "geo_brk_niet_eigendom_poly"),
-        (295470 ,  29000, "geo_brk_eigendom_poly"),
-        (39774  ,  3900,  "geo_brk_eigendom_point"),
-        (24372  ,  2400,  "geo_brk_eigendom_poly_all"),
-        (660715 ,  66000, "geo_brk_eigendomselectie"),
-        (1407   ,  140,   "geo_brk_rond_erfpacht_poly"),
-        (76118  ,  7600,  "geo_brk_erfpacht_poly"),
-        (1474   ,  140,   "geo_brk_erfpacht_point"),
-        (10140  ,  1000,  "geo_brk_erfpacht_poly_all"),
-        (899    ,  90,    "geo_brk_rond_erfpacht_poly_all"),
+        # counts from 30-10-2018
+        # counts, table
+        (384550 ,  "geo_brk_kot_point_in_poly"),
+        (680658 ,  "geo_brk_eigendommen"),
+        (62609  ,  "geo_brk_niet_eigendom_poly"),
+        (295655 ,  "geo_brk_eigendom_poly"),
+        (41957  ,  "geo_brk_eigendom_point"),
+        (24351  ,  "geo_brk_eigendom_poly_all"),
+        (847962 ,  "geo_brk_eigendomselectie"),
+        (1414   ,  "geo_brk_rond_erfpacht_poly"),
+        (76145  ,  "geo_brk_erfpacht_poly"),
+        (1479   ,  "geo_brk_erfpacht_point"),
+        (10136  ,  "geo_brk_erfpacht_poly_all"),
+        (900    ,  "geo_brk_rond_erfpacht_poly_all"),
     ]
     check_table_counts(tables_targets)
