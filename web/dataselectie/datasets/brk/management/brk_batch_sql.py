@@ -169,6 +169,7 @@ mapselection_sql_commands = [
     "SELECT UpdateGeometrySRID('geo_brk_kot_point_in_poly','poly_geom',4326)",
     "CREATE INDEX ON geo_brk_kot_point_in_poly USING GIST (poly_geom)",
     "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
+    "CREATE INDEX ON geo_brk_kot_point_in_poly (point_kot_id)",
 
     #   Base table for cartographic layers,
     #       categorized registry-objects - only outright ownership
