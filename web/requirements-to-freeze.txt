@@ -12,3 +12,4 @@ graypy
 psycopg2-binary
 requests
 redis
+sentry-sdk
