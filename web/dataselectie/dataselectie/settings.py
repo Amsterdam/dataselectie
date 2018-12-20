@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/1.9/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 import authorization_levels
 
