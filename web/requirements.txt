@@ -25,8 +25,8 @@ PyJWT==1.6.1
 python-dateutil==2.7.2
 pytz==2018.3
 redis==2.10.6
-requests==2.18.4
+requests==2.20.0
 sentry-sdk==0.6.4
 six==1.11.0
 text-unidecode==1.2
-urllib3==1.22
+urllib3==1.23
