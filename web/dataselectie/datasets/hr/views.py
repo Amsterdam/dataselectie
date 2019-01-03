@@ -173,6 +173,7 @@ class HrCSV(HrBase, CSVExportView):
         ('eigenaar_naam', 'Naam eigenaar(en)'),
         ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
+        ('verblijfsobject_id', 'Verblijfsobject ID'),
     )
 
     field_names = [h[0] for h in fields_and_headers]

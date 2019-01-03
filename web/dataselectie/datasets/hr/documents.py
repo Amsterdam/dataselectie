@@ -80,6 +80,7 @@ class Inschrijving(es.DocType):
 
     # And the bag numid
     bag_numid = es.Keyword()
+    verblijfsobject_id = es.Keyword()
     centroid = es.GeoPoint()
 
     # Categores
@@ -150,6 +151,7 @@ def add_bag_info(doc, ves):
     if not adresseerbaar_object:
         return
 
+    doc.verblijfsobject_id = ves.verblijfsobject_id
     # Adding geolocation
     try:
         geom = adresseerbaar_object.geometrie
