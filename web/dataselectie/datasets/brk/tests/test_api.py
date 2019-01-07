@@ -306,19 +306,13 @@ class DataselectieApiTest(ESTestCase, AuthorizationSetup):
         self.assertIn('type', geojson)
         self.assertIn('coordinates', geojson)
 
+    @tag('brk')
     def test_shape_parameter(self):
         fixture = {
             'shape': "[[4.890712,52.373579],[4.8920548,52.3736018],[4.8932629,52.3732028],"
                      "[4.8929459,52.3727335],[4.8906613,52.3727228]]"}
-        modify_queryparams_for_shape(fixture)
-
-        self.assertIsInstance(fixture['shape'], Polygon)
-        dict_of_polygon = json.loads(fixture['shape'].geojson)
-        expected_dict = json.loads(
-            '{"type":"Polygon","coordinates":[[[4.890712,52.373579],[4.8920548,52.3736018],'
-            '[4.8932629,52.3732028],[4.8929459,52.3727335],[4.8906613,52.3727228],'
-            '[4.890712,52.373579]]]}')
-        self.assertDictEqual(dict_of_polygon, expected_dict)
+        result = modify_queryparams_for_shape(fixture)
+        self.assertEqual(result, True)
 
         fixture = {'shape': "[]"}
         modify_queryparams_for_shape(fixture)
