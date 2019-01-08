@@ -90,7 +90,8 @@ class AppartementenFilter(BrkGeoFilter):
 
     def filter_shape(self, queryset, name, value):
         if value:
-            return queryset.filter(plot__intersects=value)
+            polygon = self._get_shape(value)
+            return queryset.filter(plot__intersects=polygon)
         return queryset
 
     def filter_bbox(self, queryset, name, value):
