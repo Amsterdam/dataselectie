@@ -80,7 +80,7 @@ class Inschrijving(es.DocType):
 
     # And the bag numid
     bag_numid = es.Keyword()
-    verblijfsobject_id = es.Keyword()
+    adresseerbaar_object_id = identificatie = es.Keyword()
     centroid = es.GeoPoint()
 
     # Categores
@@ -111,7 +111,10 @@ class Inschrijving(es.DocType):
     class Meta:
         all = es.MetaField(enabled=False)
         doc_type = 'vestiging'
-        index = settings.ELASTIC_INDICES['DS_HR_INDEX']
+
+    class Index:
+        doc_type = 'vestiging'
+        name = settings.ELASTIC_INDICES['DS_HR_INDEX']
 
 
 def flatten_sbi(activiteit):
@@ -151,7 +154,7 @@ def add_bag_info(doc, ves):
     if not adresseerbaar_object:
         return
 
-    doc.verblijfsobject_id = ves.verblijfsobject_id
+    doc.adresseerbaar_object_id = adresseerbaar_object.id
     # Adding geolocation
     try:
         geom = adresseerbaar_object.geometrie

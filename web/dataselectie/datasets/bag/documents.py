@@ -66,7 +66,10 @@ class Nummeraanduiding(es.DocType):
 
     class Meta:
         doc_type = 'nummeraanduiding'
-        index = settings.ELASTIC_INDICES['DS_BAG_INDEX']
+
+    class Index:
+        doc_type = 'nummeraanduiding'
+        name = settings.ELASTIC_INDICES['DS_BAG_INDEX']
 
 
 def update_doc_with_adresseerbaar_object(doc, item):

@@ -34,7 +34,10 @@ class Eigendom(es.DocType):
     class Meta:
         # all = es.MetaField(enabled=False)
         doc_type = 'eigendom'
-        index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
+
+    class Index:
+        doc_type = 'eigendom'
+        name = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     kadastraal_object_id = es.Keyword()
     kadastraal_object_index = es.Short()
