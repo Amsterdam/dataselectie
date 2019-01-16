@@ -142,7 +142,7 @@ class HrCSV(HrBase, CSVExportView):
 
     fields_and_headers = (
         ('kvk_nummer', 'KvK-nummer'),
-        ('vestiging_id', 'Vestigings Nummer'),
+        ('vestiging_id', 'Vestigingsnummer'),
         ('handelsnaam', 'Eerste handelsnaam'),
         ('non_mailing', 'Indicatie non-mailing'),
         ('bezoekadres_volledig_adres', 'Bezoekadres (KvK HR)'),

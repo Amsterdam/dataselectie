@@ -154,7 +154,7 @@ def add_bag_info(doc, ves):
     if not adresseerbaar_object:
         return
 
-    doc.adresseerbaar_object_id = adresseerbaar_object.id
+    doc.adresseerbaar_object_id = adresseerbaar_object.landelijk_id
     # Adding geolocation
     try:
         geom = adresseerbaar_object.geometrie
