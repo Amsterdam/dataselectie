@@ -189,9 +189,10 @@ class HrCSV(HrBase, CSVExportView):
 
     def item_data_update(self, item, request):
         # strip time from date.
-        date = parse(item.get('datum_aanvang'))
-        item['datum_aanvang'] = date.strftime('%Y-%m-%d')
-
+        datum_aanvang = item.get('datum_aanvang')
+        if datum_aanvang is not None:
+            date = parse(datum_aanvang)
+            item['datum_aanvang'] = date.strftime('%Y-%m-%d')
         return item
 
     def sanitize_fields(self, item, field_names):
