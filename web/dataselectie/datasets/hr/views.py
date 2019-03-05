@@ -174,6 +174,9 @@ class HrCSV(HrBase, CSVExportView):
         ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
         ('adresseerbaar_object_id', 'Adresseerbaar object ID'),
+        ('centroid', 'lon/lat locatie'),
+        ('lon', 'longitude'),
+        ('lat', 'latitude'),
     )
 
     field_names = [h[0] for h in fields_and_headers]
@@ -199,3 +202,9 @@ class HrCSV(HrBase, CSVExportView):
         item.update(
             {field_name: stringify_item_value(item.get(field_name, None))
              for field_name in field_names})
+
+        if item.get('centroid'):
+            lon, lat = item['centroid'].split(' | ')
+            item['lon'] = float(lon)
+            item['lat'] = float(lat)
+        item.pop('centroid')
