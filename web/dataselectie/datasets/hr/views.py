@@ -174,7 +174,7 @@ class HrCSV(HrBase, CSVExportView):
         ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
         ('adresseerbaar_object_id', 'Adresseerbaar object ID'),
-        ('centroid', 'lon/lat locatie'),
+        # ('centroid', 'lon/lat locatie'),
         ('lon', 'longitude'),
         ('lat', 'latitude'),
     )
@@ -196,15 +196,15 @@ class HrCSV(HrBase, CSVExportView):
         if datum_aanvang is not None:
             date = parse(datum_aanvang)
             item['datum_aanvang'] = date.strftime('%Y-%m-%d')
+
+        if item.get('centroid'):
+            lon, lat = item['centroid']
+            item['lon'] = float(lon)
+            item['lat'] = float(lat)
+
         return item
 
     def sanitize_fields(self, item, field_names):
         item.update(
             {field_name: stringify_item_value(item.get(field_name, None))
              for field_name in field_names})
-
-        if item.get('centroid'):
-            lon, lat = item['centroid'].split(' | ')
-            item['lon'] = float(lon)
-            item['lat'] = float(lat)
-        item.pop('centroid')
