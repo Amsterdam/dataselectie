@@ -2,12 +2,10 @@ import json
 import logging
 import re
 
-from collections import Counter
 
 from django.conf import settings
 from django.utils.dateparse import parse_date
 
-from dataselectie import utils
 from datasets.brk import models as brk_models
 from datasets.bag import models as bag_models
 
@@ -40,7 +38,6 @@ class Eigendom(es.DocType):
         name = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     kadastraal_object_id = es.Keyword()
-    kadastraal_object_index = es.Short()
     eigenaar_type = es.Keyword(multi=True)
     eigenaar_cat_id = es.Integer()
     eigenaar_cat = es.Keyword()
@@ -200,37 +197,6 @@ def get_date(val):
     return result
 
 
-# For the 'lijst'  view we only need to see the  kadastrale object. Because there can be multiple
-# Eigendommen for one kadastraal_object we keep a counter for kadastrale objecten. In that way
-# we can select the first kadastrale_object by having additional constraint : kadastraal_object_index == 0
-# To create we keep a Counter dictionary for each kadastraal_object.  This does not work correctly if
-# we create the indexes in batches, because then we create a new empty Counter dictionary for each batch,
-# and we will have identical kadastrale objecten in different batches with index 0
-# Therefore we try to keep the counter in a redis service. This will be accessed by all batches.
-# This works if we can connect to the redis server./ Otherwise the normal counter will be use
-kadastraal_object_index = Counter()
-redis_db = None
-use_redis = None
-
-
-def get_kadastraal_object_index(key):
-    global use_redis
-    global redis_db
-    if use_redis is None:
-        redis_db = utils.get_redis()
-        if redis_db is None:
-            use_redis = False
-            log.warning("Redis is not available. Use local check for kadastraal_object_seen")
-        else:
-            use_redis = True
-    if use_redis:
-        result = redis_db.incr(key) - 1  # start with 0
-    else:
-        result = kadastraal_object_index[key]
-        kadastraal_object_index[key] += 1
-    return result
-
-
 def doc_from_eigendom(eigendom: object) -> Eigendom:
     kot = eigendom.kadastraal_object
     # eigendommen = kot.eigendommen.all()
@@ -240,8 +206,6 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     kadastraal_object_id = kot.id
     doc.kadastraal_object_id = kadastraal_object_id
-
-    doc.kadastraal_object_index = get_kadastraal_object_index(kadastraal_object_id)
 
     doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
