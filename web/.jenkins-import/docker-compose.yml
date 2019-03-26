@@ -23,7 +23,6 @@ services:
     links:
       - elasticsearch:elasticsearch
       - database:database
-      - redis:redis
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:

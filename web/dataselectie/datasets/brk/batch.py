@@ -1,9 +1,7 @@
 import logging
 
 from django.conf import settings
-from django.db.models import Q
 
-from dataselectie import utils
 from datasets.brk import models
 
 from . import documents
@@ -30,18 +28,6 @@ class RebuildDocTaskBRK(index.CreateDocTypeTask):
     index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
     doc_types = BRK_DOC_TYPES
 
-class FlushRedisDbTask():
-    def __init__(self):
-        pass
-
-    def execute(self):
-        redis = utils.get_redis()
-        if redis:
-            redis.flushall()
-            log.info("Flushing redis")
-        else:
-            log.warning("Redis not available for flushing")
-
 
 class ReBuildIndexDsBRKJob(object):
     name = "Recreate search-index for all BRK data from elastic"
@@ -51,7 +37,6 @@ class ReBuildIndexDsBRKJob(object):
         return [
             DeleteDsBRKIndexTask(),
             RebuildDocTaskBRK(),
-            FlushRedisDbTask(),
         ]
 
 
