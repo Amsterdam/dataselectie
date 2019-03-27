@@ -89,9 +89,6 @@ ELASTIC_INDICES = {
     'DS_BRK_INDEX': 'ds_brk_index'
 }
 
-REDIS_HOST = get_variable('REDIS_HOST_OVERRIDE', 'redis', 'localhost')
-REDIS_PORT = get_variable('REDIS_PORT_OVERRIDE', '6379')
-
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000
 MIN_HR_NR = 1000

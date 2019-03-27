@@ -1,10 +1,5 @@
 version: '3.0'
 services:
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-
   elasticsearch:
     image: amsterdam/elasticsearch6
     user: root
@@ -28,7 +23,6 @@ services:
     links:
       - elasticsearch:elasticsearch
       - database:database
-      - redis:redis
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:

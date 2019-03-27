@@ -269,6 +269,21 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
             raise PermissionDenied("scope BRK/RSN required")
         return super().handle_request(request, *args, **kwargs)
 
+    def filter_data(self, elastic_data, request):
+        """
+        Remove duplicate kadastraal_object_id from object_list
+        """
+        new_object_list = []
+        kot_unique = set()
+        for object in elastic_data['object_list']:
+            kadastraal_object_id = object['kadastraal_object_id']
+            if kadastraal_object_id not in kot_unique:
+                new_object_list.append(object)
+                kot_unique.add(kadastraal_object_id)
+
+        elastic_data['object_list'] = new_object_list
+        return elastic_data
+
     def elastic_query(self, query):
         result = meta_q(query)
         result.update({
@@ -279,13 +294,6 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
                     "eerste_adres",
                 ]
             },
-            "query": {
-                "bool": {
-                    "filter": [
-                        {"term": {"kadastraal_object_index": 0}}
-                    ]
-                }
-            }
         })
         return result
 

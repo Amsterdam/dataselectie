@@ -23,7 +23,6 @@ pycparser==2.19
 PyJWT==1.7.1
 python-dateutil==2.7.5
 pytz==2018.9
-redis==3.0.1
 requests==2.21.0
 sentry-sdk==0.6.6
 six==1.12.0
