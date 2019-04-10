@@ -17,6 +17,7 @@ services:
       - ./backups/database:/tmp/backups
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
+    shm_size: '8gb'
 
   importer:
     image: repo.data.amsterdam.nl/datapunt/dataselectie:${ENVIRONMENT}
