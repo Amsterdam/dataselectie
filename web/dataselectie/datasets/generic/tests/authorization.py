@@ -1,10 +1,8 @@
 import time
-from datetime import datetime as dt
 
-import jwt
-from authorization_django.config import settings as middleware_settings
+from jwcrypto.jwt import JWT
+from authorization_django.jwks import get_keyset
 import authorization_levels
-from django.conf import settings
 
 AUTH_HEADER = 'HTTP_AUTHORIZATION'
 
@@ -12,49 +10,64 @@ AUTH_HEADER = 'HTTP_AUTHORIZATION'
 class AuthorizationSetup(object):
     """
     Helper methods to setup JWT tokens and authorization levels
-
-    sets the following attributes:
-
-    token_scope_hr_r
     """
 
     def setup_authorization(self):
         """
         SET
 
+        token_default
         token_scope_hr_r
-
-        to use with:
-
-        self.client.credentials(
-            HTTP_AUTHORIZATION='JWT {}'.format(self.token_scope_hr_r))
-
+        token_scope_brk_plus
+        header_auth_default
+        header_auth_scope_hr_r
+        header_auth_scope_brk_plus
         """
-        # VERY NEW STYLE AUTH. JWKS public/private keys are defined in settings
-        jwks = middleware_settings()['JWKS'].signers
+        jwks = get_keyset()
+        assert len(jwks['keys']) > 0
 
-        assert len(jwks) > 0
-        (kid, key), = jwks.items()
-
+        key = next(iter(jwks['keys']))
         now = int(time.time())
 
-        token_default = jwt.encode({
-            'scopes': [],
-            'iat': now, 'exp': now + 600}, key.key, algorithm=key.alg,headers={'kid': kid})
-        token_scope_hr_r = jwt.encode({
-            'scopes':[authorization_levels.SCOPE_HR_R],
-            'iat': now, 'exp': now + 600}, key.key, algorithm=key.alg,headers={'kid': kid})
-        token_scope_brk_plus = jwt.encode({
-            'scopes':[authorization_levels.SCOPE_HR_R, authorization_levels.SCOPE_BRK_RS, authorization_levels.SCOPE_BRK_RSN],
-            'iat': now, 'exp': now + 600}, key.key, algorithm=key.alg,headers={'kid': kid})
-
-        self.token_default = str(token_default, 'utf-8')
-        self.header_auth_default = {AUTH_HEADER: f'Bearer {self.token_default}'}
-
-        self.token_scope_hr_r = str(token_scope_hr_r, 'utf-8')
+        header = {
+            'alg': 'ES256',  # algorithm of the test key
+            'kid': key.key_id
+        }
+        token_default = JWT(
+            header=header,
+            claims={
+                'iat': now, 'exp': now + 600, 'scopes': []
+            }
+        )
+        token_scope_hr_r = JWT(
+            header=header,
+            claims={
+                'iat': now, 'exp': now + 600, 'scopes': [authorization_levels.SCOPE_HR_R]
+            }
+        )
+        token_scope_brk_plus = JWT(
+            header=header,
+            claims={
+                'iat': now, 'exp': now + 600,
+                'scopes': [
+                    authorization_levels.SCOPE_HR_R,
+                    authorization_levels.SCOPE_BRK_RS,
+                    authorization_levels.SCOPE_BRK_RSN
+                ]
+            }
+        )
+        token_default.make_signed_token(key)
+        self.token_default = token_default.serialize()
+        self.header_auth_default = {
+            AUTH_HEADER: "Bearer {}".format(self.token_default)
+        }
+        token_scope_hr_r.make_signed_token(key)
+        self.token_scope_hr_r = token_scope_hr_r.serialize()
         self.header_auth_scope_hr_r = {
-            AUTH_HEADER: f'Bearer {self.token_scope_hr_r}'}
-
-        self.token_scope_brk_plus = str(token_scope_brk_plus, 'utf-8')
+            AUTH_HEADER: "Bearer {}".format(self.token_scope_hr_r)
+        }
+        token_scope_brk_plus.make_signed_token(key)
+        self.token_scope_brk_plus = token_scope_brk_plus.serialize()
         self.header_auth_scope_brk_plus = {
-            AUTH_HEADER: f'Bearer {self.token_scope_brk_plus}'}
+            AUTH_HEADER: "Bearer {}".format(self.token_scope_brk_plus)
+        }
