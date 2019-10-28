@@ -2,12 +2,10 @@ import json
 import logging
 import re
 
-from collections import Counter
 
 from django.conf import settings
 from django.utils.dateparse import parse_date
 
-from dataselectie import utils
 from datasets.brk import models as brk_models
 from datasets.bag import models as bag_models
 
@@ -34,10 +32,12 @@ class Eigendom(es.DocType):
     class Meta:
         # all = es.MetaField(enabled=False)
         doc_type = 'eigendom'
-        index = settings.ELASTIC_INDICES['DS_BRK_INDEX']
+
+    class Index:
+        doc_type = 'eigendom'
+        name = settings.ELASTIC_INDICES['DS_BRK_INDEX']
 
     kadastraal_object_id = es.Keyword()
-    kadastraal_object_index = es.Short()
     eigenaar_type = es.Keyword(multi=True)
     eigenaar_cat_id = es.Integer()
     eigenaar_cat = es.Keyword()
@@ -73,13 +73,13 @@ class Eigendom(es.DocType):
     stadsdeel_code = es.Keyword(multi=True)
     ggw_naam = es.Keyword(multi=True)
     ggw_code = es.Keyword(multi=True)
-    wijk_naam = es.Keyword(multi=True)
-    wijk_code = es.Keyword(multi=True)
+    buurtcombinatie_naam = es.Keyword(multi=True)
+    buurtcombinatie_code = es.Keyword(multi=True)
     buurt_naam = es.Keyword(multi=True)
     buurt_code = es.Keyword(multi=True)
     geometrie_rd = es.Keyword(index=False, ignore_above=256)
     geometrie_wgs84 = es.Keyword(index=False, ignore_above=256)
-    geometrie = es.GeoShape()
+    geometrie = es.GeoShape(precision='1 meters', distance_error_pct='0.1')
 
     aard_zakelijk_recht = es.Keyword()
     zakelijk_recht_aandeel = es.Keyword()
@@ -197,37 +197,6 @@ def get_date(val):
     return result
 
 
-# For the 'lijst'  view we only need to see the  kadastrale object. Because there can be multiple
-# Eigendommen for one kadastraal_object we keep a counter for kadastrale objecten. In that way
-# we can select the first kadastrale_object by having additional constraint : kadastraal_object_index == 0
-# To create we keep a Counter dictionary for each kadastraal_object.  This does not work correctly if
-# we create the indexes in batches, because then we create a new empty Counter dictionary for each batch,
-# and we will have identical kadastrale objecten in different batches with index 0
-# Therefore we try to keep the counter in a redis service. This will be accessed by all batches.
-# This works if we can connect to the redis server./ Otherwise the normal counter will be use
-kadastraal_object_index = Counter()
-redis_db = None
-use_redis = None
-
-
-def get_kadastraal_object_index(key):
-    global use_redis
-    global redis_db
-    if use_redis is None:
-        redis_db = utils.get_redis()
-        if redis_db is None:
-            use_redis = False
-            log.warning("Redis is not available. Use local check for kadastraal_object_seen")
-        else:
-            use_redis = True
-    if use_redis:
-        result = redis_db.incr(key) - 1  # start with 0
-    else:
-        result = kadastraal_object_index[key]
-        kadastraal_object_index[key] += 1
-    return result
-
-
 def doc_from_eigendom(eigendom: object) -> Eigendom:
     kot = eigendom.kadastraal_object
     # eigendommen = kot.eigendommen.all()
@@ -237,8 +206,6 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
 
     kadastraal_object_id = kot.id
     doc.kadastraal_object_id = kadastraal_object_id
-
-    doc.kadastraal_object_index = get_kadastraal_object_index(kadastraal_object_id)
 
     doc.eigenaar_cat_id = eigendom.eigenaar_categorie_id
     doc.eigenaar_cat = get_omschrijving(brk_models.EigenaarCategorie, eigendom.eigenaar_categorie_id, code_field='id',
@@ -256,9 +223,9 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     doc.kadastrale_gemeentecode = kot.kadastrale_gemeente_id
     doc.sectie = get_omschrijving(brk_models.KadastraleSectie, kot.sectie_id, code_field='id',
                                   omschrijving_field='sectie')
-    doc.perceelnummer = str(kot.perceelnummer)
+    doc.perceelnummer = f'{kot.perceelnummer:05d}'
     doc.indexletter = kot.indexletter
-    doc.indexnummer = str(kot.indexnummer)
+    doc.indexnummer = f'{kot.indexnummer:04d}'
     doc.kadastrale_gemeentenaam = kot.kadastrale_gemeente.naam
     doc.burgerlijke_gemeentenaam = kot.kadastrale_gemeente.gemeente_id
     doc.aanduiding = kot.get_aanduiding_spaties()
@@ -322,13 +289,13 @@ def doc_from_eigendom(eigendom: object) -> Eigendom:
     else:
         doc.ggw_code = ['']
         doc.ggw_naam = ['']
-    wijken = kot.wijken.all()
-    if wijken:
-        doc.wijk_naam = [wijk.naam for wijk in wijken]
-        doc.wijk_code = [wijk.code for wijk in wijken]
+    buurtcombinaties = kot.wijken.all()
+    if buurtcombinaties:
+        doc.buurtcombinatie_naam = [buurtcombinatie.naam for buurtcombinatie in buurtcombinaties]
+        doc.buurtcombinatie_code = [buurtcombinatie.code for buurtcombinatie in buurtcombinaties]
     else:
-        doc.wijk_naam = ['']
-        doc.wijk_code = ['']
+        doc.buurtcombinatie_naam = ['']
+        doc.buurtcombinatie_code = ['']
     buurten = kot.buurten.all()
     if buurten:
         doc.buurt_naam = [buurt.naam for buurt in buurten]

@@ -9,6 +9,8 @@ https://docs.djangoproject.com/en/1.9/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.9/ref/settings/
 """
+import sentry_sdk
+from sentry_sdk.integrations.django import DjangoIntegration
 
 import authorization_levels
 
@@ -87,9 +89,6 @@ ELASTIC_INDICES = {
     'DS_BRK_INDEX': 'ds_brk_index'
 }
 
-REDIS_HOST = get_variable('REDIS_HOST_OVERRIDE', 'redis', 'localhost')
-REDIS_PORT = get_variable('REDIS_PORT_OVERRIDE', '6379')
-
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000
 MIN_HR_NR = 1000
@@ -144,13 +143,14 @@ JWKS_TEST_KEY = """
 # Security
 DATAPUNT_AUTHZ = {
     'JWKS': os.getenv('PUB_JWKS', JWKS_TEST_KEY),
+    'JWKS_URL': os.getenv('KEYCLOAK_JWKS_URL'),
     'MIN_SCOPE': authorization_levels.SCOPE_HR_R,
     'FORCED_ANONYMOUS_ROUTES': (
         '/status/',
         '/dataselectie/bag/',
         '/dataselectie/api-docs'
     ),
-    'ALWAYS_OK': False #LOCAL
+    'ALWAYS_OK': False
 }
 
 
@@ -167,3 +167,10 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 # Setup support for proxy headers
 USE_X_FORWARDED_HOST = True
+
+SENTRY_DSN = os.getenv('SENTRY_DSN')
+if SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration()]
+    )

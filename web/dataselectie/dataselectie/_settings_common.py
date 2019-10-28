@@ -33,6 +33,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_ALLOW_ALL = True
 
 MIDDLEWARE = [
+    'django.middleware.gzip.GZipMiddleware',
     'authorization_django.authorization_middleware',
 ]
 

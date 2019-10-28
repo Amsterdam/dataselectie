@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import authorization_levels
 from django.contrib.gis.db.models import Union, Extent
 from django.contrib.gis.geos import Polygon
@@ -19,20 +17,9 @@ SRID_WSG84 = 4326
 SRID_RD = 28992
 
 
-def rec_defaultdict():
-    """
-    Make a recursive defaultdict. You can do:
-        x = rec_defaultdict()
-        x['a']['b']['c']['d']=1
-        print(x['a']['b']['c']['d'])
-    :return recursice defaultdict:
-    """
-    return defaultdict(rec_defaultdict)
-
-
 def make_gebieden_lookup():
     """
-    Create a dictionary that contains for each combination of gebied_type and value combination sof other gebied types
+    Create a dictionary that contains for each combination of gebied_type and value combination of other gebied types
     and values that are allowed/present in the data.
 
     For example
@@ -41,7 +28,7 @@ def make_gebieden_lookup():
         { "Noord": {
             "stadsdeel_naam":{ "Noord" },
             "ggw_naam": {"Oost", "Dod-Noord", "West"}
-            "wijk_naam": {...},
+            "buurtcombinatie_naam": {...},
             "buurt_naam": {...},
         ...
         },
@@ -50,17 +37,17 @@ def make_gebieden_lookup():
             "stadsdeel_naam": { "Noord"},
             ...
 
-    Thios can be used to filter aggregates with allowed values for request parameters
+    This can be used to filter aggregates with allowed values for request parameters
     :return lookup_default_dict:
     """
-    lookup = rec_defaultdict()
+    lookup = dict()
     sql = '''
-    select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as wijk_naam , b.naam as buurt_naam 
+    select s.naam as stadsdeel_naam, ggw.naam as ggw_naam, bc.naam as buurtcombinatie_naam, b.naam as buurt_naam
 from bag_buurt b
-full outer join bag_gebiedsgerichtwerken ggw on ggw.id = gebiedsgerichtwerken_id
+full outer join bag_gebiedsgerichtwerken ggw on ggw.id = b.gebiedsgerichtwerken_id
 full outer join bag_buurtcombinatie bc on bc.id = b.buurtcombinatie_id
 full join bag_stadsdeel s on s.id = b.stadsdeel_id
-union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt_naam
+union select '' as stadsdeel_naam, '' as ggw_naam, '' as buurtcombinatie_naam, '' as buurt_naam
     '''
     with connection.cursor() as cursor:
         cursor.execute(sql)
@@ -68,17 +55,20 @@ union select '' as stadsdeel_naam, '' as ggw_naam, '' as wijk_naam , '' as buurt
             drow = {
                 'stadsdeel_naam': row[0],
                 'ggw_naam': row[1],
-                'wijk_naam': row[2],
+                'buurtcombinatie_naam': row[2],
                 'buurt_naam': row[3]
             }
             for key1, value1 in drow.items():
                 for key2, value2 in drow.items():
                     if value1 is not None and value2 is not None:
-                        if key1 in lookup and value1 in lookup[key1] and key2 in lookup[key1][value1]:
+                        if key1 not in lookup:
+                            lookup[key1] = dict()
+                        if value1 not in lookup[key1]:
+                            lookup[key1][value1] = dict()
+                        if key2 in lookup[key1][value1]:
                             lookup[key1][value1][key2].add(value2)
                         else:
                             lookup[key1][value1][key2] = {value2}
-
     return lookup
 
 
@@ -93,8 +83,8 @@ class BrkBase(object):
     keywords = [
         'eigenaar_type',
         'eigenaar_categorie_id', 'eigenaar_cat',
-        'buurt_naam', 'buurt_code', 'wijk_code',
-        'wijk_naam', 'ggw_naam', 'ggw_code',
+        'buurt_naam', 'buurt_code', 'buurtcombinatie_naam',
+        'buurtcombinatie_code', 'ggw_naam', 'ggw_code',
         'stadsdeel_naam', 'stadsdeel_code',
         'openbare_ruimte_naam', 'postcode'
     ]
@@ -133,7 +123,7 @@ class BrkAggBase(BrkBase):
         Do custom filtering on aggs. If we have parameters for gebieden
         we filter out aggregate buckets that are not related to the gebieden
         """
-        filter_params = {'stadsdeel_naam', 'ggw_naam', 'wijk_naam', 'buurt_naam'}
+        filter_params = {'stadsdeel_naam', 'ggw_naam', 'buurtcombinatie_naam', 'buurt_naam'}
 
         query_params = request.GET
         query_filter_params = filter_params.intersection(set(query_params))
@@ -153,10 +143,13 @@ class BrkAggBase(BrkBase):
             allowed_key_values = None
             for qfp_key in query_filter_params:
                 qfp_value = query_params[qfp_key]
-                if allowed_key_values is None:
-                    allowed_key_values = lookup[qfp_key][qfp_value][key]
+                if qfp_key in lookup and qfp_value in lookup[qfp_key] and key in lookup[qfp_key][qfp_value]:
+                    if allowed_key_values is None:
+                        allowed_key_values = lookup[qfp_key][qfp_value][key]
+                    else:
+                        allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
                 else:
-                    allowed_key_values = allowed_key_values.intersection(lookup[qfp_key][qfp_value][key])
+                    allowed_key_values = set()
 
             bucketlist = value['buckets']
             newbucket = []
@@ -276,6 +269,21 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
             raise PermissionDenied("scope BRK/RSN required")
         return super().handle_request(request, *args, **kwargs)
 
+    def filter_data(self, elastic_data, request):
+        """
+        Remove duplicate kadastraal_object_id from object_list
+        """
+        new_object_list = []
+        kot_unique = set()
+        for object in elastic_data['object_list']:
+            kadastraal_object_id = object['kadastraal_object_id']
+            if kadastraal_object_id not in kot_unique:
+                new_object_list.append(object)
+                kot_unique.add(kadastraal_object_id)
+
+        elastic_data['object_list'] = new_object_list
+        return elastic_data
+
     def elastic_query(self, query):
         result = meta_q(query)
         result.update({
@@ -286,13 +294,6 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
                     "eerste_adres",
                 ]
             },
-            "query": {
-                "bool": {
-                    "filter": [
-                        {"term": {"kadastraal_object_index": 0}}
-                    ]
-                }
-            }
         })
         return result
 
@@ -311,7 +312,7 @@ class BrkCSV(BrkBase, CSVExportView):
         ('indexnummer', 'Indexnummer'),
         ('adressen', 'Adressen'),
         ('verblijfsobject_id', 'Verblijfsobjectidentificatie'),
-        ('kadastrale_gemeentenaam', 'Kadastrale gemeentenaam'),
+        ('kadastrale_gemeentenaam', 'Kadastrale gemeente'),
         ('burgerlijke_gemeentenaam', 'Gemeente'),
         ('koopsom', 'Koopsom (euro)'),
         ('koopjaar', 'Koopjaar'),
@@ -362,9 +363,18 @@ class BrkCSV(BrkBase, CSVExportView):
         return item
 
     def sanitize_fields(self, item, field_names):
-        item.update(
-            {field_name: stringify_item_value(item.get(field_name, None))
-             for field_name in field_names})
+        updates = {}
+        for field_name in field_names:
+            if field_name == 'zakelijk_recht_aandeel':
+                zakelijk_recht_aandeel = stringify_item_value(item.get(field_name, None))
+                updates[field_name] = '"{}"'.format(zakelijk_recht_aandeel) if zakelijk_recht_aandeel else ''
+            elif field_name == 'sjt_postadres_postbus':
+                value = stringify_item_value(item.get(field_name, None))
+                if value and not value.lower().startswith('postbus'):
+                    updates[field_name] = 'Postbus ' + value
+            else:
+                updates[field_name] = stringify_item_value(item.get(field_name, None))
+        item.update(updates)
 
     def paginate(self, offset, q):
         if 'size' in q:

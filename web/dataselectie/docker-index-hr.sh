@@ -7,7 +7,7 @@ set -x   # print what we are doing.
 
 python manage.py elastic_indices hr --partial=1/3 --build &
 python manage.py elastic_indices hr --partial=2/3 --build &
-python manage.py elastic_indices hr --partial=3/3 --build
+python manage.py elastic_indices hr --partial=3/3 --build &
 
 FAIL=0
 

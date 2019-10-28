@@ -1,5 +1,10 @@
 # Project
 from django.db import connection
+import logging
+
+l = logging.getLogger('django.db.backends')
+l.setLevel(logging.DEBUG)
+l.addHandler(logging.StreamHandler())
 
 create_brk_table = """--
 --
@@ -20,16 +25,22 @@ SET row_security = off;
 
 SET search_path = public, pg_catalog;
 
-DROP TABLE IF EXISTS public.brk_kadastraalobject;
-DROP TABLE IF EXISTS brk_kadastraalobjectverblijfsobjectrelatie;
-DROP TABLE IF EXISTS public.brk_eigendom;
-
-DROP TABLE IF EXISTS public.brk_eigendomwijk;
-DROP TABLE IF EXISTS public.brk_eigendomstadsdeel;
-DROP TABLE IF EXISTS public.brk_eigendomggw;
-DROP TABLE IF EXISTS public.brk_eigendomcategorie;
-DROP TABLE IF EXISTS public.brk_eigendombuurt;
-DROP TABLE IF EXISTS public.brk_eigenaarcategorie;
+DROP TABLE IF EXISTS public.brk_kadastraalobject CASCADE;
+DROP TABLE IF EXISTS brk_kadastraalobjectverblijfsobjectrelatie CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendom CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomwijk CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomstadsdeel CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomggw CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendomcategorie CASCADE;
+DROP TABLE IF EXISTS public.brk_eigendombuurt CASCADE;
+DROP TABLE IF EXISTS public.brk_erfpacht CASCADE;
+DROP TABLE IF EXISTS public.brk_eigenaarcategorie CASCADE;
+DROP TABLE IF EXISTS public.brk_adres CASCADE;
+DROP TABLE IF EXISTS public.brk_eigenaar CASCADE;
+DROP TABLE IF EXISTS public.brk_gemeente CASCADE;
+DROP TABLE IF EXISTS public.brk_kadastralesectie CASCADE;
+DROP TABLE IF EXISTS public.brk_kadastralegemeente CASCADE;
+DROP TABLE IF EXISTS public.brk_zakelijkrecht CASCADE;
 
 SET search_path = public, pg_catalog;
 
@@ -99,18 +110,6 @@ CREATE TABLE public.brk_eigendomggw (
 
 ALTER TABLE public.brk_eigendomggw OWNER TO dataselectie;
 
---
--- Name: brk_eigendomstadsdeel; Type: TABLE; Schema: public; Owner: dataselectie
---
-
-CREATE TABLE public.brk_eigendomstadsdeel (
-    row_number bigint,
-    kadastraal_object_id character varying(60),
-    stadsdeel_id character varying(14)
-);
-
-
-ALTER TABLE public.brk_eigendomstadsdeel OWNER TO dataselectie;
 
 --
 -- Name: brk_eigendomwijk; Type: TABLE; Schema: public; Owner: dataselectie
@@ -137,7 +136,7 @@ ALTER TABLE public.brk_eigenaarcategorie OWNER TO dataselectie;
 --
 
 CREATE TABLE public.brk_kadastraalobject (
-    id character varying(60) NOT NULL,
+    id character varying(60) PRIMARY KEY NOT NULL,
     aanduiding character varying(17) NOT NULL,
     date_modified timestamp with time zone NOT NULL,
     perceelnummer integer NOT NULL,
@@ -174,6 +173,22 @@ CREATE TABLE brk_kadastraalobjectverblijfsobjectrelatie
   kadastraal_object_id VARCHAR(60)              NOT NULL,
   verblijfsobject_id   VARCHAR(14)
 );
+
+
+--
+-- Name: brk_eigendomstadsdeel; Type: TABLE; Schema: public; Owner: dataselectie
+--
+-- We need to add a foreign key for the model if a ManyRelatedManager uses a through model
+
+CREATE TABLE public.brk_eigendomstadsdeel (
+    row_number bigint,
+    kadastraal_object_id character varying(60) references brk_kadastraalobject(id),
+    stadsdeel_id character varying(14) references bag_stadsdeel(id)
+);
+
+
+ALTER TABLE public.brk_eigendomstadsdeel OWNER TO dataselectie;
+
 
 --
 -- Name: brk_eigenaar; Type: TABLE; Schema: public; Owner: -
@@ -223,6 +238,15 @@ CREATE TABLE public.brk_eigendom (
     grondeigenaar boolean,
     aanschrijfbaar boolean,
     appartementeigenaar boolean
+);
+
+--
+-- Name: brk_erfpacht; Type: TABLE; Schema: public; Owner: postgres
+--
+CREATE TABLE public.brk_erfpacht
+(
+    kadastraal_object_id character varying(60),
+    uitgegeven_door character varying(24)
 );
 
 --
@@ -290,6 +314,10 @@ ALTER TABLE public.brk_kadastraalobject OWNER TO dataselectie;
 ALTER TABLE public.brk_kadastraalobjectverblijfsobjectrelatie OWNER TO dataselectie;
 ALTER TABLE public.brk_kadastralegemeente OWNER TO dataselectie;
 ALTER TABLE public.brk_zakelijkrecht OWNER TO dataselectie;
+
+ALTER TABLE public.brk_eigendomstadsdeel 
+ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
+ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id);
 
 --
 -- PostgreSQL database dump complete

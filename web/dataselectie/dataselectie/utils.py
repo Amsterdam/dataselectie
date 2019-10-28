@@ -2,7 +2,6 @@
 import re
 
 import os
-import redis
 from typing import Dict
 
 from django.test.runner import DiscoverRunner
@@ -139,12 +138,3 @@ def get_db_settings(
         'db': get_db_variable(
             db=db, varname='database', docker_default=db)
     }
-
-
-def get_redis():
-    try:
-        redis_db = redis.StrictRedis(settings.REDIS_HOST, settings.REDIS_PORT)
-        redis_time = redis_db.time()
-    except redis.exceptions.ConnectionError:
-        redis_db = None
-    return redis_db

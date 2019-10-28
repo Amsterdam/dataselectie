@@ -142,7 +142,7 @@ class HrCSV(HrBase, CSVExportView):
 
     fields_and_headers = (
         ('kvk_nummer', 'KvK-nummer'),
-        ('vestiging_id', 'Vestigings Nummer'),
+        ('vestiging_id', 'Vestigingsnummer'),
         ('handelsnaam', 'Eerste handelsnaam'),
         ('non_mailing', 'Indicatie non-mailing'),
         ('bezoekadres_volledig_adres', 'Bezoekadres (KvK HR)'),
@@ -173,6 +173,10 @@ class HrCSV(HrBase, CSVExportView):
         ('eigenaar_naam', 'Naam eigenaar(en)'),
         ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
+        ('adresseerbaar_object_id', 'Adresseerbaar object ID'),
+        # ('centroid', 'lon/lat locatie'),
+        ('lon', 'longitude'),
+        ('lat', 'latitude'),
     )
 
     field_names = [h[0] for h in fields_and_headers]
@@ -188,8 +192,15 @@ class HrCSV(HrBase, CSVExportView):
 
     def item_data_update(self, item, request):
         # strip time from date.
-        date = parse(item.get('datum_aanvang'))
-        item['datum_aanvang'] = date.strftime('%Y-%m-%d')
+        datum_aanvang = item.get('datum_aanvang')
+        if datum_aanvang is not None:
+            date = parse(datum_aanvang)
+            item['datum_aanvang'] = date.strftime('%Y-%m-%d')
+
+        if item.get('centroid'):
+            lon, lat = item['centroid']
+            item['lon'] = float(lon)
+            item['lat'] = float(lat)
 
         return item
 

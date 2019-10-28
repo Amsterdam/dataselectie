@@ -1,10 +1,5 @@
 version: '3.0'
 services:
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-
   elasticsearch:
     image: amsterdam/elasticsearch6
     user: root
@@ -13,7 +8,7 @@ services:
     command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
 
   database:
-    image: amsterdam/postgres
+    image: amsterdam/postgres11
     environment:
       POSTGRES_USER: dataselectie
       POSTGRES_DB: dataselectie
@@ -22,13 +17,13 @@ services:
       - ./backups/database:/tmp/backups
     extra_hosts:
       admin.datapunt.amsterdam.nl: 10.99.157.24
+    shm_size: '8gb'
 
   importer:
-    image: build.datapunt.amsterdam.nl:5000/datapunt/dataselectie:${ENVIRONMENT}
+    image: repo.data.amsterdam.nl/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
       - database:database
-      - redis:redis
     environment:
       DJANGO_SETTINGS_MODULE: dataselectie.settings
       DATAPUNT_API_URL:

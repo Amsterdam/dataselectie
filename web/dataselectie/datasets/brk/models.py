@@ -572,7 +572,7 @@ class EigendomGGW(models.Model):
 
 
 class EigendomStadsdeel(models.Model):
-    id = models.IntegerField(primary_key=True)
+    row_number = models.BigIntegerField(primary_key=True)
 
     kadastraal_object = models.ForeignKey(
         KadastraalObject,

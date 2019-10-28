@@ -172,21 +172,28 @@ class Buurt(mixins.GeldigheidMixin, Hoofdklasse):
     ingang_cyclus = models.DateField(null=True)
     brondocument_naam = models.CharField(max_length=100, null=True)
     brondocument_datum = models.DateField(null=True)
-    stadsdeel = models.ForeignKey(Stadsdeel, related_name='buurten', on_delete=models.CASCADE)
-    buurtcombinatie = models.ForeignKey(
-        'Buurtcombinatie', related_name='buurten', null=True, on_delete=models.CASCADE)
+    stadsdeel = models.ForeignKey(
+        Stadsdeel, related_name='buurten', on_delete=models.CASCADE)
 
-    class Meta(object):
+    buurtcombinatie = models.ForeignKey(
+        'Buurtcombinatie', related_name='buurten',
+        null=True, on_delete=models.CASCADE)
+
+    gebiedsgerichtwerken = models.ForeignKey(
+        'Gebiedsgerichtwerken', related_name='buurten',
+        null=True, on_delete=models.CASCADE)
+
+    class Meta:
         managed = False
         verbose_name = "Buurt"
         verbose_name_plural = "Buurten"
         ordering = ('vollcode',)
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "{} ({})".format(self.naam, self.vollcode)
 
     @property
-    def _gemeente(self) -> models.Model:
+    def _gemeente(self):
         return self.stadsdeel.gemeente
 
 

@@ -42,8 +42,17 @@ class BrkGeoFilter(GeoFilterSet):
 
     def filter_shape(self, queryset, name, value):
         if value:
-            return queryset.filter(geometrie__intersects=value)
+            polygon = self._get_shape(value)
+            return queryset.filter(geometrie__intersects=polygon)
         return queryset
+
+    def _get_shape(self, value):
+        points = json.loads(value)
+        # close ring and create Polygon
+        polygon = Polygon(points+[points[0]])
+        polygon.srid = SRID_WSG84
+        polygon.transform(SRID_RD)
+        return polygon
 
     def filter_categorie(self, queryset, name, value):
         if value is not None:
@@ -81,7 +90,8 @@ class AppartementenFilter(BrkGeoFilter):
 
     def filter_shape(self, queryset, name, value):
         if value:
-            return queryset.filter(plot__intersects=value)
+            polygon = self._get_shape(value)
+            return queryset.filter(plot__intersects=polygon)
         return queryset
 
     def filter_bbox(self, queryset, name, value):
@@ -144,9 +154,8 @@ filter_class = {
 
 
 def _prepare_queryparams_for_categorie(query_params):
-    """Adds catch-all category if queryparam `category` is missing
-        unless we only see 'appartementsrechten' """
-    if 'categorie' not in query_params and query_params['eigenaar'] is not 3:
+    """Adds catch-all category if queryparam `category` is missing """
+    if 'categorie' not in query_params:
         query_params['categorie'] = 99
 
 
@@ -164,7 +173,6 @@ def _lookup_ids_queryparams(query_params):
     if 'eigenaar_type' in query_params:
         eigenaar = {'Grondeigenaar': 1, 'Pandeigenaar': 2, 'Appartementseigenaar': 3}[query_params['eigenaar_type']]
         query_params['eigenaar'] = eigenaar
-
     if 'stadsdeel_naam' in query_params:
         stadsdeel = bag_models.Stadsdeel.objects.filter(naam=query_params['stadsdeel_naam'])[0]
         query_params['stadsdeel'] = stadsdeel.id
@@ -173,6 +181,9 @@ def _lookup_ids_queryparams(query_params):
         query_params['ggw'] = ggw.id
     if 'buurtcombinatie_naam' in query_params:
         wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['buurtcombinatie_naam'])[0]
+        query_params['wijk'] = wijk.id
+    if 'wijk_naam' in query_params:
+        wijk = bag_models.Buurtcombinatie.objects.filter(naam=query_params['wijk_naam'])[0]
         query_params['wijk'] = wijk.id
     if 'buurt_naam' in query_params:
         buurt = bag_models.Buurt.objects.filter(naam=query_params['buurt_naam'])[0]
@@ -207,15 +218,10 @@ def _prepare_queryparams_for_group_filter(query_params):
 
 
 def modify_queryparams_for_shape(query_params):
-    """Translates queryaram `shape` to Polygon, or removes it. Also `zoom` param is modified """
+    """Modify `zoom` param if shape is valid. Return True if shape is valid and zoom < 13"""
     if 'shape' in query_params:
         points = json.loads(query_params['shape'])
         if len(points) > 2:
-            # close ring and create Polygon
-            polygon = Polygon(points+[points[0]])
-            polygon.srid = SRID_WSG84
-            query_params['shape'] = polygon
-
             zoom = int(query_params['zoom']) if 'zoom' in query_params else 0
             query_params['zoom'] = max(zoom, 12)
             if zoom < 13:

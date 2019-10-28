@@ -747,6 +747,8 @@ ALTER TABLE ONLY bag_woonplaats
 
 -- Completed on 2017-10-09 16:42:44 CEST
 
+ALTER TABLE  ONLY brk_kadastraalobject
+    ADD CONSTRAINT brk_kadastraalobject_pkey PRIMARY KEY (id);
 --
 -- PostgreSQL database dump complete
 --

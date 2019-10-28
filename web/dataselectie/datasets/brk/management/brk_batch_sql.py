@@ -32,12 +32,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendombuurt AS (
             SELECT row_number() over (), kadastraal_object_id, buurt_id FROM (
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-                FROM brk_kadastraalobject kot, bag_buurt buurt
+                FROM brk_kadastraalobject kot, bag_buurt buurt, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, buurt.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
-                FROM brk_kadastraalobject kot, bag_buurt buurt
+                FROM brk_kadastraalobject kot, bag_buurt buurt, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, buurt.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendombuurt (kadastraal_object_id, buurt_id)",
@@ -47,12 +51,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomwijk AS (
             SELECT row_number() over (), kadastraal_object_id, buurt_combi_id FROM (
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, wijk.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, wijk.id as buurt_combi_id
-                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk
+                FROM brk_kadastraalobject kot, bag_buurtcombinatie wijk, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, wijk.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomwijk (kadastraal_object_id, buurt_combi_id)",
@@ -62,12 +70,16 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomggw AS (
             SELECT row_number() over (), kadastraal_object_id, ggw_id FROM (
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, ggw.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, ggw.id as ggw_id
-                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw
+                FROM brk_kadastraalobject kot, bag_gebiedsgerichtwerken ggw, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, ggw.geometrie)
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
     "CREATE INDEX ON brk_eigendomggw (kadastraal_object_id, ggw_id)",
@@ -77,24 +89,36 @@ dataselection_sql_commands = [
     """CREATE TABLE brk_eigendomstadsdeel AS (
             SELECT row_number() over (), kadastraal_object_id, stadsdeel_id FROM (
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd, brk_kadastralegemeente gem
                 WHERE kot.poly_geom is not null AND ST_INTERSECTS(kot.poly_geom, sd.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
                 UNION
                 SELECT kot.id as kadastraal_object_id, sd.id as stadsdeel_id
-                FROM brk_kadastraalobject kot, bag_stadsdeel sd
+                FROM brk_kadastraalobject kot, bag_stadsdeel sd, brk_kadastralegemeente gem
                 WHERE kot.point_geom is not null AND ST_Within(kot.point_geom, sd.geometrie) 
+				   AND kot.kadastrale_gemeente_id = gem.id
+				   AND gem.gemeente_id = 'Amsterdam'
             ) subquery
         )""",
+    # Add foreign keys because they are for 'through' ManyMany relation in models
+    """ALTER TABLE public.brk_eigendomstadsdeel 
+          ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
+          ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id)
+    """,
     "CREATE INDEX ON brk_eigendomstadsdeel (kadastraal_object_id, stadsdeel_id)",
 
     #   Normalisation-table:
     #       all combinations of eigendom and eigendomcategorie
     """CREATE TABLE brk_eigendomcategorie AS (
-        SELECT id AS eigendom_id, 1::INTEGER  as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = true::boolean
+        SELECT id AS eigendom_id, 0::INTEGER as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = false::boolean
+            AND aanschrijfbaar = false::boolean AND appartementeigenaar = false::boolean
         UNION
-        SELECT id AS eigendom_id, 2::INTEGER  as eigendom_cat FROM brk_eigendom WHERE aanschrijfbaar = true::boolean
+        SELECT id AS eigendom_id, 1::INTEGER as eigendom_cat FROM brk_eigendom WHERE grondeigenaar = true::boolean
         UNION
-        SELECT id AS eigendom_id, 3::INTEGER  as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
+        SELECT id AS eigendom_id, 2::INTEGER as eigendom_cat FROM brk_eigendom WHERE aanschrijfbaar = true::boolean
+        UNION
+        SELECT id AS eigendom_id, 3::INTEGER as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
     "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
     "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
@@ -145,6 +169,7 @@ mapselection_sql_commands = [
     "SELECT UpdateGeometrySRID('geo_brk_kot_point_in_poly','poly_geom',4326)",
     "CREATE INDEX ON geo_brk_kot_point_in_poly USING GIST (poly_geom)",
     "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
+    "CREATE INDEX ON geo_brk_kot_point_in_poly (point_kot_id)",
 
     #   Base table for cartographic layers,
     #       categorized registry-objects - only outright ownership
@@ -286,24 +311,36 @@ mapselection_sql_commands = [
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (geometrie)",
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (plot)",
     "CREATE INDEX ON geo_brk_detail_eigendom_point_index (kadastraal_object_id)",
-    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, eigendom_cat, plot, cat_id, geometrie, aantal) Select
-        kadastraal_object_id,
-        eigendom_cat,
-        st_multi(st_union(plot)) as plot,
-        99::INTEGER as cat_id,
-        st_centroid(st_union(geometrie)) as geometrie,
-        sum(aantal) as aantal
-        from geo_brk_detail_eigendom_point_index
-        group by 1, 2""",
     """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
-        kadastraal_object_id,
-        cat_id,
+        kpp.poly_kot_id as kadastraal_object_id,
+        99::INTEGER as cat_id,
+        eigendom.eigendom_cat,
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
+    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
+        kpp.poly_kot_id as kadastraal_object_id,
+        eigendom.cat_id,
         9::INTEGER as eigendom_cat,
-        st_multi(st_union(plot)) as plot,
-        st_centroid(st_union(geometrie)) as geometrie,
-        sum(aantal) as aantal
-        from geo_brk_detail_eigendom_point_index
-        group by 1, 2""",
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
+    """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
+        kpp.poly_kot_id as kadastraal_object_id,
+        99::INTEGER as cat_id,
+        9::INTEGER as eigendom_cat,
+        st_multi(st_union(kpp.poly_geom)) as plot,
+        st_centroid(st_union(eigendom.point_geom)) as geometrie,
+        count(distinct kpp.point_kot_id) as aantal
+        from geo_brk_kot_point_in_poly kpp, geo_brk_eigendomselectie eigendom, brk_kadastraalobject kot 
+        where kpp.poly_kot_id = kot.id and kpp.point_kot_id = eigendom.kadastraal_object_id
+        group by 1, 2, 3""",
 
 
     #   Aggregated table for geoselection api
@@ -334,6 +371,13 @@ mapselection_sql_commands = [
         kadastraal_object_id,
         cat_id,
         9::INTEGER as eigendom_cat,
+        st_multi(st_union(geometrie)) as geometrie
+        from geo_brk_detail_niet_eigendom_poly_index
+        group by 1, 2""",
+    """INSERT INTO geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id, eigendom_cat, cat_id, geometrie) Select
+        kadastraal_object_id,
+        eigendom_cat,
+        99::INTEGER as cat_id,
         st_multi(st_union(geometrie)) as geometrie
         from geo_brk_detail_niet_eigendom_poly_index
         group by 1, 2""",
@@ -508,4 +552,101 @@ mapselection_sql_commands = [
     "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_ForcePolygonCCW(geometrie)",
     "UPDATE geo_brk_niet_eigendom_poly_index SET geometrie = ST_ForcePolygonCCW(geometrie)",
 
+    # Cartographic table for erfpacht
+    # Select G-percelen that contain objects with erfpacht, but which themselves are
+    # not in erfpacht. The G-percelen in erfpacht are in the next query.
+    # Also add category (1 Amsterdam, 2 Overig)
+    "DROP TABLE IF EXISTS geo_brk_rond_erfpacht_poly",
+    """
+CREATE TABLE geo_brk_rond_erfpacht_poly AS
+    SELECT ROW_NUMBER() OVER () AS id
+        , kadastraal_object_id
+        , cat_id
+        , geometrie
+        FROM (SELECT distinct on(kpp.poly_kot_id, ep.uitgegeven_door) kpp.poly_kot_id as kadastraal_object_id
+            , CASE WHEN ep.uitgegeven_door = 'Amsterdam' THEN 1 ELSE 2 END AS cat_id
+            , ST_ForcePolygonCCW(ST_Transform(kot.poly_geom, 4326)) as geometrie
+            FROM geo_brk_kot_point_in_poly kpp
+            JOIN brk_kadastraalobject kot on kpp.poly_kot_id = kot.id
+            JOIN brk_erfpacht ep on kpp.point_kot_id = ep.kadastraal_object_id
+            LEFT JOIN brk_erfpacht ep2 on kpp.poly_kot_id = ep2.kadastraal_object_id
+            WHERE ep2.kadastraal_object_id IS NULL
+            ) subquery
+    """,
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly (kadastraal_object_id)",
+    "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly','geometrie',4326)",
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly USING GIST (geometrie)",
+
+    # Cartographic table for erfpacht
+    # Select G-percelen in erfpacht with category (1 Amsterdam, 2 Overig)
+    "DROP TABLE IF EXISTS geo_brk_erfpacht_poly",
+    """
+CREATE TABLE geo_brk_erfpacht_poly AS
+    SELECT row_number() over () AS id
+        , ep.kadastraal_object_id
+        , CASE WHEN ep.uitgegeven_door = 'Amsterdam' THEN 1 ELSE 2 END AS cat_id
+        , ST_ForcePolygonCCW(ST_Transform(kot.poly_geom, 4326)) as geometrie
+    FROM brk_erfpacht ep
+    JOIN brk_kadastraalobject kot on ep.kadastraal_object_id = kot.id
+    WHERE kot.poly_geom is not null
+    """,
+    "SELECT UpdateGeometrySRID('geo_brk_erfpacht_poly','geometrie',4326)",
+    "CREATE INDEX erfpacht_poly ON geo_brk_erfpacht_poly USING GIST (geometrie)",
+
+    # Cartographic table for erfpacht
+    # Select G-percelen that contain A-percelen that have erfpacht.
+    # Return the plot, the centroid and count for A-percelen
+    "DROP TABLE IF EXISTS geo_brk_erfpacht_point",
+    """
+CREATE TABLE geo_brk_erfpacht_point AS
+    SELECT kpp.poly_kot_id AS kadastraal_object_id
+         , CASE WHEN ep.uitgegeven_door = 'Amsterdam' THEN 1 ELSE 2 END AS cat_id
+         , st_union(kpp.poly_geom) AS plot
+         , st_centroid(st_union(ST_Transform(kot.point_geom, 4326))) as geometrie
+         , COUNT(kot.point_geom) AS aantal
+         , ROW_NUMBER() OVER () AS id
+    FROM geo_brk_kot_point_in_poly kpp
+    JOIN brk_erfpacht ep ON kpp.point_kot_id = ep.kadastraal_object_id
+    JOIN brk_kadastraalobject kot ON ep.kadastraal_object_id = kot.id
+    GROUP BY 1,2
+    """,
+    "SELECT UpdateGeometrySRID('geo_brk_erfpacht_point','plot',4326)",
+    "SELECT UpdateGeometrySRID('geo_brk_erfpacht_point','geometrie',4326)",
+    "CREATE INDEX erfpacht_point ON geo_brk_erfpacht_point USING GIST (geometrie)",
+    "CREATE INDEX erfpacht_plot ON geo_brk_erfpacht_point USING GIST (plot)",
+    "CREATE INDEX ON geo_brk_erfpacht_point (kadastraal_object_id)",
+
+    # Aggregated cartographic table for erfpacht
+    # Erfpacht land-plots, aggregated as unnested multi-polygons
+    "DROP TABLE IF EXISTS geo_brk_erfpacht_poly_all",
+    """
+CREATE TABLE geo_brk_erfpacht_poly_all AS
+    SELECT row_number() over () AS id
+         , cat_id
+         , ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+    FROM ( SELECT st_union(geometrie) geom
+                , erfpacht.cat_id
+           FROM geo_brk_erfpacht_poly erfpacht
+           GROUP BY erfpacht.cat_id
+         ) inner_query
+    """,
+    "SELECT UpdateGeometrySRID('geo_brk_erfpacht_poly_all','geometrie',4326)",
+    "CREATE INDEX ON geo_brk_erfpacht_poly_all USING GIST (geometrie)",
+
+    # Aggregated cartographic table for erfpacht
+    # Land-plots not in erfpacht, byt that contain erfpacht object, aggregated as unnested multi-polygons
+    "DROP TABLE IF EXISTS geo_brk_rond_erfpacht_poly_all",
+    """
+CREATE TABLE geo_brk_rond_erfpacht_poly_all AS
+    SELECT row_number() over () AS id
+         , cat_id
+         , ST_GeometryN(geom, generate_series(1, ST_NumGeometries(geom))) as geometrie
+    FROM (SELECT st_union(geometrie) geom
+               , erfpacht.cat_id
+          FROM geo_brk_rond_erfpacht_poly erfpacht
+          GROUP BY erfpacht.cat_id
+          ) inner_query
+    """,
+    "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly_all','geometrie',4326)",
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly_all USING GIST (geometrie)",
 ]
