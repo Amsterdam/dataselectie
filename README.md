@@ -2,7 +2,7 @@
 De dataselectie service maak het mogelijk om collecties te selecteren uit de datapunt data.
 
 ## Gebruik doelen
-Via [City Data](http://data.amsterdam.nl) is het mogelijk om met enkel object te werken. Echter is er binnen gemeente Amsterdam
+Via [Data en Informatie](http://data.amsterdam.nl) is het mogelijk om met enkel object te werken. Echter is er binnen gemeente Amsterdam
 ook een behoefte om een collectie te kunnen selecteren (b.v. een alles nummeraanduidingen binnen een buurtcombinatie) om
 mee te werken. De dataselectie is de interface voor dat behoefte. Het is ook een andere manier om de data die via Atlas beschikbaar
 is te vertonen in een tabel format i.p.v op een kaart.
