@@ -23,7 +23,7 @@ source ${DIR}/collect-tables.sh
 
 for tablename in "${bag_tables[@]}"
 do
-dc exec -T database update-table.sh bag $tablename public dataselectie
+dc exec -T database update-table.sh bag_v11 $tablename public dataselectie
 done
 
 dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
