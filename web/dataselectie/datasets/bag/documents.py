@@ -144,14 +144,20 @@ def add_verblijfsobject_data(doc, vbo):
         ('verblijfsobject', 'landelijk_id'),
         ('oppervlakte', 'oppervlakte'),
         ('bouwblok', 'bouwblok.code'),
-        ('gebruik', 'gebruik.omschrijving')
+        ('gebruik', 'gebruik')
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
 
-    doc.gebruiksdoelen = vbo.gebruiksdoel
+    gebruiksdoelen = vbo.gebruiksdoel
+    if vbo.gebruiksdoel_woonfunctie:
+        gebruiksdoelen.append(vbo.gebruiksdoel_woonfunctie)
+    if vbo.gebruiksdoel_gezondheidszorgfunctie:
+        gebruiksdoelen.append(vbo.gebruiksdoel_gezondheidszorgfunctie)
+
+    doc.gebruiksdoelen = " | ".join(gebruiksdoelen)
 
 
 def  doc_from_nummeraanduiding(
@@ -178,7 +184,7 @@ def  doc_from_nummeraanduiding(
         ('buurt_naam', 'adresseerbaar_object.buurt.naam'),
         ('buurtcombinatie_naam',
          'adresseerbaar_object.buurt.buurtcombinatie.naam'),
-        ('status', 'adresseerbaar_object.status.omschrijving'),
+        ('status', 'adresseerbaar_object.status'),
         ('stadsdeel_code', 'stadsdeel.code'),
         ('stadsdeel_naam', 'stadsdeel.naam'),
 
