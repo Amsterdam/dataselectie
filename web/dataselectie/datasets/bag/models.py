@@ -283,7 +283,7 @@ class Grootstedelijkgebied(mixins.ImportStatusMixin, models.Model):
         return "{}".format(self.naam)
 
 
-class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
+class Nummeraanduiding(mixins.GeldigheidMixin,
                        mixins.ImportStatusMixin, mixins.DocumentStatusMixin,
                        models.Model):
     """
