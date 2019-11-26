@@ -1,82 +1,8 @@
 from django.contrib.gis.db import models as geo
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from datasets.generic import model_mixins as mixins
-
-
-class Status(mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-             models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Status"
-        verbose_name_plural = "Status"
-
-
-class RedenAfvoer(mixins.ImportStatusMixin,
-                  mixins.CodeOmschrijvingMixin, models.Model):
-
-    class Meta:
-        managed = False
-        verbose_name = "Reden Afvoer"
-        verbose_name_plural = "Reden Afvoer"
-
-
-class RedenOpvoer(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Reden Opvoer"
-        verbose_name_plural = "Reden Opvoer"
-
-
-class Eigendomsverhouding(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Eigendomsverhouding"
-        verbose_name_plural = "Eigendomsverhoudingen"
-
-
-class Financieringswijze(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Financieringswijze"
-        verbose_name_plural = "Financieringswijzes"
-
-
-class Ligging(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Ligging"
-        verbose_name_plural = "Ligging"
-
-
-class Gebruik(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Gebruik"
-        verbose_name_plural = "Gebruik"
-
-
-class LocatieIngang(
-        mixins.ImportStatusMixin,
-        mixins.CodeOmschrijvingMixin, models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Locatie Ingang"
-        verbose_name_plural = "Locaties Ingang"
-
-
-class Toegang(
-        mixins.ImportStatusMixin, mixins.CodeOmschrijvingMixin,
-        models.Model):
-    class Meta:
-        managed = False
-        verbose_name = "Toegang"
-        verbose_name_plural = "Toegang"
 
 
 class Gemeente(mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
@@ -96,14 +22,13 @@ class Gemeente(mixins.GeldigheidMixin, mixins.ImportStatusMixin, models.Model):
 
 
 class Woonplaats(
-        mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
+        mixins.GeldigheidMixin,
         mixins.ImportStatusMixin,
         mixins.DocumentStatusMixin, models.Model):
 
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=4, unique=True)
     naam = models.CharField(max_length=80)
-    naam_ptt = models.CharField(max_length=18, null=True)
     vervallen = models.NullBooleanField(default=None)
     gemeente = models.ForeignKey(Gemeente, related_name='woonplaatsen', on_delete=models.CASCADE)
 
@@ -235,7 +160,6 @@ class Bouwblok(mixins.GeldigheidMixin, Hoofdklasse):
 
 
 class OpenbareRuimte(mixins.GeldigheidMixin,
-                     mixins.MutatieGebruikerMixin,
                      mixins.ImportStatusMixin,
                      mixins.DocumentStatusMixin,
                      models.Model):
@@ -271,15 +195,13 @@ class OpenbareRuimte(mixins.GeldigheidMixin,
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     type = models.CharField(max_length=2, null=True, choices=TYPE_CHOICES)
     naam = models.CharField(max_length=150)
-    code = models.CharField(max_length=5, unique=True)
-    straat_nummer = models.CharField(max_length=10, null=True)
     naam_nen = models.CharField(max_length=24)
-    naam_ptt = models.CharField(max_length=17)
     vervallen = models.NullBooleanField(default=None)
     # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    status = models.CharField(max_length=150)
     woonplaats = models.ForeignKey(Woonplaats, related_name="openbare_ruimtes", on_delete=models.CASCADE)
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
+    omschrijving = models.TextField(null=True)
 
     class Meta(object):
         managed = False
@@ -387,20 +309,17 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
         (OBJECT_TYPE_OVERIG_TERREIN, 'Overig terrein'),
     )
 
-    id = models.CharField(max_length=14, primary_key=True)
+    id = models.CharField(max_length=16, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
-    huisnummer = models.IntegerField()
+    huisnummer = models.IntegerField(db_index=True)
     huisletter = models.CharField(max_length=1, null=True)
-    huisnummer_toevoeging = models.CharField(max_length=4, null=True)
-    postcode = models.CharField(max_length=6, null=True)
-    type = models.CharField(
-        max_length=2, null=True, choices=OBJECT_TYPE_CHOICES)
-    adres_nummer = models.CharField(max_length=10, null=True)
+    huisnummer_toevoeging = models.CharField(max_length=4, null=True, db_index=True)
+    postcode = models.CharField(max_length=6, null=True, db_index=True)
+    type = models.CharField(max_length=2, null=True, choices=OBJECT_TYPE_CHOICES)
     vervallen = models.NullBooleanField(default=None)
     # bron = models.ForeignKey(Bron, null=True)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
-    openbare_ruimte = models.ForeignKey(
-        OpenbareRuimte, related_name='adressen', on_delete=models.CASCADE)
+    status = models.CharField(max_length=150, null=True)
+    openbare_ruimte = models.ForeignKey(OpenbareRuimte, related_name='adressen', on_delete=models.CASCADE)
 
     ligplaats = models.ForeignKey(
         'Ligplaats', null=True, related_name='adressen', on_delete=models.CASCADE)
@@ -410,7 +329,7 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
     verblijfsobject = models.ForeignKey(
         'Verblijfsobject', null=True, related_name='adressen', on_delete=models.CASCADE)
 
-    hoofdadres = models.NullBooleanField(default=None)
+    type_adres = models.TextField(null=True)
 
     # gedenormaliseerde velden
     _openbare_ruimte_naam = models.CharField(max_length=150, null=True)
@@ -452,7 +371,6 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
             dct.update({
                 'straatnaam': self.openbare_ruimte.naam,
                 'straatnaam_nen': self.openbare_ruimte.naam_nen,
-                'straatnaam_ptt': self.openbare_ruimte.naam_ptt
             })
         else:
             dct.update({
@@ -478,6 +396,11 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
 
     @property
     def toevoeging(self):
+        """Toevoeging samen voeging.
+
+        Toevoeing represents the total added string to
+        a street/openbareruimte name.
+        """
 
         toevoegingen = []
 
@@ -489,10 +412,31 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
         if self.huisletter:
             toevoegingen.append(str(self.huisletter))
 
+        def addnumber(lastdigits, split_tv):
+            digits = "".join(lastdigits)
+            if digits:
+                split_tv.append(digits)
+
         if toevoeging:
             tv = str(toevoeging)
-            split_tv = " ".join([c for c in tv])
-            toevoegingen.append(split_tv)
+            split_tv = []
+            lastdigits = []
+            prev = ""
+
+            for c in tv:
+                if c.isdigit():
+                    lastdigits.append(c)
+                    continue
+                else:
+                    addnumber(lastdigits, split_tv)
+                    lastdigits = []
+                    split_tv.append(c)
+
+            # add left-over digits if any.
+            addnumber(lastdigits, split_tv)
+
+            # create the toevoeging
+            toevoegingen.extend(split_tv)
 
         return ' '.join(toevoegingen)
 
@@ -503,7 +447,7 @@ class Nummeraanduiding(mixins.GeldigheidMixin, mixins.MutatieGebruikerMixin,
     @property
     def vbo_status(self):
         a = self.adresseerbaar_object
-        return a.status
+        return a.status if a else None
 
     @property
     def buurt(self):
@@ -554,13 +498,13 @@ class AdresseerbaarObjectMixin(object):
     @property
     def hoofdadres(self):
         # noinspection PyUnresolvedReferences
-        candidates = [a for a in self.adressen.all() if a.hoofdadres]
+        candidates = [a for a in self.adressen.all() if a.type_adres == 'Hoofdadres']
         return candidates[0] if candidates else None
 
     @property
     def nevenadressen(self):
         # noinspection PyUnresolvedReferences
-        return [a for a in self.adressen.all() if not a.hoofdadres]
+        return [a for a in self.adressen.all() if not a.type_adres == 'Hoofdadres']
 
     def __str__(self):
         if self.hoofdadres:
@@ -569,7 +513,6 @@ class AdresseerbaarObjectMixin(object):
 
 
 class Ligplaats(mixins.GeldigheidMixin,
-                mixins.MutatieGebruikerMixin,
                 mixins.ImportStatusMixin,
                 mixins.DocumentStatusMixin,
                 AdresseerbaarObjectMixin,
@@ -587,14 +530,21 @@ class Ligplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
-    buurt = models.ForeignKey(Buurt, null=True, related_name='ligplaatsen', on_delete=models.CASCADE)
+    status = models.CharField(max_length=150)
+    buurt = models.ForeignKey(
+        Buurt, null=True, related_name='ligplaatsen',
+        on_delete=models.CASCADE
+    )
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='ligplaatsen', null=True, on_delete=models.CASCADE)
+        Gebiedsgerichtwerken, related_name='ligplaatsen', null=True,
+        on_delete=models.CASCADE
+    )
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='ligplaatsen', null=True, on_delete=models.CASCADE)
+        Grootstedelijkgebied, related_name='ligplaatsen', null=True,
+        on_delete=models.CASCADE
+    )
 
     geometrie = geo.PolygonField(null=True, srid=28992)
 
@@ -644,7 +594,6 @@ class Ligplaats(mixins.GeldigheidMixin,
 
 
 class Standplaats(mixins.GeldigheidMixin,
-                  mixins.MutatieGebruikerMixin,
                   mixins.ImportStatusMixin,
                   mixins.DocumentStatusMixin,
                   AdresseerbaarObjectMixin,
@@ -661,14 +610,21 @@ class Standplaats(mixins.GeldigheidMixin,
     id = models.CharField(max_length=14, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True, null=True)
     vervallen = models.NullBooleanField(default=None)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
-    buurt = models.ForeignKey(Buurt, null=True, related_name='standplaatsen', on_delete=models.CASCADE)
+    status = models.CharField(max_length=150)
+    buurt = models.ForeignKey(
+        Buurt, null=True, related_name='standplaatsen',
+        on_delete=models.CASCADE
+    )
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='standplaatsen', null=True, on_delete=models.CASCADE)
+        Gebiedsgerichtwerken, related_name='standplaatsen', null=True,
+        on_delete=models.CASCADE
+    )
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='standplaatsen', null=True, on_delete=models.CASCADE)
+        Grootstedelijkgebied, related_name='standplaatsen', null=True,
+        on_delete=models.CASCADE
+    )
 
     geometrie = geo.PolygonField(null=True, srid=28992)
 
@@ -716,7 +672,6 @@ class Standplaats(mixins.GeldigheidMixin,
 
 
 class Verblijfsobject(mixins.GeldigheidMixin,
-                      mixins.MutatieGebruikerMixin,
                       mixins.ImportStatusMixin,
                       mixins.DocumentStatusMixin,
                       AdresseerbaarObjectMixin,
@@ -732,48 +687,49 @@ class Verblijfsobject(mixins.GeldigheidMixin,
     http://www.amsterdam.nl/stelselpedia/bag-index/catalogus-bag/objectklasse-0/
     """
 
-    id = models.CharField(max_length=14, primary_key=True)
+    id = models.CharField(max_length=16, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
     oppervlakte = models.PositiveIntegerField(null=True)
-    bouwlaag_toegang = models.IntegerField(null=True)
-    status_coordinaat_code = models.CharField(max_length=3, null=True)
-    status_coordinaat_omschrijving = models.CharField(
-        max_length=150, null=True)
-    verhuurbare_eenheden = models.PositiveIntegerField(null=True)
+    verdieping_toegang = models.IntegerField(null=True)
+    aantal_eenheden_complex = models.PositiveIntegerField(null=True)
     bouwlagen = models.PositiveIntegerField(null=True)
-    type_woonobject_code = models.CharField(max_length=2, null=True)
-    type_woonobject_omschrijving = models.CharField(max_length=150, null=True)
-    woningvoorraad = models.NullBooleanField(default=None)
+    hoogste_bouwlaag = models.IntegerField(null=True)
+    laagste_bouwlaag = models.IntegerField(null=True)
     aantal_kamers = models.PositiveIntegerField(null=True)
     vervallen = models.PositiveIntegerField(default=False)
-    reden_afvoer = models.ForeignKey(RedenAfvoer, null=True, on_delete=models.CASCADE)
-    reden_opvoer = models.ForeignKey(RedenOpvoer, null=True, on_delete=models.CASCADE)
-    eigendomsverhouding = models.ForeignKey(Eigendomsverhouding, null=True, on_delete=models.CASCADE)
-    financieringswijze = models.ForeignKey(Financieringswijze, null=True, on_delete=models.CASCADE)
-    gebruik = models.ForeignKey(Gebruik, null=True, on_delete=models.CASCADE)
-    locatie_ingang = models.ForeignKey(LocatieIngang, null=True, on_delete=models.CASCADE)
-    ligging = models.ForeignKey(Ligging, null=True, on_delete=models.CASCADE)
-    toegang = models.ForeignKey(Toegang, null=True, on_delete=models.CASCADE)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
+    reden_opvoer = models.TextField(null=True)
+    reden_afvoer = models.TextField(null=True)
+    eigendomsverhouding = models.TextField(null=True)
+    gebruik = models.TextField(null=True)
+    gebruiksdoel_woonfunctie = models.TextField(null=True)
+    gebruiksdoel_gezondheidszorgfunctie = models.TextField(null=True)
+    toegang = ArrayField(models.CharField(max_length=150))
+    gebruiksdoel = ArrayField(models.TextField())
+    status = models.CharField(max_length=150)
     buurt = models.ForeignKey(
-        Buurt, null=True, related_name='verblijfsobjecten', on_delete=models.CASCADE)
+        Buurt, null=True, related_name='verblijfsobjecten',
+        on_delete=models.CASCADE
+    )
 
     panden = models.ManyToManyField(
-        'Pand',
-        related_name='verblijfsobjecten',
+        'Pand', related_name='verblijfsobjecten',
         through='VerblijfsobjectPandRelatie')
 
     geometrie = geo.PointField(null=True, srid=28992)
 
     _gebiedsgerichtwerken = models.ForeignKey(
-        Gebiedsgerichtwerken, related_name='adressen', null=True, on_delete=models.CASCADE)
+        Gebiedsgerichtwerken, related_name='adressen', null=True,
+        on_delete=models.CASCADE
+    )
 
     _grootstedelijkgebied = models.ForeignKey(
-        Grootstedelijkgebied, related_name='adressen', null=True, on_delete=models.CASCADE)
+        Grootstedelijkgebied, related_name='adressen', null=True,
+        on_delete=models.CASCADE
+    )
 
     # gedenormaliseerde velden
-    _openbare_ruimte_naam = models.CharField(max_length=150, null=True)
-    _huisnummer = models.IntegerField(null=True)
+    _openbare_ruimte_naam = models.CharField(max_length=150, db_index=True, null=True)
+    _huisnummer = models.IntegerField(null=True, db_index=True)
     _huisletter = models.CharField(max_length=1, null=True)
     _huisnummer_toevoeging = models.CharField(max_length=4, null=True)
 
@@ -790,7 +746,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
                 '_huisletter', '_huisnummer_toevoeging')
         ]
 
-    def __str__(self) -> str:
+    def __str__(self):
         result = '{} {}'.format(self._openbare_ruimte_naam, self._huisnummer)
         if self._huisletter:
             result += self._huisletter
@@ -843,7 +799,6 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
 class Pand(
         mixins.GeldigheidMixin,
-        mixins.MutatieGebruikerMixin,
         mixins.ImportStatusMixin,
         mixins.DocumentStatusMixin,
         models.Model):
@@ -856,17 +811,24 @@ class Pand(
     http://www.amsterdam.nl/stelselpedia/bag-index/catalogus-bag/objectklasse-pand/
     """
 
-    id = models.CharField(max_length=14, primary_key=True)
+    id = models.CharField(max_length=16, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
     bouwjaar = models.PositiveIntegerField(null=True)
+    bouwlagen = models.PositiveIntegerField(null=True)
     laagste_bouwlaag = models.IntegerField(null=True)
     hoogste_bouwlaag = models.IntegerField(null=True)
-    pandnummer = models.CharField(max_length=10, null=True)
     vervallen = models.NullBooleanField(default=None)
-    status = models.ForeignKey(Status, null=True, on_delete=models.CASCADE)
-    bouwblok = models.ForeignKey(Bouwblok, null=True, related_name="panden", on_delete=models.CASCADE)
+    status = models.CharField(max_length=150, null=True)
+
+    bouwblok = models.ForeignKey(
+        Bouwblok, null=True, related_name="panden", on_delete=models.CASCADE)
 
     geometrie = geo.PolygonField(null=True, srid=28992)
+
+    pandnaam = models.CharField(max_length=250, null=True)
+
+    ligging = models.TextField(null=True)
+    type_woonobject = models.CharField(max_length=25, null=True)
 
     class Meta(object):
         managed = False
@@ -904,9 +866,11 @@ class VerblijfsobjectPandRelatie(mixins.ImportStatusMixin, models.Model):
         verbose_name_plural = "Verblijfsobject-Pand relaties"
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super(VerblijfsobjectPandRelatie, self).__init__(*args, **kwargs)
+
         if self.pand_id and self.verblijfsobject_id:
-            self.id = '{}_{}'.format(self.pand_id, self.verblijfsobject_id)
+            self.id = '{pid}_{vid}'.format(pid=self.pand_id,
+                                           vid=self.verblijfsobject_id)
 
     def __str__(self):
         return "Pand-Verblijfsobject({}-{})".format(
@@ -931,8 +895,11 @@ class Buurtcombinatie(
     brondocument_naam = models.CharField(max_length=100, null=True)
     brondocument_datum = models.DateField(null=True)
     ingang_cyclus = models.DateField(null=True)
+
     stadsdeel = models.ForeignKey(
-        Stadsdeel, null=True, related_name="buurtcombinaties", on_delete=models.CASCADE)
+        Stadsdeel, null=True, related_name="buurtcombinaties",
+        on_delete=models.CASCADE
+    )
 
     geometrie = geo.MultiPolygonField(null=True, srid=28992)
 
@@ -969,15 +936,3 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
     def __str__(self):
         return "{}".format(self.naam)
-
-
-class Gebruiksdoel(models.Model):
-    verblijfsobject = models.ForeignKey(
-        Verblijfsobject, max_length=16, related_name='gebruiksdoelen', on_delete=models.CASCADE)
-    code = models.CharField(max_length=4)
-    omschrijving = models.CharField(max_length=150)
-    code_plus = models.CharField(max_length=4, null=True)
-    omschrijving_plus = models.CharField(max_length=150, null=True)
-
-    class Meta(object):
-        managed = False

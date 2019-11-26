@@ -18,61 +18,6 @@ class FuzzyPoint(fuzzy.BaseFuzzyAttribute):
             random.uniform(-180.0, 180.0), random.uniform(-90.0, 90.0))
 
 
-class EigendomsverhoudingFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Eigendomsverhouding
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
-class RedenAfvoerFactory(DjangoModelFactory):
-    class Meta:
-        model = models.RedenAfvoer
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
-class RedenOpvoerFactory(DjangoModelFactory):
-    class Meta:
-        model = models.RedenOpvoer
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
-class FinancieringswijzeFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Financieringswijze
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
-class GebruikFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Gebruik
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-class LiggingFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Ligging
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
-class StatusFactory(DjangoModelFactory):
-    class Meta:
-        model = models.Status
-
-    code = fuzzy.FuzzyText(length=4)
-    omschrijving = fuzzy.FuzzyText(length=50)
-
-
 class GemeenteFactory(DjangoModelFactory):
     class Meta:
         model = models.Gemeente
@@ -139,8 +84,8 @@ class VerblijfsobjectFactory(DjangoModelFactory):
 
     id = fuzzy.FuzzyText(length=14, chars=string.digits)
     landelijk_id = fuzzy.FuzzyText(length=16, chars=string.digits)
-    reden_afvoer = SubFactory(RedenAfvoerFactory)
-    reden_opvoer = SubFactory(RedenOpvoerFactory)
+    reden_afvoer = fuzzy.FuzzyText(length=100)
+    reden_opvoer = fuzzy.FuzzyText(length=100)
     buurt = SubFactory(BuurtFactory)
 
 

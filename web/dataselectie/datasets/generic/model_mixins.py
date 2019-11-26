@@ -29,24 +29,6 @@ class GeldigheidMixin(models.Model):
         abstract = True
 
 
-class MutatieGebruikerMixin(models.Model):
-    mutatie_gebruiker = models.CharField(max_length=30, null=True)  # type: str
-
-    class Meta(object):
-        abstract = True
-
-
-class CodeOmschrijvingMixin(models.Model):
-    code = models.CharField(max_length=4, primary_key=True)  # type: str
-    omschrijving = models.CharField(max_length=150, null=True)  # type: str
-
-    class Meta(object):
-        abstract = True
-
-    def __str__(self) -> str:
-        return "{}: {}".format(self.code, self.omschrijving)
-
-
 class JSONinputMixin(models.Model):
     id = models.CharField(
         max_length=20,
