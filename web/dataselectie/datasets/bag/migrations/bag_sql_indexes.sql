@@ -137,22 +137,6 @@ CREATE INDEX bag_buurtcombinatie_stadsdeel_id_06f6a98f_like ON bag_buurtcombinat
 
 
 --
--- TOC entry 3789 (class 1259 OID 645388)
--- Name: bag_eigendomsverhouding_code_47fbe763_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_eigendomsverhouding_code_47fbe763_like ON bag_eigendomsverhouding USING btree (code varchar_pattern_ops);
-
-
---
--- TOC entry 3792 (class 1259 OID 645391)
--- Name: bag_financieringswijze_code_5834bc73_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_financieringswijze_code_5834bc73_like ON bag_financieringswijze USING btree (code varchar_pattern_ops);
-
-
---
 -- TOC entry 3795 (class 1259 OID 645403)
 -- Name: bag_gebiedsgerichtwerken_geometrie_id; Type: INDEX; Schema: public; Owner: -
 --
@@ -177,30 +161,6 @@ CREATE INDEX bag_gebiedsgerichtwerken_stadsdeel_id_9ad56674_like ON bag_gebiedsg
 
 
 --
--- TOC entry 3800 (class 1259 OID 645400)
--- Name: bag_gebruik_code_728d2745_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_gebruik_code_728d2745_like ON bag_gebruik USING btree (code varchar_pattern_ops);
-
-
---
--- TOC entry 3805 (class 1259 OID 645575)
--- Name: bag_gebruiksdoel_verblijfsobject_id_b756d53f; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_gebruiksdoel_verblijfsobject_id_b756d53f ON bag_gebruiksdoel USING btree (verblijfsobject_id);
-
-
---
--- TOC entry 3806 (class 1259 OID 645576)
--- Name: bag_gebruiksdoel_verblijfsobject_id_b756d53f_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_gebruiksdoel_verblijfsobject_id_b756d53f_like ON bag_gebruiksdoel USING btree (verblijfsobject_id varchar_pattern_ops);
-
-
---
 -- TOC entry 3807 (class 1259 OID 645410)
 -- Name: bag_gemeente_code_d4536853_like; Type: INDEX; Schema: public; Owner: -
 --
@@ -222,14 +182,6 @@ CREATE INDEX bag_gemeente_id_801cf9c7_like ON bag_gemeente USING btree (id varch
 --
 
 CREATE INDEX bag_grootstedelijkgebied_geometrie_id ON bag_grootstedelijkgebied USING gist (geometrie);
-
-
---
--- TOC entry 3816 (class 1259 OID 645417)
--- Name: bag_ligging_code_f3f6dbf7_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_ligging_code_f3f6dbf7_like ON bag_ligging USING btree (code varchar_pattern_ops);
 
 
 --
@@ -330,26 +282,18 @@ CREATE INDEX bag_ligplaats_landelijk_id_8c52853f_like ON bag_ligplaats USING btr
 
 --
 -- TOC entry 3835 (class 1259 OID 645443)
--- Name: bag_ligplaats_status_id_2c8abc61; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_ligplaats_status_2c8abc61; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_ligplaats_status_id_2c8abc61 ON bag_ligplaats USING btree (status_id);
+CREATE INDEX bag_ligplaats_status_2c8abc61 ON bag_ligplaats USING btree (status);
 
 
 --
 -- TOC entry 3836 (class 1259 OID 645447)
--- Name: bag_ligplaats_status_id_2c8abc61_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_ligplaats_status_2c8abc61_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_ligplaats_status_id_2c8abc61_like ON bag_ligplaats USING btree (status_id varchar_pattern_ops);
-
-
---
--- TOC entry 3837 (class 1259 OID 645450)
--- Name: bag_locatieingang_code_f1276a18_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_locatieingang_code_f1276a18_like ON bag_locatieingang USING btree (code varchar_pattern_ops);
+CREATE INDEX bag_ligplaats_status_2c8abc61_like ON bag_ligplaats USING btree (status varchar_pattern_ops);
 
 
 --
@@ -442,18 +386,18 @@ CREATE INDEX bag_nummeraanduiding_standplaats_id_e4275a89_like ON bag_nummeraand
 
 --
 -- TOC entry 3855 (class 1259 OID 646680)
--- Name: bag_nummeraanduiding_status_id_cca87526; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_nummeraanduiding_status_cca87526; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_nummeraanduiding_status_id_cca87526 ON bag_nummeraanduiding USING btree (status_id);
+CREATE INDEX bag_nummeraanduiding_status_cca87526 ON bag_nummeraanduiding USING btree (status);
 
 
 --
 -- TOC entry 3856 (class 1259 OID 646681)
--- Name: bag_nummeraanduiding_status_id_cca87526_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_nummeraanduiding_status_cca87526_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_nummeraanduiding_status_id_cca87526_like ON bag_nummeraanduiding USING btree (status_id varchar_pattern_ops);
+CREATE INDEX bag_nummeraanduiding_status_cca87526_like ON bag_nummeraanduiding USING btree (status varchar_pattern_ops);
 
 
 --
@@ -489,14 +433,6 @@ CREATE INDEX bag_openbareruimte_bron_id_cbea113b_like ON bag_openbareruimte USIN
 
 
 --
--- TOC entry 3861 (class 1259 OID 646587)
--- Name: bag_openbareruimte_code_cc50e3bb_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_openbareruimte_code_cc50e3bb_like ON bag_openbareruimte USING btree (code varchar_pattern_ops);
-
-
---
 -- TOC entry 3864 (class 1259 OID 646588)
 -- Name: bag_openbareruimte_geometrie_id; Type: INDEX; Schema: public; Owner: -
 --
@@ -522,18 +458,18 @@ CREATE INDEX bag_openbareruimte_landelijk_id_2e2c50bb_like ON bag_openbareruimte
 
 --
 -- TOC entry 3871 (class 1259 OID 646591)
--- Name: bag_openbareruimte_status_id_2129d363; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_openbareruimte_status_2129d363; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_openbareruimte_status_id_2129d363 ON bag_openbareruimte USING btree (status_id);
+CREATE INDEX bag_openbareruimte_status_2129d363 ON bag_openbareruimte USING btree (status);
 
 
 --
 -- TOC entry 3872 (class 1259 OID 646592)
--- Name: bag_openbareruimte_status_id_2129d363_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_openbareruimte_status_2129d363_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_openbareruimte_status_id_2129d363_like ON bag_openbareruimte USING btree (status_id varchar_pattern_ops);
+CREATE INDEX bag_openbareruimte_status_2129d363_like ON bag_openbareruimte USING btree (status varchar_pattern_ops);
 
 
 --
@@ -594,34 +530,18 @@ CREATE INDEX bag_pand_landelijk_id_a00fbb2c_like ON bag_pand USING btree (landel
 
 --
 -- TOC entry 3884 (class 1259 OID 646602)
--- Name: bag_pand_status_id_1855bcfd; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_pand_status_1855bcfd; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_pand_status_id_1855bcfd ON bag_pand USING btree (status_id);
+CREATE INDEX bag_pand_status_1855bcfd ON bag_pand USING btree (status);
 
 
 --
 -- TOC entry 3885 (class 1259 OID 646603)
--- Name: bag_pand_status_id_1855bcfd_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_pand_status_1855bcfd_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_pand_status_id_1855bcfd_like ON bag_pand USING btree (status_id varchar_pattern_ops);
-
-
---
--- TOC entry 3886 (class 1259 OID 645533)
--- Name: bag_redenafvoer_code_ad3d66a6_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_redenafvoer_code_ad3d66a6_like ON bag_redenafvoer USING btree (code varchar_pattern_ops);
-
-
---
--- TOC entry 3889 (class 1259 OID 645536)
--- Name: bag_redenopvoer_code_144ca545_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_redenopvoer_code_144ca545_like ON bag_redenopvoer USING btree (code varchar_pattern_ops);
+CREATE INDEX bag_pand_status_1855bcfd_like ON bag_pand USING btree (status varchar_pattern_ops);
 
 
 --
@@ -762,34 +682,18 @@ CREATE INDEX bag_standplaats_landelijk_id_7ff59407_like ON bag_standplaats USING
 
 --
 -- TOC entry 3917 (class 1259 OID 645562)
--- Name: bag_standplaats_status_id_7aa01805; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_standplaats_status_7aa01805; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_standplaats_status_id_7aa01805 ON bag_standplaats USING btree (status_id);
+CREATE INDEX bag_standplaats_status_7aa01805 ON bag_standplaats USING btree (status);
 
 
 --
 -- TOC entry 3918 (class 1259 OID 645563)
--- Name: bag_standplaats_status_id_7aa01805_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_standplaats_status_7aa01805_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_standplaats_status_id_7aa01805_like ON bag_standplaats USING btree (status_id varchar_pattern_ops);
-
-
---
--- TOC entry 3919 (class 1259 OID 645566)
--- Name: bag_status_code_7964682e_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_status_code_7964682e_like ON bag_status USING btree (code varchar_pattern_ops);
-
-
---
--- TOC entry 3922 (class 1259 OID 645569)
--- Name: bag_toegang_code_1b9e0819_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_toegang_code_1b9e0819_like ON bag_toegang USING btree (code varchar_pattern_ops);
+CREATE INDEX bag_standplaats_status_7aa01805_like ON bag_standplaats USING btree (status varchar_pattern_ops);
 
 
 --
@@ -873,51 +777,19 @@ CREATE INDEX bag_verblijfsobject_buurt_id_147c7220_like ON bag_verblijfsobject U
 
 
 --
--- TOC entry 3937 (class 1259 OID 646729)
--- Name: bag_verblijfsobject_eigendomsverhouding_id_6efcb6a5; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_eigendomsverhouding_id_6efcb6a5 ON bag_verblijfsobject USING btree (eigendomsverhouding_id);
-
-
---
--- TOC entry 3938 (class 1259 OID 646730)
--- Name: bag_verblijfsobject_eigendomsverhouding_id_6efcb6a5_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_eigendomsverhouding_id_6efcb6a5_like ON bag_verblijfsobject USING btree (eigendomsverhouding_id varchar_pattern_ops);
-
-
---
--- TOC entry 3939 (class 1259 OID 646731)
--- Name: bag_verblijfsobject_financieringswijze_id_ada0c4fc; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_financieringswijze_id_ada0c4fc ON bag_verblijfsobject USING btree (financieringswijze_id);
-
-
---
--- TOC entry 3940 (class 1259 OID 646732)
--- Name: bag_verblijfsobject_financieringswijze_id_ada0c4fc_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_financieringswijze_id_ada0c4fc_like ON bag_verblijfsobject USING btree (financieringswijze_id varchar_pattern_ops);
-
-
---
 -- TOC entry 3941 (class 1259 OID 646733)
 -- Name: bag_verblijfsobject_gebruik_id_750be72a; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_gebruik_id_750be72a ON bag_verblijfsobject USING btree (gebruik_id);
+CREATE INDEX bag_verblijfsobject_gebruik_750be72a ON bag_verblijfsobject USING btree (gebruik);
 
 
 --
 -- TOC entry 3942 (class 1259 OID 646735)
--- Name: bag_verblijfsobject_gebruik_id_750be72a_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_gebruik_750be72a_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_gebruik_id_750be72a_like ON bag_verblijfsobject USING btree (gebruik_id varchar_pattern_ops);
+CREATE INDEX bag_verblijfsobject_gebruik_750be72a_like ON bag_verblijfsobject USING btree (gebruik varchar_pattern_ops);
 
 
 --
@@ -945,99 +817,67 @@ CREATE INDEX bag_verblijfsobject_landelijk_id_7b44ae0d_like ON bag_verblijfsobje
 
 
 --
--- TOC entry 3948 (class 1259 OID 646746)
--- Name: bag_verblijfsobject_ligging_id_85bab2d0; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_ligging_id_85bab2d0 ON bag_verblijfsobject USING btree (ligging_id);
-
-
---
--- TOC entry 3949 (class 1259 OID 646747)
--- Name: bag_verblijfsobject_ligging_id_85bab2d0_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_ligging_id_85bab2d0_like ON bag_verblijfsobject USING btree (ligging_id varchar_pattern_ops);
-
-
---
--- TOC entry 3950 (class 1259 OID 646748)
--- Name: bag_verblijfsobject_locatie_ingang_id_d3df4a0c; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_locatie_ingang_id_d3df4a0c ON bag_verblijfsobject USING btree (locatie_ingang_id);
-
-
---
--- TOC entry 3951 (class 1259 OID 646749)
--- Name: bag_verblijfsobject_locatie_ingang_id_d3df4a0c_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_locatie_ingang_id_d3df4a0c_like ON bag_verblijfsobject USING btree (locatie_ingang_id varchar_pattern_ops);
-
-
---
 -- TOC entry 3954 (class 1259 OID 646750)
--- Name: bag_verblijfsobject_reden_afvoer_id_d63ad9d4; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_reden_afvoer_d63ad9d4; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_reden_afvoer_id_d63ad9d4 ON bag_verblijfsobject USING btree (reden_afvoer_id);
+CREATE INDEX bag_verblijfsobject_reden_afvoer_d63ad9d4 ON bag_verblijfsobject USING btree (reden_afvoer);
 
 
 --
 -- TOC entry 3955 (class 1259 OID 646751)
--- Name: bag_verblijfsobject_reden_afvoer_id_d63ad9d4_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_reden_afvoer_d63ad9d4_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_reden_afvoer_id_d63ad9d4_like ON bag_verblijfsobject USING btree (reden_afvoer_id varchar_pattern_ops);
+CREATE INDEX bag_verblijfsobject_reden_afvoer_d63ad9d4_like ON bag_verblijfsobject USING btree (reden_afvoer varchar_pattern_ops);
 
 
 --
 -- TOC entry 3956 (class 1259 OID 646752)
--- Name: bag_verblijfsobject_reden_opvoer_id_91720c49; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_reden_opvoer_91720c49; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_reden_opvoer_id_91720c49 ON bag_verblijfsobject USING btree (reden_opvoer_id);
+CREATE INDEX bag_verblijfsobject_reden_opvoer_91720c49 ON bag_verblijfsobject USING btree (reden_opvoer);
 
 
 --
 -- TOC entry 3957 (class 1259 OID 646753)
--- Name: bag_verblijfsobject_reden_opvoer_id_91720c49_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_reden_opvoer_91720c49_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_reden_opvoer_id_91720c49_like ON bag_verblijfsobject USING btree (reden_opvoer_id varchar_pattern_ops);
+CREATE INDEX bag_verblijfsobject_reden_opvoer_91720c49_like ON bag_verblijfsobject USING btree (reden_opvoer varchar_pattern_ops);
 
 
 --
 -- TOC entry 3958 (class 1259 OID 646755)
--- Name: bag_verblijfsobject_status_id_8e52e07c; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_status_8e52e07c; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_status_id_8e52e07c ON bag_verblijfsobject USING btree (status_id);
+CREATE INDEX bag_verblijfsobject_status_8e52e07c ON bag_verblijfsobject USING btree (status);
 
 
 --
 -- TOC entry 3959 (class 1259 OID 646756)
--- Name: bag_verblijfsobject_status_id_8e52e07c_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_status_8e52e07c_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_status_id_8e52e07c_like ON bag_verblijfsobject USING btree (status_id varchar_pattern_ops);
+CREATE INDEX bag_verblijfsobject_status_8e52e07c_like ON bag_verblijfsobject USING btree (status varchar_pattern_ops);
 
 
 --
 -- TOC entry 3960 (class 1259 OID 646757)
--- Name: bag_verblijfsobject_toegang_id_d5013226; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_toegang_d5013226; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_toegang_id_d5013226 ON bag_verblijfsobject USING btree (toegang_id);
+CREATE INDEX bag_verblijfsobject_toegang_d5013226 ON bag_verblijfsobject USING btree (toegang);
 
 
 --
 -- TOC entry 3961 (class 1259 OID 646758)
--- Name: bag_verblijfsobject_toegang_id_d5013226_like; Type: INDEX; Schema: public; Owner: -
+-- Name: bag_verblijfsobject_toegang_d5013226_like; Type: INDEX; Schema: public; Owner: -
 --
 
-CREATE INDEX bag_verblijfsobject_toegang_id_d5013226_like ON bag_verblijfsobject USING btree (toegang_id varchar_pattern_ops);
+CREATE INDEX bag_verblijfsobject_toegang_d5013226_like ON bag_verblijfsobject USING btree (toegang varchar_pattern_ops);
 
 
 --

@@ -53,48 +53,12 @@ ALTER TABLE ONLY bag_buurtcombinatie
 
 
 --
--- TOC entry 3791 (class 2606 OID 645387)
--- Name: bag_eigendomsverhouding bag_eigendomsverhouding_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_eigendomsverhouding
-    ADD CONSTRAINT bag_eigendomsverhouding_pkey PRIMARY KEY (code);
-
-
---
--- TOC entry 3794 (class 2606 OID 645390)
--- Name: bag_financieringswijze bag_financieringswijze_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_financieringswijze
-    ADD CONSTRAINT bag_financieringswijze_pkey PRIMARY KEY (code);
-
-
---
 -- TOC entry 3797 (class 2606 OID 645402)
 -- Name: bag_gebiedsgerichtwerken bag_gebiedsgerichtwerken_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY bag_gebiedsgerichtwerken
     ADD CONSTRAINT bag_gebiedsgerichtwerken_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3802 (class 2606 OID 645399)
--- Name: bag_gebruik bag_gebruik_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_gebruik
-    ADD CONSTRAINT bag_gebruik_pkey PRIMARY KEY (code);
-
-
---
--- TOC entry 3804 (class 2606 OID 645574)
--- Name: bag_gebruiksdoel bag_gebruiksdoel_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_gebruiksdoel
-    ADD CONSTRAINT bag_gebruiksdoel_pkey PRIMARY KEY (id);
 
 
 --
@@ -125,15 +89,6 @@ ALTER TABLE ONLY bag_grootstedelijkgebied
 
 
 --
--- TOC entry 3818 (class 2606 OID 645416)
--- Name: bag_ligging bag_ligging_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_ligging
-    ADD CONSTRAINT bag_ligging_pkey PRIMARY KEY (code);
-
-
---
 -- TOC entry 3832 (class 2606 OID 645419)
 -- Name: bag_ligplaats bag_ligplaats_landelijk_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
@@ -152,15 +107,6 @@ ALTER TABLE ONLY bag_ligplaats
 
 
 --
--- TOC entry 3839 (class 2606 OID 645449)
--- Name: bag_locatieingang bag_locatieingang_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_locatieingang
-    ADD CONSTRAINT bag_locatieingang_pkey PRIMARY KEY (code);
-
-
---
 -- TOC entry 3846 (class 2606 OID 646580)
 -- Name: bag_nummeraanduiding bag_nummeraanduiding_landelijk_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
@@ -176,15 +122,6 @@ ALTER TABLE ONLY bag_nummeraanduiding
 
 ALTER TABLE ONLY bag_nummeraanduiding
     ADD CONSTRAINT bag_nummeraanduiding_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3863 (class 2606 OID 646572)
--- Name: bag_openbareruimte bag_openbareruimte_code_key; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_openbareruimte
-    ADD CONSTRAINT bag_openbareruimte_code_key UNIQUE (code);
 
 
 --
@@ -224,24 +161,6 @@ ALTER TABLE ONLY bag_pand
 
 
 --
--- TOC entry 3888 (class 2606 OID 645532)
--- Name: bag_redenafvoer bag_redenafvoer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_redenafvoer
-    ADD CONSTRAINT bag_redenafvoer_pkey PRIMARY KEY (code);
-
-
---
--- TOC entry 3891 (class 2606 OID 645535)
--- Name: bag_redenopvoer bag_redenopvoer_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_redenopvoer
-    ADD CONSTRAINT bag_redenopvoer_pkey PRIMARY KEY (code);
-
-
---
 -- TOC entry 3894 (class 2606 OID 645538)
 -- Name: bag_stadsdeel bag_stadsdeel_code_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
@@ -275,24 +194,6 @@ ALTER TABLE ONLY bag_standplaats
 
 ALTER TABLE ONLY bag_standplaats
     ADD CONSTRAINT bag_standplaats_pkey PRIMARY KEY (id);
-
-
---
--- TOC entry 3921 (class 2606 OID 645565)
--- Name: bag_status bag_status_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_status
-    ADD CONSTRAINT bag_status_pkey PRIMARY KEY (code);
-
-
---
--- TOC entry 3924 (class 2606 OID 645568)
--- Name: bag_toegang bag_toegang_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_toegang
-    ADD CONSTRAINT bag_toegang_pkey PRIMARY KEY (code);
 
 
 --
@@ -395,15 +296,6 @@ ALTER TABLE ONLY bag_gebiedsgerichtwerken
 
 
 --
--- TOC entry 3982 (class 2606 OID 647175)
--- Name: bag_gebruiksdoel bag_gebruiksdoel_verblijfsobject_id_b756d53f_fk_bag_verbl; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_gebruiksdoel
-    ADD CONSTRAINT bag_gebruiksdoel_verblijfsobject_id_b756d53f_fk_bag_verbl FOREIGN KEY (verblijfsobject_id) REFERENCES bag_verblijfsobject(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- TOC entry 3984 (class 2606 OID 646950)
 -- Name: bag_ligplaats bag_ligplaats__gebiedsgerichtwerke_7921ca73_fk_bag_gebie; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -437,15 +329,6 @@ ALTER TABLE ONLY bag_ligplaats
 
 ALTER TABLE ONLY bag_ligplaats
     ADD CONSTRAINT bag_ligplaats_buurt_id_596acb57_fk_bag_buurt_id FOREIGN KEY (buurt_id) REFERENCES bag_buurt(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3987 (class 2606 OID 647060)
--- Name: bag_ligplaats bag_ligplaats_status_id_2c8abc61_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_ligplaats
-    ADD CONSTRAINT bag_ligplaats_status_id_2c8abc61_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -485,15 +368,6 @@ ALTER TABLE ONLY bag_nummeraanduiding
 
 
 --
--- TOC entry 3991 (class 2606 OID 647065)
--- Name: bag_nummeraanduiding bag_nummeraanduiding_status_id_cca87526_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_nummeraanduiding
-    ADD CONSTRAINT bag_nummeraanduiding_status_id_cca87526_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- TOC entry 3993 (class 2606 OID 647180)
 -- Name: bag_nummeraanduiding bag_nummeraanduiding_verblijfsobject_id_ffa54442_fk_bag_verbl; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -512,15 +386,6 @@ ALTER TABLE ONLY bag_openbareruimte
 
 
 --
--- TOC entry 3995 (class 2606 OID 647070)
--- Name: bag_openbareruimte bag_openbareruimte_status_id_2129d363_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_openbareruimte
-    ADD CONSTRAINT bag_openbareruimte_status_id_2129d363_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- TOC entry 3996 (class 2606 OID 647095)
 -- Name: bag_openbareruimte bag_openbareruimte_woonplaats_id_487c4f06_fk_bag_woonplaats_id; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -536,15 +401,6 @@ ALTER TABLE ONLY bag_openbareruimte
 
 ALTER TABLE ONLY bag_pand
     ADD CONSTRAINT bag_pand_bouwblok_id_bd200ca2_fk_bag_bouwblok_id FOREIGN KEY (bouwblok_id) REFERENCES bag_bouwblok(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 3998 (class 2606 OID 647075)
--- Name: bag_pand bag_pand_status_id_1855bcfd_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_pand
-    ADD CONSTRAINT bag_pand_status_id_1855bcfd_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
@@ -593,15 +449,6 @@ ALTER TABLE ONLY bag_standplaats
 
 
 --
--- TOC entry 4004 (class 2606 OID 647080)
--- Name: bag_standplaats bag_standplaats_status_id_7aa01805_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_standplaats
-    ADD CONSTRAINT bag_standplaats_status_id_7aa01805_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
 -- TOC entry 4009 (class 2606 OID 646960)
 -- Name: bag_verblijfsobject bag_verblijfsobject__gebiedsgerichtwerke_45ee3c7a_fk_bag_gebie; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
@@ -635,87 +482,6 @@ ALTER TABLE ONLY bag_verblijfsobject
 
 ALTER TABLE ONLY bag_verblijfsobject
     ADD CONSTRAINT bag_verblijfsobject_buurt_id_147c7220_fk_bag_buurt_id FOREIGN KEY (buurt_id) REFERENCES bag_buurt(id) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4006 (class 2606 OID 646930)
--- Name: bag_verblijfsobject bag_verblijfsobject_eigendomsverhouding__6efcb6a5_fk_bag_eigen; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_eigendomsverhouding__6efcb6a5_fk_bag_eigen FOREIGN KEY (eigendomsverhouding_id) REFERENCES bag_eigendomsverhouding(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4007 (class 2606 OID 646935)
--- Name: bag_verblijfsobject bag_verblijfsobject_financieringswijze_i_ada0c4fc_fk_bag_finan; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_financieringswijze_i_ada0c4fc_fk_bag_finan FOREIGN KEY (financieringswijze_id) REFERENCES bag_financieringswijze(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4008 (class 2606 OID 646945)
--- Name: bag_verblijfsobject bag_verblijfsobject_gebruik_id_750be72a_fk_bag_gebruik_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_gebruik_id_750be72a_fk_bag_gebruik_code FOREIGN KEY (gebruik_id) REFERENCES bag_gebruik(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4011 (class 2606 OID 646990)
--- Name: bag_verblijfsobject bag_verblijfsobject_ligging_id_85bab2d0_fk_bag_ligging_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_ligging_id_85bab2d0_fk_bag_ligging_code FOREIGN KEY (ligging_id) REFERENCES bag_ligging(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4012 (class 2606 OID 647000)
--- Name: bag_verblijfsobject bag_verblijfsobject_locatie_ingang_id_d3df4a0c_fk_bag_locat; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_locatie_ingang_id_d3df4a0c_fk_bag_locat FOREIGN KEY (locatie_ingang_id) REFERENCES bag_locatieingang(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4014 (class 2606 OID 647030)
--- Name: bag_verblijfsobject bag_verblijfsobject_reden_afvoer_id_d63ad9d4_fk_bag_reden; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_reden_afvoer_id_d63ad9d4_fk_bag_reden FOREIGN KEY (reden_afvoer_id) REFERENCES bag_redenafvoer(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4015 (class 2606 OID 647035)
--- Name: bag_verblijfsobject bag_verblijfsobject_reden_opvoer_id_91720c49_fk_bag_reden; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_reden_opvoer_id_91720c49_fk_bag_reden FOREIGN KEY (reden_opvoer_id) REFERENCES bag_redenopvoer(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4016 (class 2606 OID 647085)
--- Name: bag_verblijfsobject bag_verblijfsobject_status_id_8e52e07c_fk_bag_status_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_status_id_8e52e07c_fk_bag_status_code FOREIGN KEY (status_id) REFERENCES bag_status(code) DEFERRABLE INITIALLY DEFERRED;
-
-
---
--- TOC entry 4017 (class 2606 OID 647090)
--- Name: bag_verblijfsobject bag_verblijfsobject_toegang_id_d5013226_fk_bag_toegang_code; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY bag_verblijfsobject
-    ADD CONSTRAINT bag_verblijfsobject_toegang_id_d5013226_fk_bag_toegang_code FOREIGN KEY (toegang_id) REFERENCES bag_toegang(code) DEFERRABLE INITIALLY DEFERRED;
 
 
 --
