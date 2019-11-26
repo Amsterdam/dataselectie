@@ -55,9 +55,7 @@ class Nummeraanduiding(es.DocType):
     standplaats = es.Keyword()
 
     # Verblijfsobject specific data
-    gebruiksdoelen_omschrijvingen = es.Keyword(
-        index=False, multi=True)
-    gebruiksdoelen_coden = es.Keyword(multi=True)
+    gebruiksdoelen = es.Keyword(index=False, multi=True)
 
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
@@ -153,11 +151,7 @@ def add_verblijfsobject_data(doc, vbo):
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
 
-    omschrijving_from_gebruiksdoel = lambda gd: gd.omschrijving + \
-        (f": {gd.omschrijving_plus}" if gd.omschrijving_plus else "")
-    gebruiksdoelen_omschrijvingen = [omschrijving_from_gebruiksdoel(gd)
-                                   for gd in vbo.gebruiksdoelen.all()]
-    doc.gebruiksdoelen = " | ".join(gebruiksdoelen_omschrijvingen)
+    doc.gebruiksdoelen = vbo.gebruiksdoel
 
 
 def  doc_from_nummeraanduiding(
@@ -196,7 +190,7 @@ def  doc_from_nummeraanduiding(
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
-    setattr(doc, 'hoofdadres', stringify_item_value(item.hoofdadres))
+    setattr(doc, 'hoofdadres', stringify_item_value(item.type_adres == 'Hoofdadres'))
 
     # defaults
     doc.centroid = None

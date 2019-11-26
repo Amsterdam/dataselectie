@@ -141,19 +141,7 @@ def create_status_fixtures():
     returms a list with status fixtures
     :return:
     """
-    return [
-        models.Status.objects.get_or_create(
-            code='33',
-            omschrijving='Ligplaats aangewezen'),
-
-        models.Status.objects.get_or_create(
-            code='35',
-            omschrijving='Naamgeving uitgegeven'),
-
-        models.Status.objects.get_or_create(
-            code='37',
-            omschrijving='Standplaats toegewezen'),
-    ]
+    return ['Ligplaats aangewezen', 'Naamgeving uitgegeven', 'Standplaats toegewezen']
 
 
 def create_gemeente_fixture():
@@ -180,7 +168,6 @@ def create_woonplaats_fixture():
             id='03630022796658',
             landelijk_id='3594',
             naam='Amsterdam',
-            naam_ptt='AMSTERDAM',
             gemeente_id='03630000000000',
             vervallen=False)]
 
@@ -197,81 +184,71 @@ def create_openbare_ruimte_fixtures():
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000001',
             landelijk_id='0363000000000001',
-            code='01011',
             woonplaats_id='03630022796658',
             naam='Kanaalstraat',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000002',
             landelijk_id='0363000000000002',
-            code='01012',
             woonplaats_id='03630022796658',
             naam='Leidsestraat',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000003',
             landelijk_id='0363000000000003',
-            code='01013',
             woonplaats_id='03630022796658',
             naam='Hobbemakade',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000004',
             landelijk_id='0363000000000004',
-            code='01014',
             woonplaats_id='03630022796658',
             naam='Delflandplein',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000005',
             landelijk_id='0363000000000005',
-            code='01015',
             woonplaats_id='03630022796658',
             naam='Vriesseveem',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000006',
             landelijk_id='0363000000000006',
-            code='01016',
             woonplaats_id='03630022796658',
             naam='Hoofddorplein',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000007',
             landelijk_id='0363000000000007',
-            code='01017',
             woonplaats_id='03630022796658',
             naam='Prinsengracht',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000008',
             landelijk_id='0363000000000008',
-            code='01018',
             woonplaats_id='03630022796658',
             naam='Weteringschans',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000009',
             landelijk_id='0363000000000009',
-            code='01019',
             woonplaats_id='03630022796658',
             naam='Stapels',
-            status_id='35'),
+            status='Naamgeving uitgegeven'),
 
         models.OpenbareRuimte.objects.get_or_create(
             id='03630000000010',
             landelijk_id='0363000000000010',
-            code='01020',
             woonplaats_id='03630022796658',
             naam='Delflandplein',
-            status_id='35')]
+            status='Naamgeving uitgegeven')]
 
 
 def create_verblijfsobject_fixtures():
@@ -283,8 +260,6 @@ def create_verblijfsobject_fixtures():
             id="03630000543292",
             landelijk_id="0363010000543292",
             oppervlakte=30,
-            bouwlaag_toegang=0,
-            woningvoorraad=False,
             aantal_kamers=0,
             vervallen=0,
             _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
@@ -292,14 +267,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="H",
             buurt_id="1",
-            geometrie=Point(1000, 1000)),
-
+            geometrie=Point(1000, 1000),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543293",
             landelijk_id="0363010000543293",
             oppervlakte=32,
-            bouwlaag_toegang=1,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Kanaalstraat",
@@ -307,14 +282,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='A',
             _huisnummer_toevoeging='BIS',
             buurt_id="1",
-            geometrie=Point(3, 3)),
-
+            geometrie=Point(3, 3),
+            gebruiksdoel=["BEST-winkelfunctie",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543294",
             landelijk_id="0363010000543294",
             oppervlakte=48,
-            bouwlaag_toegang=2,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Leidsestraat",
@@ -322,14 +297,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="",
             buurt_id="2",
-            geometrie=Point(100, 150)),
-
+            geometrie=Point(100, 150),
+            gebruiksdoel=["BEST-winkelfunctie",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543295",
             landelijk_id="0363010000543295",
             oppervlakte=48,
-            bouwlaag_toegang=2,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Leidsestraat",
@@ -337,13 +312,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="",
             buurt_id="2",
-            geometrie=Point(150, 100)),
+            geometrie=Point(150, 100),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543296",
             landelijk_id="0363010000543296",
             oppervlakte=32,
-            bouwlaag_toegang=1,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Hobbemakade",
@@ -351,13 +327,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="",
             buurt_id="3",
-            geometrie=Point(100, 100)),
+            geometrie=Point(100, 100),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543297",
             landelijk_id="0363010000543297",
             oppervlakte=30,
-            bouwlaag_toegang=0,
-            woningvoorraad=False,
             aantal_kamers=0,
             vervallen=0,
             _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
@@ -365,13 +342,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="H",
             buurt_id="4",
-            geometrie=Point(100, 100)),
+            geometrie=Point(100, 100),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543298",
             landelijk_id="0363010000543298",
             oppervlakte=32,
-            bouwlaag_toegang=1,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
@@ -379,13 +357,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="1",
             buurt_id="5",
-            geometrie=Point(20, 30)),
+            geometrie=Point(20, 30),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543299",
             landelijk_id="0363010000543299",
             oppervlakte=48,
-            bouwlaag_toegang=2,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
@@ -393,13 +372,14 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="2",
             buurt_id="6",
-            geometrie=Point(100, 100)),
+            geometrie=Point(100, 100),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
         models.Verblijfsobject.objects.get_or_create(
             id="03630000543291",
             landelijk_id="0363010000543291",
             oppervlakte=32,
-            bouwlaag_toegang=1,
-            woningvoorraad=True,
             aantal_kamers=2,
             vervallen=0,
             _openbare_ruimte_naam="Eerste Anjeliersdwarsstraat",
@@ -407,27 +387,11 @@ def create_verblijfsobject_fixtures():
             _huisletter='',
             _huisnummer_toevoeging="1",
             buurt_id="7",
-            geometrie=Point(30, 20))
+            geometrie=Point(30, 20),
+            gebruiksdoel=["BEST-woning",],
+            toegang=["Trap"],
+        ),
     ]
-
-    gebruiksdoelen = [
-        ("1010", "BEST-woning"),
-        ("0800", "BEST-winkelfunctie"),
-        ("0800", "BEST-winkelfunctie"),
-        ("1010", "BEST-woning"),
-        ("1010", "BEST-woning"),
-        ("1010", "BEST-woning"),
-        ("1010", "BEST-woning"),
-        ("1010", "BEST-woning"),
-        ("1010", "BEST-woning"),
-    ]
-
-    for (vbo, _), gbd in zip(verblijfsobjecten, gebruiksdoelen):
-        models.Gebruiksdoel.objects.get_or_create(
-            verblijfsobject=vbo,
-            code=gbd[0],
-            omschrijving=gbd[1]
-        )
 
     return verblijfsobjecten
 
@@ -441,7 +405,7 @@ def create_ligplaats_fixtures():
     return [
         models.Ligplaats.objects.get_or_create(
             id='03630000000111', landelijk_id='0363000000000111',
-            status_id='33',
+            status='Ligplaats aangewezen',
             _huisnummer=15, _huisletter='', _huisnummer_toevoeging='',
             buurt_id='2',
             geometrie=Polygon(
@@ -456,7 +420,7 @@ def create_ligplaats_fixtures():
 
         models.Ligplaats.objects.get_or_create(
             id='03630000000112', landelijk_id='0363000000000112',
-            status_id='33',
+            status='Ligplaats aangewezen',
             _huisnummer=345, _huisletter='', _huisnummer_toevoeging='',
             buurt_id='3',
             geometrie=Polygon(
@@ -479,7 +443,7 @@ def create_standplaats_fixtures():
     return [
         models.Standplaats.objects.get_or_create(
             id='03630000000221', landelijk_id='0363000000000221',
-            status_id='37',
+            status='Standplaats toegewezen',
             _huisnummer=515, _huisletter='', _huisnummer_toevoeging='',
             buurt_id='10', geometrie=Polygon(
                 (
@@ -493,7 +457,7 @@ def create_standplaats_fixtures():
 
         models.Standplaats.objects.get_or_create(
             id='03630000000222', landelijk_id='0363000000000222',
-            status_id='37',
+            status='Standplaats toegewezen',
             _huisnummer=45, _huisletter='', _huisnummer_toevoeging='',
             buurt_id='9', geometrie=Polygon(
                 (
