@@ -51,6 +51,6 @@ declare  -a bag_tables=(
 for tablename in "${bag_tables[@]}"
 do
 	echo recreate $tablename
-	dc exec -T database update-table.sh bag_v11 $tablename public dataselectie
+	docker-compose exec -T database update-table.sh bag_v11 $tablename public dataselectie
 done
 

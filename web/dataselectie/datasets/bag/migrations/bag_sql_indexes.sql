@@ -873,14 +873,6 @@ CREATE INDEX bag_verblijfsobject_toegang_d5013226 ON bag_verblijfsobject USING b
 
 
 --
--- TOC entry 3961 (class 1259 OID 646758)
--- Name: bag_verblijfsobject_toegang_d5013226_like; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX bag_verblijfsobject_toegang_d5013226_like ON bag_verblijfsobject USING btree (toegang varchar_pattern_ops);
-
-
---
 -- TOC entry 3962 (class 1259 OID 646604)
 -- Name: bag_verblijfsobjectpandrelatie_id_ca3665bd_like; Type: INDEX; Schema: public; Owner: -
 --
