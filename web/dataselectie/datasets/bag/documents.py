@@ -46,7 +46,7 @@ class Nummeraanduiding(es.DocType):
     centroid = es.GeoPoint()
     status = es.Keyword()
     type_desc = es.Keyword()
-    hoofdadres = es.Keyword()
+    type_adres = es.Keyword()
 
     # Landelijke codes
     openbare_ruimte_landelijk_id = es.Keyword()
@@ -55,7 +55,17 @@ class Nummeraanduiding(es.DocType):
     standplaats = es.Keyword()
 
     # Verblijfsobject specific data
-    gebruiksdoelen = es.Keyword(index=False, multi=True)
+    gebruiksdoel = es.Keyword(index=False, multi=True)
+    gebruiksdoel_woonfunctie = es.Keyword()
+    gebruiksdoel_gezondheidszorgfunctie = es.Keyword()
+
+    aantal_eenheden_complex = es.Integer()
+    aantal_kamers = es.Integer()
+    toegang = es.Keyword(index=False, multi=True)
+    verdieping_toegang = es.Integer()
+    bouwlagen = es.Integer()
+    hoogste_bouwlaag = es.Integer()
+    laagste_bouwlaag = es.Integer()
 
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
@@ -144,20 +154,22 @@ def add_verblijfsobject_data(doc, vbo):
         ('verblijfsobject', 'landelijk_id'),
         ('oppervlakte', 'oppervlakte'),
         ('bouwblok', 'bouwblok.code'),
-        ('gebruik', 'gebruik')
+        ('gebruik', 'gebruik'),
+        ('gebruiksdoel', 'gebruiksdoel'),
+        ('gebruiksdoel_woonfunctie', 'gebruiksdoel_woonfunctie'),
+        ('gebruiksdoel_gezondheidszorgfunctie', 'gebruiksdoel_gezondheidszorgfunctie'),
+        ('aantal_eenheden_complex', 'aantal_eenheden_complex'),
+        ('aantal_kamers', 'aantal_kamers'),
+        ('toegang', 'toegang'),
+        ('verdieping_toegang', 'verdieping_toegang'),
+        ('bouwlagen', 'bouwlagen'),
+        ('hoogste_bouwlaag', 'hoogste_bouwlaag'),
+        ('laagste_bouwlaag', 'laagste_bouwlaag'),
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
-
-    gebruiksdoelen = vbo.gebruiksdoel
-    if vbo.gebruiksdoel_woonfunctie:
-        gebruiksdoelen.append(vbo.gebruiksdoel_woonfunctie)
-    if vbo.gebruiksdoel_gezondheidszorgfunctie:
-        gebruiksdoelen.append(vbo.gebruiksdoel_gezondheidszorgfunctie)
-
-    doc.gebruiksdoelen = " | ".join(gebruiksdoelen)
 
 
 def  doc_from_nummeraanduiding(
@@ -192,11 +204,11 @@ def  doc_from_nummeraanduiding(
         ('openbare_ruimte_landelijk_id', 'openbare_ruimte.landelijk_id'),
         ('ligplaats', 'ligplaats.landelijk_id'),
         ('standplaats', 'standplaats.landelijk_id'),
-        ('landelijk_id', 'landelijk_id')
+        ('landelijk_id', 'landelijk_id'),
+        ('type_adres', 'type_adres')
     ]
     # Adding the attributes
     update_doc_from_param_list(doc, item, parameters)
-    setattr(doc, 'hoofdadres', stringify_item_value(item.type_adres == 'Hoofdadres'))
 
     # defaults
     doc.centroid = None
