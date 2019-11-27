@@ -168,6 +168,9 @@ def add_verblijfsobject_data(doc, vbo):
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
+    doc.gebruiksdoel = " | ".join(vbo.gebruiksdoel)
+    doc.toegang = " | ".join(vbo.toegang)
+
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
 
