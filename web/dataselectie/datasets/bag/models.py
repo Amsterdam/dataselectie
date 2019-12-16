@@ -727,6 +727,9 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         on_delete=models.CASCADE
     )
 
+    indicatie_geconstateerd = models.NullBooleanField(default=None)
+    indicatie_in_onderzoek = models.NullBooleanField(default=None)
+
     # gedenormaliseerde velden
     _openbare_ruimte_naam = models.CharField(max_length=150, db_index=True, null=True)
     _huisnummer = models.IntegerField(null=True, db_index=True)

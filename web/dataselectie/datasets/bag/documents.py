@@ -59,6 +59,9 @@ class Nummeraanduiding(es.DocType):
     gebruiksdoel_woonfunctie = es.Keyword()
     gebruiksdoel_gezondheidszorgfunctie = es.Keyword()
 
+    geconstateerd = es.Keyword()
+    in_onderzoek = es.Keyword()
+
     aantal_eenheden_complex = es.Integer()
     aantal_kamers = es.Integer()
     toegang = es.Keyword(index=False, multi=True)
@@ -66,6 +69,7 @@ class Nummeraanduiding(es.DocType):
     bouwlagen = es.Integer()
     hoogste_bouwlaag = es.Integer()
     laagste_bouwlaag = es.Integer()
+    bouwjaar = es.Integer()
 
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
@@ -166,11 +170,22 @@ def add_verblijfsobject_data(doc, vbo):
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
+    if vbo.indicatie_geconstateerd is not None and vbo.indicatie_geconstateerd is True:
+        doc.geconstateerd = "J"
+    else:
+        doc.geconstateerd = "N"
+
+    if vbo.indicatie_in_onderzoek is not None and vbo.indicatie_in_onderzoek is True:
+        doc.in_onderzoek = "J"
+    else:
+        doc.in_onderzoek = "N"
+
     doc.gebruiksdoel = " | ".join(vbo.gebruiksdoel)
     doc.toegang = " | ".join(vbo.toegang)
 
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
+    doc.bouwjaar = vbo.panden.first().bouwjaar
 
 
 def  doc_from_nummeraanduiding(
