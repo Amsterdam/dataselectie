@@ -185,7 +185,8 @@ def add_verblijfsobject_data(doc, vbo):
 
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
-    doc.bouwjaar = vbo.panden.first().bouwjaar
+    if len(panden_ids) > 0:
+        doc.bouwjaar = vbo.panden.first().bouwjaar
 
 
 def  doc_from_nummeraanduiding(
