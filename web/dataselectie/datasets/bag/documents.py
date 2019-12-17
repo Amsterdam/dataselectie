@@ -186,7 +186,7 @@ def add_verblijfsobject_data(doc, vbo):
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
     doc.panden = " | ".join(panden_ids)
 
-    panden_bouwjaar = [i.bouwjaar for i in vbo.panden.all()]
+    panden_bouwjaar = [str(i.bouwjaar) for i in vbo.panden.all()]
     doc.bouwjaar = " | ".join(panden_bouwjaar)
 
 
