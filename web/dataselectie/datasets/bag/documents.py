@@ -69,7 +69,7 @@ class Nummeraanduiding(es.DocType):
     bouwlagen = es.Integer()
     hoogste_bouwlaag = es.Integer()
     laagste_bouwlaag = es.Integer()
-    bouwjaar = es.Integer()
+    bouwjaar = es.Keyword()
 
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
@@ -190,7 +190,7 @@ def add_verblijfsobject_data(doc, vbo):
     doc.bouwjaar = " | ".join(panden_bouwjaar)
 
 
-def  doc_from_nummeraanduiding(
+def doc_from_nummeraanduiding(
         item: models.Nummeraanduiding) -> Nummeraanduiding:
     """
     Van een Nummeraanduiding bak een dataselectie document
