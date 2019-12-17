@@ -171,24 +171,23 @@ def add_verblijfsobject_data(doc, vbo):
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
     if vbo.indicatie_geconstateerd is not None and vbo.indicatie_geconstateerd is True:
-        doc.geconstateerd = "J"
+        doc.geconstateerd = "Ja"
     else:
-        doc.geconstateerd = "N"
+        doc.geconstateerd = "Nee"
 
     if vbo.indicatie_in_onderzoek is not None and vbo.indicatie_in_onderzoek is True:
-        doc.in_onderzoek = "J"
+        doc.in_onderzoek = "Ja"
     else:
-        doc.in_onderzoek = "N"
+        doc.in_onderzoek = "Nee"
 
     doc.gebruiksdoel = " | ".join(vbo.gebruiksdoel)
     doc.toegang = " | ".join(vbo.toegang)
 
     panden_ids = [i.landelijk_id for i in vbo.panden.all()]
-    panden_bouwjaar = [i.bouwjaar for i in vbo.panden.all()]
-
     doc.panden = " | ".join(panden_ids)
-    if len(panden_bouwjaar) > 0:
-        doc.bouwjaar = panden_bouwjaar[0]
+
+    panden_bouwjaar = [i.bouwjaar for i in vbo.panden.all()]
+    doc.bouwjaar = " | ".join(panden_bouwjaar)
 
 
 def  doc_from_nummeraanduiding(
