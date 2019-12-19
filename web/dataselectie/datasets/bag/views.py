@@ -74,9 +74,9 @@ class BagSearch(BagBase, TableSearchView):
 class BagCSV(BagBase, CSVExportView):
     """
     Output CSV
-    See https://docs.djangoproject.com/en/1.9/howto/outputting-csv/
     """
     fields_and_headers = (
+        # Map the ES fields from Nummeraanduiding to labels
         ('_openbare_ruimte_naam', 'Naam openbare ruimte'),
         ('huisnummer', 'Huisnummer'),
         ('huisletter', 'Huisletter'),
@@ -110,6 +110,9 @@ class BagCSV(BagBase, CSVExportView):
         ('laagste_bouwlaag', 'Laagste bouwlaag'),
         ('oppervlakte', 'Oppervlakte (m2)'),
         ('bouwjaar', 'Oorspronkelijk bouwjaar'),
+        ('pandnaam', "Naam pand"),
+        ('type_woonobject', "Type woonobject"),
+        ('ligging', "Ligging"),
         ('type_desc', 'Objecttype'),
         ('status', 'Verblijfsobjectstatus'),
         ('geconstateerd', 'Geconstateerd'),

@@ -823,7 +823,7 @@ class Pand(
 
     id = models.CharField(max_length=16, primary_key=True)
     landelijk_id = models.CharField(max_length=16, unique=True)
-    bouwjaar = models.PositiveIntegerField(null=True)
+    bouwjaar = models.PositiveIntegerField(null=True)  # can be 1005 which means none!
     bouwlagen = models.PositiveIntegerField(null=True)
     laagste_bouwlaag = models.IntegerField(null=True)
     hoogste_bouwlaag = models.IntegerField(null=True)
@@ -835,7 +835,7 @@ class Pand(
 
     geometrie = geo.PolygonField(null=True, srid=28992)
 
-    pandnaam = models.CharField(max_length=250, null=True)
+    pandnaam = models.CharField(max_length=250, null=True)  # e.g. "Centraal station"
 
     ligging = models.TextField(null=True)
     type_woonobject = models.CharField(max_length=25, null=True)

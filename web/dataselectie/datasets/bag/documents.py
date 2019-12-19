@@ -1,5 +1,6 @@
 # Python
 import logging
+from typing import List
 
 import elasticsearch_dsl as es
 from django.conf import settings
@@ -69,12 +70,17 @@ class Nummeraanduiding(es.DocType):
     bouwlagen = es.Integer()
     hoogste_bouwlaag = es.Integer()
     laagste_bouwlaag = es.Integer()
-    bouwjaar = es.Keyword()
 
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
     gebruik = es.Keyword()
-    panden = es.Keyword()
+
+    # Only for CSV
+    panden = es.Keyword()  # id values
+    pandnaam = es.Keyword()
+    bouwjaar = es.Keyword()
+    type_woonobject = es.Keyword()
+    ligging = es.Keyword()
 
     class Meta:
         doc_type = 'nummeraanduiding'
@@ -170,24 +176,23 @@ def add_verblijfsobject_data(doc: Nummeraanduiding, vbo: models.Verblijfsobject)
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 
-    if vbo.indicatie_geconstateerd is not None and vbo.indicatie_geconstateerd is True:
-        doc.geconstateerd = "Ja"
-    else:
-        doc.geconstateerd = "Nee"
+    doc.geconstateerd = "Ja" if vbo.indicatie_geconstateerd else "Nee"
+    doc.in_onderzoek = "Ja" if vbo.indicatie_in_onderzoek else "Nee"
 
-    if vbo.indicatie_in_onderzoek is not None and vbo.indicatie_in_onderzoek is True:
-        doc.in_onderzoek = "Ja"
-    else:
-        doc.in_onderzoek = "Nee"
-
+    # These fields are only indexed to generate the BagCSV.
+    # Hence this data is not structured for search, but flattened.
     doc.gebruiksdoel = " | ".join(vbo.gebruiksdoel)
     doc.toegang = " | ".join(vbo.toegang)
 
-    panden_ids = [i.landelijk_id for i in vbo.panden.all()]
-    doc.panden = " | ".join(panden_ids)
-
-    panden_bouwjaar = [str(i.bouwjaar) for i in vbo.panden.all()]
-    doc.bouwjaar = " | ".join(panden_bouwjaar)
+    # pandnaam is often empty, except for things like "Centraal Station".
+    panden: List[models.Pand] = list(vbo.panden.all())
+    doc.panden = stringify_item_value([p.landelijk_id for p in panden])
+    doc.pandnaam = stringify_item_value([p.pandnaam for p in panden if p.pandnaam])
+    doc.bouwjaar = stringify_item_value([
+        "onbekend" if p.bouwjaar == 1005 else p.bouwjaar for p in panden
+    ])
+    doc.type_woonobject = stringify_item_value([p.type_woonobject for p in panden])
+    doc.ligging = stringify_item_value([p.ligging for p in panden])
 
 
 def doc_from_nummeraanduiding(
