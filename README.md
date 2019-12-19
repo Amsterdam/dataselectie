@@ -50,12 +50,18 @@ $ docker-compose exec -T dataselectie python manage.py elastic_indices --recreat
 $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 ```
 
+Je kan ook `--partial=1/1000` toevoegen om een partiële index to maken.
+
+### API Authorizatie
+
 Testing with authorization. For BAG and HR we need scope HR/R and for BRK we need scope BRK_RSN (lees alle kadaster
 data voor natuurlijke personen)
 
-Tijdens ontwikkelen kan in settings.py ALWAYS_OK op LOCAL worden gezet. Maar om de authorisatie te testen kan
-op localhost met het script web/dataselectie/test/localauth/mktoken_superemployee_local.py een token worden gemaakt om
-in te loggen. Bijv.
+Tijdens ontwikkelen kan in `settings.py` `ALWAYS_OK` op `LOCAL` worden gezet.
+
+Om de authorisatie te testen kan op localhost met het script
+`web/dataselectie/test/localauth/mktoken_superemployee_local.py`
+een token worden gemaakt om in te loggen. Bijv.
 
 ```
 token=`test/localauth/mktoken_superemployee_local.py`
