@@ -59,7 +59,7 @@ def dataselectie_hr_factory(nummeraanduiding_obj, from_nr, to_nr):
         DataSelectie.objects.get_or_create(
             uid=uid,
             api_json=json,
-            bag_numid=nummeraanduiding_obj.landelijk_id)
+            nummeraanduiding=nummeraanduiding_obj)
 
 
 def create_hr_data():

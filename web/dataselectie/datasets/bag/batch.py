@@ -49,30 +49,11 @@ class IndexDsBagTask(index.ImportIndexTask):
     queryset = (
         models.Nummeraanduiding.objects
         .prefetch_related(
-            # adresseerbaar_object returns:
-            # ligplaats or self.standplaats or self.verblijfsobject
-            'ligplaats',
-            'ligplaats__buurt',
-            'ligplaats__buurt__buurtcombinatie',
-            'ligplaats__buurt__stadsdeel',
-            'ligplaats___gebiedsgerichtwerken',
-            'ligplaats___grootstedelijkgebied',
-            'standplaats',
-            'standplaats__buurt',
-            'standplaats__buurt__buurtcombinatie',
-            'standplaats__buurt__stadsdeel',
-            'standplaats___gebiedsgerichtwerken',
-            'standplaats___grootstedelijkgebied',
-            'verblijfsobject',
-            'verblijfsobject__buurt',
-            'verblijfsobject__buurt__buurtcombinatie',
-            'verblijfsobject__buurt__stadsdeel',
-            'verblijfsobject__panden',
-            'verblijfsobject__panden__bouwblok',
-            'verblijfsobject___gebiedsgerichtwerken',
-            'verblijfsobject___grootstedelijkgebied',
             'openbare_ruimte',
             'openbare_ruimte__woonplaats',
+            *models.prefetch_adresseerbaar_objects(),
+            'verblijfsobject__panden',
+            'verblijfsobject__panden__bouwblok',
         )
     )
 

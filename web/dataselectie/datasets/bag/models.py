@@ -952,3 +952,64 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
     def __str__(self):
         return "{}".format(self.naam)
+
+
+def prefetch_adresseerbaar_objects(relation=None):
+    """
+    Return all prefetch fields to index "NummerAanduiding.adresseerbaarobject.
+
+    This expands to various things like "ligplaats", "standplaats" and "verblijfobject"
+    because one of these is returned by `NummerAanduiding.adresseerbaar_object`.
+
+    :param relation: This can be "nummeraanduiding" when the object is references by another.
+
+    When the "relation=nummeraanduiding" is passed, the returned
+    value resembles the following prefetch_related() list::
+
+        [
+            'nummeraanduiding',
+            'nummeraanduiding__ligplaats',
+            'nummeraanduiding__ligplaats__buurt',
+            'nummeraanduiding__ligplaats__buurt__buurtcombinatie',
+            'nummeraanduiding__ligplaats__buurt__stadsdeel',
+            'nummeraanduiding__ligplaats___gebiedsgerichtwerken',
+            'nummeraanduiding__ligplaats___grootstedelijkgebied',
+            'nummeraanduiding__standplaats',
+            'nummeraanduiding__standplaats__buurt',
+            'nummeraanduiding__standplaats__buurt__buurtcombinatie',
+            'nummeraanduiding__standplaats__buurt__stadsdeel',
+            'nummeraanduiding__standplaats___gebiedsgerichtwerken',
+            'nummeraanduiding__standplaats___grootstedelijkgebied',
+            'nummeraanduiding__verblijfsobject',
+            'nummeraanduiding__verblijfsobject__buurt',
+            'nummeraanduiding__verblijfsobject__buurt__buurtcombinatie',
+            'nummeraanduiding__verblijfsobject__buurt__stadsdeel',
+            'nummeraanduiding__verblijfsobject___gebiedsgerichtwerken',
+            'nummeraanduiding__verblijfsobject___grootstedelijkgebied',
+        ]
+
+    ...but without geometry fields querying using the django `Prefetch()` object.
+    """
+    # The Prefetch() objects further limit the results to avoid fetching unneeded geo data.
+    prefetches = []
+    for child_relation in ('standplaats', 'ligplaats', 'verblijfsobject'):
+        prefix = f"{relation}__{child_relation}" if relation else child_relation
+        prefetches.extend([
+            f'{prefix}',
+            f'{prefix}__buurt',
+            models.Prefetch(
+                f'{prefix}__buurt__buurtcombinatie',
+                queryset=Buurtcombinatie.objects.defer('geometrie')
+            ),
+            f'{prefix}__buurt__stadsdeel',
+            models.Prefetch(
+                f'{prefix}___gebiedsgerichtwerken',
+                queryset=Gebiedsgerichtwerken.objects.defer('geometrie'),
+            ),
+            models.Prefetch(
+                f'{prefix}___grootstedelijkgebied',
+                queryset=Grootstedelijkgebied.objects.defer('geometrie'),
+            ),
+        ])
+
+    return prefetches

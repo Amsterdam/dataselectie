@@ -51,15 +51,22 @@ class IndexHrTask(index.ImportIndexTask):
 
     #db = settings.HR_DATABASE
 
-    queryset = models.DataSelectie.objects.filter(
-        bag_numid__isnull=False).order_by('id')
+    queryset = (
+        models.DataSelectie.objects
+        .filter(nummeraanduiding__isnull=False)
+        .prefetch_related(
+            'nummeraanduiding',
+            *bag_models.prefetch_adresseerbaar_objects('nummeraanduiding'),
+        )
+        .order_by('id')
+    )
 
-    def convert(self, obj):
+    def convert(self, obj: models.DataSelectie) -> documents.Inschrijving:
         vestiging = obj
         try:
-            bag_obj = bag_models.Nummeraanduiding.objects.get(
-                landelijk_id=vestiging.bag_numid)
+            bag_obj = vestiging.nummeraanduiding
         except bag_models.Nummeraanduiding.DoesNotExist:
+            # This can still happen as there is no DB constraint here.
             bag_obj = None
         return documents.inschrijving_from_hrdataselectie(vestiging, bag_obj)
 
