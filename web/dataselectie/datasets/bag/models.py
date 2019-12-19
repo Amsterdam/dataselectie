@@ -1,4 +1,9 @@
+from __future__ import annotations
+
+from typing import Union, Optional
+
 from django.contrib.gis.db import models as geo
+from django.contrib.gis.geos import Point, Polygon
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
@@ -441,55 +446,55 @@ class Nummeraanduiding(mixins.GeldigheidMixin,
         return ' '.join(toevoegingen)
 
     @property
-    def adresseerbaar_object(self):
+    def adresseerbaar_object(self) -> Union[Ligplaats, Standplaats, Verblijfsobject]:
         return self.ligplaats or self.standplaats or self.verblijfsobject
 
     @property
-    def vbo_status(self):
+    def vbo_status(self) -> Optional[str]:
         a = self.adresseerbaar_object
         return a.status if a else None
 
     @property
-    def buurt(self):
+    def buurt(self) -> Optional[Buurt]:
         a = self.adresseerbaar_object
         return a.buurt if a else None
 
     @property
-    def _geometrie(self):
+    def _geometrie(self) -> Optional[Union[Polygon, Point]]:
         a = self.adresseerbaar_object
         return a.geometrie if a else None
 
     @property
-    def stadsdeel(self):
+    def stadsdeel(self) -> Optional[Stadsdeel]:
         b = self.buurt
         return b.stadsdeel if b else None
 
     @property
-    def woonplaats(self):
+    def woonplaats(self) -> Optional[Woonplaats]:
         o = self.openbare_ruimte
         return o.woonplaats if o else None
 
     @property
-    def buurtcombinatie(self):
+    def buurtcombinatie(self) -> Optional[Buurtcombinatie]:
         b = self.buurt
         return b.buurtcombinatie if b else None
 
     @property
-    def bouwblok(self):
+    def bouwblok(self) -> Optional[Bouwblok]:
         return self.verblijfsobject.bouwblok if self.verblijfsobject else None
 
     @property
-    def gemeente(self):
+    def gemeente(self) -> Optional[Gemeente]:
         s = self.stadsdeel
         return s.gemeente if s else None
 
     @property
-    def gebiedsgerichtwerken(self):
+    def gebiedsgerichtwerken(self) -> Optional[Gebiedsgerichtwerken]:
         a = self.adresseerbaar_object
         return a._gebiedsgerichtwerken if a else None
 
     @property
-    def grootstedelijkgebied(self):
+    def grootstedelijkgebied(self) -> Optional[Grootstedelijkgebied]:
         a = self.adresseerbaar_object
         return a._grootstedelijkgebied if a else None
 

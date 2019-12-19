@@ -166,7 +166,7 @@ def get_omschrijving(clazz, code, code_field='code', omschrijving_field='omschri
     return lookup_tables[class_name].get(code)
 
 
-def get_woonplaats(nummeraanduiding):
+def get_woonplaats(nummeraanduiding: bag_models.Nummeraanduiding) -> str:
     openbare_ruimte_id = nummeraanduiding.openbare_ruimte_id
     clazz = bag_models.OpenbareRuimte
     class_name = clazz.__name__
@@ -197,7 +197,7 @@ def get_date(val):
     return result
 
 
-def doc_from_eigendom(eigendom: object) -> Eigendom:
+def doc_from_eigendom(eigendom: brk_models.Eigendom) -> Eigendom:
     kot = eigendom.kadastraal_object
     # eigendommen = kot.eigendommen.all()
 

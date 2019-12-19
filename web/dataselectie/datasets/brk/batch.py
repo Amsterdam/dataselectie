@@ -77,7 +77,7 @@ class IndexBrkTask(index.ImportIndexTask):
         .order_by('zakelijk_recht__id')
     )
 
-    def convert(self, obj):
+    def convert(self, obj: models.Eigendom):
         return documents.doc_from_eigendom(obj)
 
     def get_queryset(self):

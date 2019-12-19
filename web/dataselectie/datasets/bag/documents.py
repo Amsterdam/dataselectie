@@ -84,7 +84,7 @@ class Nummeraanduiding(es.DocType):
         name = settings.ELASTIC_INDICES['DS_BAG_INDEX']
 
 
-def update_doc_with_adresseerbaar_object(doc, item):
+def update_doc_with_adresseerbaar_object(doc: Nummeraanduiding, item: models.Nummeraanduiding):
     """
     Voeg alle adreseerbaarobject shizzel toe.
 
@@ -150,7 +150,7 @@ def update_doc_from_param_list(target: Nummeraanduiding, source: object, mapping
             pass
 
 
-def add_verblijfsobject_data(doc, vbo):
+def add_verblijfsobject_data(doc: Nummeraanduiding, vbo: models.Verblijfsobject):
     """
     vbo gerelateerde data
     """

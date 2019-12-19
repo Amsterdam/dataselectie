@@ -144,7 +144,7 @@ def flatten_sbi(activiteit):
     }, error
 
 
-def add_bag_info(doc, ves):
+def add_bag_info(doc: Inschrijving, ves: Nummeraanduiding):
     """
     Adding bag information
     """
@@ -192,7 +192,7 @@ def add_bag_info(doc, ves):
         doc.bezoekadres_stadsdeel_code = buurt.stadsdeel.code
 
 
-def add_adres_to_doc(doc, inschrijving):
+def add_adres_to_doc(doc: Inschrijving, inschrijving: dict):
 
     # Address
     for address_type in ('bezoekadres', 'postadres'):
@@ -216,7 +216,7 @@ def add_adres_to_doc(doc, inschrijving):
             setattr(doc, f'{address_type}_afgeschermd', afgeschermd)
 
 
-def _log_sbi_error(doc, activiteit):
+def _log_sbi_error(doc: Inschrijving, activiteit: dict):
 
     log.error("""
 
@@ -228,7 +228,7 @@ def _log_sbi_error(doc, activiteit):
         """, doc.handelsnaam, activiteit, doc.vestiging_id)
 
 
-def add_sbi_to_doc(doc, ves_data):
+def add_sbi_to_doc(doc: Inschrijving, ves_data: dict):
     """
     Add sbi information to doc
 
@@ -283,7 +283,7 @@ def add_sbi_to_doc(doc, ves_data):
         setattr(doc, 'sbi_%s' % key, datalist)
 
 
-def set_eigenaar_to_doc(doc, eigenaar):
+def set_eigenaar_to_doc(doc: Inschrijving, eigenaar: dict):
     """
     Set eigenaar information to doc
     """
@@ -312,14 +312,14 @@ def jsonpprint(data):
     print(json.dumps(data, sort_keys=True, indent=4))
 
 
-def _handle_mac_information(doc, mac):
+def _handle_mac_information(doc: Inschrijving, mac):
     for attrib in (
             'kvk_nummer', 'datum_aanvang',
             'non_mailing'):
         setattr(doc, attrib, mac.get(attrib, ''))
 
 
-def _handle_onderneming(doc, inschrijving):
+def _handle_onderneming(doc: Inschrijving, inschrijving: dict):
     """
     extract werkzame personen
     """
@@ -331,7 +331,7 @@ def _handle_onderneming(doc, inschrijving):
             'totaal_werkzame_personen')
 
 
-def _handle_commerciele_vestiging(doc, inschrijving):
+def _handle_commerciele_vestiging(doc: Inschrijving, inschrijving: dict):
     """
     extract werkzame personen
     """
@@ -343,7 +343,7 @@ def _handle_commerciele_vestiging(doc, inschrijving):
             'totaal_werkzame_personen')
 
 
-def _handle_ves_fields(doc, inschrijving):
+def _handle_ves_fields(doc: Inschrijving, inschrijving: dict):
 
     if not doc.dataset == 'ves':
         return
@@ -361,7 +361,7 @@ def _handle_ves_fields(doc, inschrijving):
     _handle_commerciele_vestiging(doc, inschrijving)
 
 
-def _handle_mac_fields(doc, inschrijving):
+def _handle_mac_fields(doc: Inschrijving, inschrijving: dict):
 
     if not doc.dataset == 'mac':
         return
