@@ -663,11 +663,11 @@ class Standplaats(mixins.GeldigheidMixin,
 
     @property
     def _buurtcombinatie(self):
-        return self.buurt.buurtcombinatie if self.buurt else None
+        return self.buurt.buurtcombinatie if self.buurt_id else None
 
     @property
     def _stadsdeel(self):
-        return self.buurt.stadsdeel if self.buurt else None
+        return self.buurt.stadsdeel if self.buurt_id else None
 
     @property
     def _gemeente(self):
@@ -765,7 +765,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         return result
 
     # store pand for bouwblok reference
-    _pand = None
+    _pand = ...
 
     @property
     def willekeurig_pand(self):
@@ -773,13 +773,19 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         Geeft het pand van dit verblijfsobject. Indien er meerdere
         panden zijn, wordt een willekeurig pand gekozen.
         """
-        if not self.panden.count():
-            return None
+        if self._pand is ...:
+            try:
+                # If there is a .prefetch_related() for panden, use that.
+                # Otherwise, the attribute doesn't exist
+                panden = self._prefetched_objects_cache['panden']
+            except (AttributeError, LookupError):
+                # Trying a query is less expensive then doing a .count()!
+                panden = self.panden.select_related('bouwblok')
 
-        if not self._pand:
-            self._pand = self.panden.select_related(
-                'bouwblok',
-            )[0]
+            try:
+                self._pand = panden[0]
+            except IndexError:
+                self._pand = None
 
         return self._pand
 
@@ -792,11 +798,11 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
     @property
     def _buurtcombinatie(self):
-        return self.buurt.buurtcombinatie if self.buurt else None
+        return self.buurt.buurtcombinatie if self.buurt_id else None
 
     @property
     def _stadsdeel(self):
-        return self.buurt.stadsdeel if self.buurt else None
+        return self.buurt.stadsdeel if self.buurt_id else None
 
     @property
     def _gemeente(self):
@@ -850,7 +856,7 @@ class Pand(
 
     @property
     def _buurt(self):
-        return self.bouwblok.buurt if self.bouwblok else None
+        return self.bouwblok.buurt if self.bouwblok_id else None
 
     @property
     def _buurtcombinatie(self):
