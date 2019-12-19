@@ -46,6 +46,7 @@ $ docker-compose exec elasticsearch update-el.sh ds_brk_index <your username>
 Indien je zelf de index van scratch wilt bouwen kan dat als volgt. Let op dat dit ruim zes uur in beslag neemt
 
 ```
+$ docker-compose exec -T dataselectie python manage.py elastic_indices --recreate
 $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 ```
 
