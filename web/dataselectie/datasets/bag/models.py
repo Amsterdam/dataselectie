@@ -507,8 +507,10 @@ class AdresseerbaarObjectMixin(object):
         return [a for a in self.adressen.all() if not a.type_adres == 'Hoofdadres']
 
     def __str__(self):
-        if self.hoofdadres:
-            return self.hoofdadres.adres()
+        # Fetch once as this evaluates an 1..M relation:
+        hoofdadres = self.hoofdadres
+        if hoofdadres:
+            return hoofdadres.adres()
         return "adres onbekend"
 
 
