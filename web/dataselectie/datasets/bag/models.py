@@ -663,11 +663,11 @@ class Standplaats(mixins.GeldigheidMixin,
 
     @property
     def _buurtcombinatie(self):
-        return self.buurt.buurtcombinatie if self.buurt else None
+        return self.buurt.buurtcombinatie if self.buurt_id else None
 
     @property
     def _stadsdeel(self):
-        return self.buurt.stadsdeel if self.buurt else None
+        return self.buurt.stadsdeel if self.buurt_id else None
 
     @property
     def _gemeente(self):
@@ -765,7 +765,7 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         return result
 
     # store pand for bouwblok reference
-    _pand = None
+    _pand = ...
 
     @property
     def willekeurig_pand(self):
@@ -773,13 +773,19 @@ class Verblijfsobject(mixins.GeldigheidMixin,
         Geeft het pand van dit verblijfsobject. Indien er meerdere
         panden zijn, wordt een willekeurig pand gekozen.
         """
-        if not self.panden.count():
-            return None
+        if self._pand is ...:
+            try:
+                # If there is a .prefetch_related() for panden, use that.
+                # Otherwise, the attribute doesn't exist
+                panden = self._prefetched_objects_cache['panden']
+            except (AttributeError, LookupError):
+                # Trying a query is less expensive then doing a .count()!
+                panden = self.panden.select_related('bouwblok')
 
-        if not self._pand:
-            self._pand = self.panden.select_related(
-                'bouwblok',
-            )[0]
+            try:
+                self._pand = panden[0]
+            except IndexError:
+                self._pand = None
 
         return self._pand
 
@@ -792,11 +798,11 @@ class Verblijfsobject(mixins.GeldigheidMixin,
 
     @property
     def _buurtcombinatie(self):
-        return self.buurt.buurtcombinatie if self.buurt else None
+        return self.buurt.buurtcombinatie if self.buurt_id else None
 
     @property
     def _stadsdeel(self):
-        return self.buurt.stadsdeel if self.buurt else None
+        return self.buurt.stadsdeel if self.buurt_id else None
 
     @property
     def _gemeente(self):
@@ -850,7 +856,7 @@ class Pand(
 
     @property
     def _buurt(self):
-        return self.bouwblok.buurt if self.bouwblok else None
+        return self.bouwblok.buurt if self.bouwblok_id else None
 
     @property
     def _buurtcombinatie(self):
@@ -946,3 +952,64 @@ class Unesco(mixins.ImportStatusMixin, models.Model):
 
     def __str__(self):
         return "{}".format(self.naam)
+
+
+def prefetch_adresseerbaar_objects(relation=None):
+    """
+    Return all prefetch fields to index "NummerAanduiding.adresseerbaarobject.
+
+    This expands to various things like "ligplaats", "standplaats" and "verblijfobject"
+    because one of these is returned by `NummerAanduiding.adresseerbaar_object`.
+
+    :param relation: This can be "nummeraanduiding" when the object is references by another.
+
+    When the "relation=nummeraanduiding" is passed, the returned
+    value resembles the following prefetch_related() list::
+
+        [
+            'nummeraanduiding',
+            'nummeraanduiding__ligplaats',
+            'nummeraanduiding__ligplaats__buurt',
+            'nummeraanduiding__ligplaats__buurt__buurtcombinatie',
+            'nummeraanduiding__ligplaats__buurt__stadsdeel',
+            'nummeraanduiding__ligplaats___gebiedsgerichtwerken',
+            'nummeraanduiding__ligplaats___grootstedelijkgebied',
+            'nummeraanduiding__standplaats',
+            'nummeraanduiding__standplaats__buurt',
+            'nummeraanduiding__standplaats__buurt__buurtcombinatie',
+            'nummeraanduiding__standplaats__buurt__stadsdeel',
+            'nummeraanduiding__standplaats___gebiedsgerichtwerken',
+            'nummeraanduiding__standplaats___grootstedelijkgebied',
+            'nummeraanduiding__verblijfsobject',
+            'nummeraanduiding__verblijfsobject__buurt',
+            'nummeraanduiding__verblijfsobject__buurt__buurtcombinatie',
+            'nummeraanduiding__verblijfsobject__buurt__stadsdeel',
+            'nummeraanduiding__verblijfsobject___gebiedsgerichtwerken',
+            'nummeraanduiding__verblijfsobject___grootstedelijkgebied',
+        ]
+
+    ...but without geometry fields querying using the django `Prefetch()` object.
+    """
+    # The Prefetch() objects further limit the results to avoid fetching unneeded geo data.
+    prefetches = []
+    for child_relation in ('standplaats', 'ligplaats', 'verblijfsobject'):
+        prefix = f"{relation}__{child_relation}" if relation else child_relation
+        prefetches.extend([
+            f'{prefix}',
+            f'{prefix}__buurt',
+            models.Prefetch(
+                f'{prefix}__buurt__buurtcombinatie',
+                queryset=Buurtcombinatie.objects.defer('geometrie')
+            ),
+            f'{prefix}__buurt__stadsdeel',
+            models.Prefetch(
+                f'{prefix}___gebiedsgerichtwerken',
+                queryset=Gebiedsgerichtwerken.objects.defer('geometrie'),
+            ),
+            models.Prefetch(
+                f'{prefix}___grootstedelijkgebied',
+                queryset=Grootstedelijkgebied.objects.defer('geometrie'),
+            ),
+        ])
+
+    return prefetches
