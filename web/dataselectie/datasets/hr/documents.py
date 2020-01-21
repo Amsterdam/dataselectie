@@ -27,7 +27,7 @@ autocomplete = es.analyzer(
 )
 
 
-class Inschrijving(es.DocType):
+class Inschrijving(es.Document):
     """
     Elastic data of 'vestigingen' or 'mac'
     from handelsregister

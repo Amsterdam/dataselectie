@@ -28,7 +28,7 @@ def _cleanup(s: str):
     return s
 
 
-class Eigendom(es.DocType):
+class Eigendom(es.Document):
     class Meta:
         # all = es.MetaField(enabled=False)
         doc_type = 'eigendom'

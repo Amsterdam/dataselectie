@@ -12,7 +12,7 @@ from datasets.generic.views_mixins import stringify_item_value
 log = logging.getLogger(__name__)
 
 
-class Nummeraanduiding(es.DocType):
+class Nummeraanduiding(es.Document):
     """
     Elastic doc for all meta of a nummeraanduiding.
     Used in the dataselectie portal

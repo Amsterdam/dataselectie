@@ -70,7 +70,7 @@ class CreateDocTypeTask(object):
         idx = es.Index(self.index)
 
         for dt in self.doc_types:
-            idx.doc_type(dt)
+            idx.document(dt)
         idx.create()
         idx.refresh()
 
