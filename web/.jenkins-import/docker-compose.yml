@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: dataselectie
       POSTGRES_DB: dataselectie
       POSTGRES_PASSWORD: insecure
-      ENVIRONMENT: acceptance
+      ENVIRONMENT:
     volumes:
       - ./backups/database:/tmp/backups
     extra_hosts:
