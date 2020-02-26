@@ -21,7 +21,7 @@ services:
     shm_size: '8gb'
 
   importer:
-    image: repo.data.amsterdam.nl/datapunt/dataselectie:${ENVIRONMENT}
+    image: ${DOCKER_REGISTRY_HOST}/datapunt/dataselectie:${ENVIRONMENT}
     links:
       - elasticsearch:elasticsearch
       - database:database
