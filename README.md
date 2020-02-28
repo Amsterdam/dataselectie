@@ -14,7 +14,7 @@ data in andere services om ze in een andere manier te bieden.
 Voor HR (Handelsregister) wordt gebruik gemaakt van brondata gegenereerd in HR, waarbij de index in Dataselectie is opgenomen.
 De koppeling is gerealiseerd door een tabel met als id vestiging_id en de api-json die gepresenteerd moet worden.
 In Elastic is een 1 op n opgenomen, waarbij er n vestigingen (HR) per locatie (BAG) zijn opgenomen.
-Omdat elastic alleen tellingen kan maken van parent naar child is de selectie in elastic en wordt teruggewerkt
+Omdat Elastic alleen tellingen kan maken van parent naar child is de selectie in Elastic en wordt teruggewerkt
 naar vestigingen.
 
 ### Project setup
@@ -27,7 +27,7 @@ Die moeten ook via docker compose starten.
 ### Lokaal setup
 Lokale setup voor Dataselectie
 
-`Let op dat dat er voldoende geheugen gealloceerd is voor elasticsearch docker (min. 4GB)`
+`Let op dat dat er voldoende geheugen gealloceerd is voor Elasticsearch docker (min. 4GB)`
 
 ```
 $ docker-compose up -d
