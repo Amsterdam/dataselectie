@@ -1,31 +1,31 @@
 # dataselectie
-De dataselectie service maak het mogelijk om collecties te selecteren uit de datapunt data.
+De service Dataselectie maakt het mogelijk om collecties te selecteren uit de Datapunt data.
 
 ## Gebruik doelen
-Via [Data en Informatie](http://data.amsterdam.nl) is het mogelijk om met enkel object te werken. Echter is er binnen gemeente Amsterdam
-ook een behoefte om een collectie te kunnen selecteren (b.v. een alles nummeraanduidingen binnen een buurtcombinatie) om
-mee te werken. De dataselectie is de interface voor dat behoefte. Het is ook een andere manier om de data die via Atlas beschikbaar
+Via [Data en Informatie](http://data.amsterdam.nl) is het mogelijk om met een enkel object te werken. Echter is er binnen de gemeente Amsterdam
+ook een behoefte om een collectie te kunnen selecteren (b.v. nummeraanduidingen binnen een buurtcombinatie) om
+mee te werken. Dataselectie is de interface voor die behoefte. Het is ook een andere manier om de data die via Data en Informatie beschikbaar
 is te vertonen in een tabel format i.p.v op een kaart.
 
 ## Technische beschrijving
-De dataselectie service is een indexeren en zoeken service boven op data van andere services. Het maakt gebruik van de
+De dataselectie service is een indexeren- en zoeken-service boven op data van andere services. Het maakt gebruik van de
 data in andere services om ze in een andere manier te bieden.
 
-Voor hr wordt gebruik gemaakt van brondata gegenereerd in hr, waarbij de index in dataselectie is opgenomen.
+Voor HR (Handelsregister) wordt gebruik gemaakt van brondata gegenereerd in HR, waarbij de index in Dataselectie is opgenomen.
 De koppeling is gerealiseerd door een tabel met als id vestiging_id en de api-json die gepresenteerd moet worden.
-In elastic is een 1 op n opgenomen, waarbij er n vestigingen (hr) per locatie (bag) zijn opgenomen.
+In Elastic is een 1 op n opgenomen, waarbij er n vestigingen (HR) per locatie (BAG) zijn opgenomen.
 Omdat elastic alleen tellingen kan maken van parent naar child is de selectie in elastic en wordt teruggewerkt
 naar vestigingen.
 
 ### Project setup
-De dataselectie gebruikt data van de andere services en heeft geen eigen import process.
-dataselectie maakt wel een eigen indices in elastic.
+Dataselectie gebruikt data van de andere services en heeft geen eigen import process.
+Het maakt wel eigen indices in Elastic.
 
-Op dit moment worden de bag, hr en brk databases gebruikt, omdat daar de data is opgeslagen.
-Die moet ook via docker compose starten.
+Op dit moment worden de BAG, HR en BRK databases gebruikt, omdat daar de data is opgeslagen.
+Die moeten ook via docker compose starten.
 
 ### Lokaal setup
-Lokale setup voor dataselectie
+Lokale setup voor Dataselectie
 
 `Let op dat dat er voldoende geheugen gealloceerd is voor elasticsearch docker (min. 4GB)`
 
@@ -50,7 +50,7 @@ $ docker-compose exec -T dataselectie python manage.py elastic_indices --recreat
 $ docker-compose exec -T dataselectie python manage.py elastic_indices --build
 ```
 
-Je kan ook `--partial=1/1000` toevoegen om een partiële index to maken.
+Je kan ook `--partial=1/1000` toevoegen om een partiële index te maken.
 
 ### API Authorizatie
 
