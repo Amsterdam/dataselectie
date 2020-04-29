@@ -82,7 +82,7 @@ class BagCSV(BagBase, CSVExportView):
         ('huisletter', 'Huisletter'),
         ('huisnummer_toevoeging', 'Huisnummertoevoeging'),
         ('postcode', 'Postcode'),
-        ('gemeente', 'Woonplaats'),
+        ('woonplaats', 'Woonplaats'),
         ('stadsdeel_naam', 'Naam stadsdeel'),
         ('stadsdeel_code', 'Code stadsdeel'),
         ('ggw_naam', 'Naam gebiedsgerichtwerkengebied'),
