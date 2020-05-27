@@ -10,6 +10,7 @@ from datetime import date, datetime
 from typing import Generator
 
 from django.conf import settings
+from django.contrib.gis.geos import GEOSGeometry
 from django.http import HttpResponse, StreamingHttpResponse
 from django.views.generic import View
 from elasticsearch import Elasticsearch
@@ -61,6 +62,38 @@ def stringify_item_value(value) -> str:
             except:
                 pass
         return ''
+
+
+def create_geometry_dict(item):
+    """
+    Creates a geometry dict that can be used to add
+    geometry information to the result set
+
+    Returns a dict with geometry information if one
+    can be created. If not, an empty dict is returned
+    """
+    res = {}
+    try:
+        geom_wgs = GEOSGeometry(
+            f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
+    except(AttributeError, KeyError):
+        geom_wgs = None
+
+    if geom_wgs:
+        # Convert to wgs
+        geom = geom_wgs.transform(28992, clone=True).coords
+        geom_wgs = geom_wgs.coords
+        res = {
+            'geometrie_rd_x': int(geom[0]),
+            'geometrie_rd_y': int(geom[1]),
+            'geometrie_wgs_lat': (
+                '{:.7f}'.format(geom_wgs[1])).replace('.', ','),
+
+            'geometrie_wgs_lon': (
+                '{:.7f}'.format(geom_wgs[0])).replace('.', ',')
+
+        }
+        item.update(res)
 
 
 class SingleDispatchMixin(object):
