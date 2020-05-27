@@ -6,7 +6,7 @@ from django.conf import settings
 
 import authorization_levels
 
-from datasets.generic.views_mixins import CSVExportView
+from datasets.generic.views_mixins import CSVExportView, create_geometry_dict
 from datasets.generic.views_mixins import GeoLocationSearchView
 from datasets.generic.views_mixins import TableSearchView
 from datasets.generic.views_mixins import stringify_item_value
@@ -174,9 +174,10 @@ class HrCSV(HrBase, CSVExportView):
         ('rechtsvorm', 'Rechtsvorm'),
         ('aantal_werkzame_personen', 'Werkzame personen'),
         ('adresseerbaar_object_id', 'Adresseerbaar object ID'),
-        # ('centroid', 'lon/lat locatie'),
-        ('lon', 'longitude'),
-        ('lat', 'latitude'),
+        ('geometrie_rd_x', 'X-coordinaat (RD)'),
+        ('geometrie_rd_y', 'Y-coordinaat (RD)'),
+        ('geometrie_wgs_lat', 'Latitude (WGS84)'),
+        ('geometrie_wgs_lon', 'Longitude (WGS84)'),
     )
 
     field_names = [h[0] for h in fields_and_headers]
@@ -197,11 +198,7 @@ class HrCSV(HrBase, CSVExportView):
             date = parse(datum_aanvang)
             item['datum_aanvang'] = date.strftime('%Y-%m-%d')
 
-        if item.get('centroid'):
-            lon, lat = item['centroid']
-            item['lon'] = float(lon)
-            item['lat'] = float(lat)
-
+        create_geometry_dict(item)
         return item
 
     def sanitize_fields(self, item, field_names):
