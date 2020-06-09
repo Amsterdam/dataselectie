@@ -396,34 +396,38 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
         """
         pass
 
-    def paginate(self, offset: int, q: dict) -> dict:
-        # Sanity check to make sure we do not pass 10000
-        if offset and settings.MAX_SEARCH_ITEMS:
-            if q['size'] + offset > settings.MAX_SEARCH_ITEMS:
-                size = settings.MAX_SEARCH_ITEMS - offset
-                q['size'] = size if size > 0 else 0
-        return q
-
     def handle_query_size_offset(self, query: dict) -> dict:
         """
-        Handles query size and offseting
+        Handles query size and offsets
         """
-        # Adding sizing if not given
+        # Adding sizing if not given. In bag we also accept page_size parameter
+        size = self.request_parameters.get('size', self.request_parameters.get('page_size', None))
+        if size:
+            try:
+                size = int(size)
+            except ValueError:
+                raise ValueError(f"Invalid size {size}")
+            if size < 1 or size > settings.MAX_SEARCH_ITEMS:
+                raise ValueError(f"Invalid size {size}. Should be between 1 and {settings.MAX_SEARCH_ITEMS}")
+            if size:
+                self.preview_size = size
+
         if 'size' not in query and self.preview_size:
             query['size'] = self.preview_size
-        # Adding offset in case of paging
-        offset = self.request_parameters.get('page', None)
-        if offset:
+        page = self.request_parameters.get('page', None)
+        if page and self.preview_size:
             try:
-                int_offset = int(offset)
+                page = int(page)
             except ValueError:
-                int_offset = 1
-            if int_offset > 100:
-                int_offset = 100
-            offset = (int_offset - 1) * settings.SEARCH_PREVIEW_SIZE
-            if offset > 1:
+                raise ValueError(f"Invalid page {page}")
+            if page * self.preview_size > settings.MAX_SEARCH_ITEMS:
+                raise ValueError(f"Invalid page:{page}, size:{self.preview_size}, page * size > {settings.MAX_SEARCH_ITEMS}")
+            elif page < 1:
+                raise ValueError(f"Invalid page {page}. Cannot be less then 1")
+            offset = (page - 1) * self.preview_size
+            if offset > 0:
                 query['from'] = offset
-        return self.paginate(offset, query)
+        return query
 
     def filter_data(self, elastic_data, request):
         """
