@@ -11,7 +11,7 @@ from typing import Generator
 
 from django.conf import settings
 from django.contrib.gis.geos import GEOSGeometry
-from django.http import HttpResponse, StreamingHttpResponse
+from django.http import HttpResponse, StreamingHttpResponse, HttpResponseBadRequest
 from django.views.generic import View
 from elasticsearch import Elasticsearch
 from elasticsearch.helpers import scan
@@ -96,6 +96,10 @@ def create_geometry_dict(item):
         item.update(res)
 
 
+class InvalidParameter(Exception):
+    pass
+
+
 class SingleDispatchMixin(object):
     """
     Checks only allowed methods are handled
@@ -110,15 +114,26 @@ class SingleDispatchMixin(object):
         and GET request. dispatch is overwritten to always go
         to the same handler
         """
-        if self.request.method == 'OPTIONS':
-            return super(SingleDispatchMixin, self).dispatch(request, *args,
-                                                             **kwargs)
-        if self.request.method in self.http_methods_allowed:
-            self.request_parameters = getattr(request, request.method)
-            data = self.handle_request(request, *args, **kwargs)
-            return self.render_to_response(request, data)
+        try:
+            if self.request.method == 'OPTIONS':
+                return super(SingleDispatchMixin, self).dispatch(request, *args,
+                                                                 **kwargs)
+            if self.request.method in self.http_methods_allowed:
+                self.request_parameters = getattr(request, request.method)
+                data = self.handle_request(request, *args, **kwargs)
+                return self.render_to_response(request, data)
 
-        return self.http_method_not_allowed(request, *args, **kwargs)
+            return self.http_method_not_allowed(request, *args, **kwargs)
+        except Exception as exc:
+            if isinstance(exc, InvalidParameter):
+                response = {
+                    'message': 'Bad Request (400)',
+                    'detail': str(exc)
+                }
+                return HttpResponseBadRequest(json.dumps(response), content_type='application/json')
+            else:
+                raise exc
+
 
     def render_to_response(self, request, response):
         return HttpResponse(json.dumps(response),
@@ -406,9 +421,9 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
             try:
                 size = int(size)
             except ValueError:
-                raise ValueError(f"Invalid size {size}")
+                raise InvalidParameter(f"Invalid size {size}")
             if size < 1 or size > settings.MAX_SEARCH_ITEMS:
-                raise ValueError(f"Invalid size {size}. Should be between 1 and {settings.MAX_SEARCH_ITEMS}")
+                raise InvalidParameter(f"Invalid size {size}. Should be between 1 and {settings.MAX_SEARCH_ITEMS}")
             if size:
                 self.preview_size = size
 
@@ -419,11 +434,11 @@ class TableSearchView(ElasticSearchMixin, SingleDispatchMixin, View):
             try:
                 page = int(page)
             except ValueError:
-                raise ValueError(f"Invalid page {page}")
+                raise InvalidParameter(f"Invalid page {page}")
             if page * self.preview_size > settings.MAX_SEARCH_ITEMS:
-                raise ValueError(f"Invalid page:{page}, size:{self.preview_size}, page * size > {settings.MAX_SEARCH_ITEMS}")
+                raise InvalidParameter(f"Invalid page:{page}, size:{self.preview_size}, page * size > {settings.MAX_SEARCH_ITEMS}")
             elif page < 1:
-                raise ValueError(f"Invalid page {page}. Cannot be less then 1")
+                raise InvalidParameter(f"Invalid page {page}. Cannot be less then 1")
             offset = (page - 1) * self.preview_size
             if offset > 0:
                 query['from'] = offset
