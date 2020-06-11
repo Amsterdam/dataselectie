@@ -74,6 +74,7 @@ class Nummeraanduiding(es.Document):
     oppervlakte = es.Integer()
     bouwblok = es.Keyword()
     gebruik = es.Keyword()
+    eigendomsverhouding = es.Keyword()
 
     # Only for CSV
     panden = es.Keyword()  # id values
@@ -173,6 +174,7 @@ def add_verblijfsobject_data(doc: Nummeraanduiding, vbo: models.Verblijfsobject)
         ('bouwlagen', 'bouwlagen'),
         ('hoogste_bouwlaag', 'hoogste_bouwlaag'),
         ('laagste_bouwlaag', 'laagste_bouwlaag'),
+        ('eigendomsverhouding', 'eigendomsverhouding'),
     ]
     update_doc_from_param_list(doc, vbo, verblijfsobject_extra)
 

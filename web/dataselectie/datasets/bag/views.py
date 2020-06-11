@@ -76,6 +76,7 @@ class BagCSV(BagBase, CSVExportView):
         ('laagste_bouwlaag', 'Laagste bouwlaag'),
         ('oppervlakte', 'Oppervlakte (m2)'),
         ('bouwjaar', 'Oorspronkelijk bouwjaar'),
+        ('eigendomsverhouding', 'Eigendomsverhouding'),
         ('pandnaam', "Naam pand"),
         ('type_woonobject', "Type woonobject"),
         ('ligging', "Ligging"),
