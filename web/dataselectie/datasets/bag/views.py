@@ -1,44 +1,10 @@
 # Packages
-from django.contrib.gis.geos import GEOSGeometry
-
 from datasets.bag import models
 from datasets.bag.queries import meta_q
 
-from datasets.generic.views_mixins import CSVExportView
+from datasets.generic.views_mixins import CSVExportView, create_geometry_dict
 from datasets.generic.views_mixins import GeoLocationSearchView
 from datasets.generic.views_mixins import TableSearchView
-
-
-def create_geometry_dict(item):
-    """
-    Creates a geometry dict that can be used to add
-    geometry information to the result set
-
-    Returns a dict with geometry information if one
-    can be created. If not, an empty dict is returned
-    """
-    res = {}
-    try:
-        geom_wgs = GEOSGeometry(
-            f"POINT ({item['centroid'][0]} {item['centroid'][1]}) ", srid=4326)
-    except(AttributeError, KeyError):
-        geom_wgs = None
-
-    if geom_wgs:
-        # Convert to wgs
-        geom = geom_wgs.transform(28992, clone=True).coords
-        geom_wgs = geom_wgs.coords
-        res = {
-            'geometrie_rd_x': int(geom[0]),
-            'geometrie_rd_y': int(geom[1]),
-            'geometrie_wgs_lat': (
-                '{:.7f}'.format(geom_wgs[1])).replace('.', ','),
-
-            'geometrie_wgs_lon': (
-                '{:.7f}'.format(geom_wgs[0])).replace('.', ',')
-
-        }
-        item.update(res)
 
 
 class BagBase(object):
@@ -82,7 +48,7 @@ class BagCSV(BagBase, CSVExportView):
         ('huisletter', 'Huisletter'),
         ('huisnummer_toevoeging', 'Huisnummertoevoeging'),
         ('postcode', 'Postcode'),
-        ('gemeente', 'Woonplaats'),
+        ('woonplaats', 'Woonplaats'),
         ('stadsdeel_naam', 'Naam stadsdeel'),
         ('stadsdeel_code', 'Code stadsdeel'),
         ('ggw_naam', 'Naam gebiedsgerichtwerkengebied'),
@@ -110,6 +76,7 @@ class BagCSV(BagBase, CSVExportView):
         ('laagste_bouwlaag', 'Laagste bouwlaag'),
         ('oppervlakte', 'Oppervlakte (m2)'),
         ('bouwjaar', 'Oorspronkelijk bouwjaar'),
+        ('eigendomsverhouding', 'Eigendomsverhouding'),
         ('pandnaam', "Naam pand"),
         ('type_woonobject', "Type woonobject"),
         ('ligging', "Ligging"),
