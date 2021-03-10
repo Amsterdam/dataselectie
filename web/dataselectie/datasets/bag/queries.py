@@ -35,6 +35,13 @@ def create_aggs():
     agg_size = settings.AGGS_VALUE_SIZE
     aggs = {
         'aggs': {
+             'woonplaats': {
+                 'terms': {
+                     'field': 'woonplaats',
+                     'size': agg_size,
+                     'order': {'_term': 'asc'},
+                 },
+             },
             'postcode': {
                 'terms': {
                     'field': 'postcode',
