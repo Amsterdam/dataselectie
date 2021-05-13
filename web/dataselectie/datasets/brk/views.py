@@ -2,6 +2,7 @@ import authorization_levels
 from django.contrib.gis.db.models import Union, Extent
 from django.contrib.gis.geos import Polygon
 from django.core.exceptions import PermissionDenied
+from django.conf import settings
 from django.db import connection
 from rest_framework import generics
 from rest_framework import status
@@ -269,19 +270,59 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
             raise PermissionDenied("scope BRK/RSN required")
         return super().handle_request(request, *args, **kwargs)
 
-    def filter_data(self, elastic_data, request):
+    def load_from_elastic(self) -> dict:
         """
-        Remove duplicate kadastraal_object_id from object_list
+        Overwrite method of TableSearchView.load_from_elastic.
+        This overwrite make the result of kadastraal ID's unique
+        Due to that multiple addresses can be related to one kadastraal ID
+        that causes the kadastraal ID to appear more than once.
         """
-        new_object_list = []
-        kot_unique = set()
-        for object in elastic_data['object_list']:
-            kadastraal_object_id = object['kadastraal_object_id']
-            if kadastraal_object_id not in kot_unique:
-                new_object_list.append(object)
-                kot_unique.add(kadastraal_object_id)
+        # looking for a query
+        query_string = self.request_parameters.get('query', None)
 
-        elastic_data['object_list'] = new_object_list
+        # Building the query
+        q = self.elastic_query(query_string)
+        query = self.add_elastic_filters(q)
+
+        # remove size filter
+        # because after manipulating the result for unique kadastraal IDs
+        # the returned rows must be restricted by the size paramater
+        # not before.
+        param_size = query['size']
+        query['size'] = settings.MAX_SEARCH_ITEMS
+
+        # Performing the search
+        response = self.elastic.search(
+            index=settings.ELASTIC_INDICES[self.index], body=query)
+
+        # identify unique kadastraal objects
+        kadastraal_unique_set = set()
+        objects_to_delete_list = []
+        for item in response['hits']['hits']:
+            if item['_source']['kadastraal_object_id'] not in kadastraal_unique_set:
+                kadastraal_unique_set.add(item['_source']['kadastraal_object_id'])
+            else:
+                objects_to_delete_list.append(item)
+
+        # remove duplicate kadastraal objects
+        for kadastraal_obj in objects_to_delete_list:
+            response['hits']['hits'].remove(kadastraal_obj)
+
+        elastic_data = {
+            'aggs_list': self.process_aggs(response.get('aggregations', {})),
+            'object_list': [
+                            item['_source'] for item in
+                            response['hits']['hits'][:param_size]
+                            ],
+            'object_count': response['hits']['total']}
+
+        try:
+            elastic_data.update(
+                self.add_page_counters(int(elastic_data['object_count'])))
+        except TypeError:
+            # There is no definition for the preview size
+            pass
+
         return elastic_data
 
     def elastic_query(self, query):
