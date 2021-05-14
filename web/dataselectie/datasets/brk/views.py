@@ -284,12 +284,17 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
         q = self.elastic_query(query_string)
         query = self.add_elastic_filters(q)
 
-        # remove size filter
+        # remove size and page filter
         # because after manipulating the result for unique kadastraal IDs
-        # the returned rows must be restricted by the size paramater
+        # the returned rows must be restricted by the size and page paramaters
         # not before.
         param_size = query['size']
+        offset = (int(self.request_parameters.get('page', 1)) - 1) * param_size
+        param_size = param_size * int(self.request_parameters.get('page', 1)) if offset > 0 else param_size
+
+        # reset orginal param values (the param_size and offset are used now)
         query['size'] = settings.MAX_SEARCH_ITEMS
+        query['from'] = 0
 
         # Performing the search
         response = self.elastic.search(
@@ -311,8 +316,10 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
         elastic_data = {
             'aggs_list': self.process_aggs(response.get('aggregations', {})),
             'object_list': [
+
                             item['_source'] for item in
-                            response['hits']['hits'][:param_size]
+                            response['hits']['hits'][offset:param_size]
+
                             ],
             'object_count': response['hits']['total']}
 
