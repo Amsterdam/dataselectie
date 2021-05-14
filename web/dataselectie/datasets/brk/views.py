@@ -289,8 +289,12 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
         # the returned rows must be restricted by the size and page paramaters
         # not before.
         param_size = query['size']
-        offset = (int(self.request_parameters.get('page', 1)) - 1) * param_size
-        param_size = param_size * int(self.request_parameters.get('page', 1)) if offset > 0 else param_size
+        try:
+            param_page = int(self.request_parameters.get('page', 1))
+        except ValueError:
+            param_page = 1
+        offset = (param_page - 1) * param_size
+        size = param_size * param_page if offset > 0 else param_size
 
         # reset orginal param values (the param_size and offset are used now)
         query['size'] = settings.MAX_SEARCH_ITEMS
