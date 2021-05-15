@@ -458,14 +458,6 @@ class FilterApiTestMultipleOutput(ESTestCase, AuthorizationSetup):
 
     @classmethod
     def setUpTestData(cls):
-        # super(ESTestCase, cls).setUpTestData()
-
-        bag.create_gemeente_fixture()
-        bag.create_buurt_combinaties()
-        bag.create_buurt_fixtures()
-        bag.create_gebiedsgericht_werken_fixtures()
-        bag.create_stadsdeel_fixtures()
-
         create_brk_data()
         # create 10 objects in the database
         eigendom = brk.create_eigendommen(10)
