@@ -453,3 +453,35 @@ class FilterApiTest(ESTestCase, AuthorizationSetup):
                                **self.header_auth_scope_brk_plus)
         result = response.json()
         self.assertEqual(result['object_count'], 0)
+
+class FilterApiTestMultipleOutput(ESTestCase, AuthorizationSetup):
+
+    @classmethod
+    def setUpTestData(cls):
+        # super(ESTestCase, cls).setUpTestData()
+
+        bag.create_gemeente_fixture()
+        bag.create_buurt_combinaties()
+        bag.create_buurt_fixtures()
+        bag.create_gebiedsgericht_werken_fixtures()
+        bag.create_stadsdeel_fixtures()
+
+        create_brk_data()
+        # create 10 objects in the database
+        eigendom = brk.create_eigendommen(10)
+        cls.kots = [kot[0].kadastraal_object for kot in eigendom]
+        brk.create_geo_tables()
+        cls.rebuild_elastic_index()
+
+    def test_api_search_filter_size(self):
+        """Prove that size param returns number of objects specified
+        """
+        q = {'size': '5'}
+        self.client = Client()
+        self.setup_authorization()
+        response = self.client.get(BRK_BASE_QUERY.format(urlencode(q)),
+                                    **self.header_auth_scope_brk_plus)
+        result = response.json()
+        num_of_objects =  len(result['object_list'])
+        self.assertEqual(num_of_objects, 5)
+        self.assertEqual(result['object_count'], 10)

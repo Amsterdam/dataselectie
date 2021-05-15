@@ -1,5 +1,6 @@
 import json
 import logging
+import random
 
 import factory
 import faker
@@ -298,6 +299,36 @@ def create_eigendom1():
         )
     ]
 
+def create_eigendommen(number_of_instances: int) -> list:
+    """
+    depends on kadastraal object and categroie fixtures
+    args:
+        number_of_instances: number of objects to create
+    :return: a list of eigendom objects
+    """
+    number_of_instances = number_of_instances + 1
+    create_eigenaar_categorie()
+    kadastraal_objects = [create_kadastraal_object for _ in range(1,number_of_instances) ]
+    kadastraal_subject = [EigenaarFactory.create() for _ in range(1,number_of_instances) ]
+    zakelijkrecht = [ZakelijkRechtFactory.create() for _ in range(1,number_of_instances) ]
+
+    eigendommen = []
+    for kot, zkr, ksb in zip(kadastraal_objects, zakelijkrecht, kadastraal_subject):
+
+        eigendommen.append(
+
+            models.Eigendom.objects.get_or_create(
+                zakelijk_recht=zkr,
+                kadastraal_subject=ksb,
+                kadastraal_object=kot,
+                eigenaar_categorie_id=random.randrange(1, 4, 2),
+                grondeigenaar=False,
+                aanschrijfbaar=False,
+                appartementeigenaar=True,
+            )
+    )
+
+    return eigendommen
 
 def create_eigenaar_categorie():
     return [
