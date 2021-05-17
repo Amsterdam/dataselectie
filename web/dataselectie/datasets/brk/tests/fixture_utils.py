@@ -254,7 +254,7 @@ def create_kadastraal_object1():
 
 def create_eigendom():
     """
-    depends on kadastraal object and categroie fixtures
+    depends on kadastraal object and categorie fixtures
     :return: a list of eigendom objects
     """
     create_eigenaar_categorie()
@@ -278,7 +278,7 @@ def create_eigendom():
 
 def create_eigendom1():
     """
-    depends on kadastraal object and categroie fixtures
+    depends on kadastraal object and categorie fixtures
     :return: a list of eigendom objects
     """
     create_eigenaar_categorie()
@@ -301,16 +301,16 @@ def create_eigendom1():
 
 def create_eigendommen(number_of_instances: int) -> list:
     """
-    depends on kadastraal object and categroie fixtures
+    depends on kadastraal object and categorie fixtures
     args:
         number_of_instances: number of objects to create
     :return: a list of eigendom objects
     """
-    number_of_instances = number_of_instances + 1
+    number_of_instances = number_of_instances
     create_eigenaar_categorie()
-    kadastraal_objects = [create_kadastraal_object for _ in range(1,number_of_instances) ]
-    kadastraal_subject = [EigenaarFactory.create() for _ in range(1,number_of_instances) ]
-    zakelijkrecht = [ZakelijkRechtFactory.create() for _ in range(1,number_of_instances) ]
+    kadastraal_objects = [create_kadastraal_object for _ in range(0,number_of_instances) ]
+    kadastraal_subject = [EigenaarFactory.create() for _ in range(0,number_of_instances) ]
+    zakelijkrecht = [ZakelijkRechtFactory.create() for _ in range(0,number_of_instances) ]
 
     eigendommen = []
     for kot, zkr, ksb in zip(kadastraal_objects, zakelijkrecht, kadastraal_subject):
