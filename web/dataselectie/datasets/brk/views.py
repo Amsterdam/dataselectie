@@ -284,45 +284,20 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
         q = self.elastic_query(query_string)
         query = self.add_elastic_filters(q)
 
-        # remove size and page filter
-        # because after manipulating the result for unique kadastraal IDs
-        # the returned rows must be restricted by the size and page paramaters
-        # not before.
-        param_size = query['size']
-        try:
-            param_page = int(self.request_parameters.get('page', 1))
-        except ValueError:
-            param_page = 1
-        offset = (param_page - 1) * param_size
-        size = param_size * param_page if offset > 0 else param_size
-
-        # reset orginal param values (the param_size and offset are used now)
-        query['size'] = settings.MAX_SEARCH_ITEMS
-        query['from'] = 0
+        # make sure that kadastraal_object_id is unique in the output
+        # by using collapse
+        query["collapse"] = {"field" : "kadastraal_object_id"}
 
         # Performing the search
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
-
-        # identify unique kadastraal objects
-        kadastraal_unique_set = set()
-        objects_to_delete_list = []
-        for item in response['hits']['hits']:
-            if item['_source']['kadastraal_object_id'] not in kadastraal_unique_set:
-                kadastraal_unique_set.add(item['_source']['kadastraal_object_id'])
-            else:
-                objects_to_delete_list.append(item)
-
-        # remove duplicate kadastraal objects
-        for kadastraal_obj in objects_to_delete_list:
-            response['hits']['hits'].remove(kadastraal_obj)
 
         elastic_data = {
             'aggs_list': self.process_aggs(response.get('aggregations', {})),
             'object_list': [
 
                             item['_source'] for item in
-                            response['hits']['hits'][offset:param_size]
+                            response['hits']['hits']
 
                             ],
             'object_count': response['hits']['total']}
