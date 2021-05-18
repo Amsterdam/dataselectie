@@ -476,4 +476,5 @@ class FilterApiTestMultipleOutput(ESTestCase, AuthorizationSetup):
         result = response.json()
         num_of_objects =  len(result['object_list'])
         self.assertEqual(num_of_objects, 5)
+        self.assertEqual(result['page_count'], 2)
         self.assertEqual(result['object_count'], 10)
