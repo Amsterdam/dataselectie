@@ -288,19 +288,24 @@ class BrkKotSearch(BrkAggBase, TableSearchView):
         # by using collapse
         query["collapse"] = {"field" : "kadastraal_object_id"}
 
+        # add count for total unique kadastraal objects
+        query["aggs"].update({"total_unique_objects": {"cardinality": {"field": "kadastraal_object_id"}}})
+
         # Performing the search
         response = self.elastic.search(
             index=settings.ELASTIC_INDICES[self.index], body=query)
 
         elastic_data = {
-            'aggs_list': self.process_aggs(response.get('aggregations', {})),
+            'aggs_list': self.process_aggs(
+                {k:v for k,v in response.get('aggregations', {}).items() if k != "total_unique_objects"}
+                ),
             'object_list': [
 
                             item['_source'] for item in
                             response['hits']['hits']
 
                             ],
-            'object_count': response['hits']['total']}
+            'object_count': response['aggregations']['total_unique_objects']['value']}
 
         try:
             elastic_data.update(
