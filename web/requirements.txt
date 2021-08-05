@@ -5,7 +5,7 @@ chardet==3.0.4
 cryptography==3.3.2
 datapunt-authorization-django==1.0.0
 datapunt-authorization-levels==0.1.3
-Django==2.2.21
+Django==2.2.24
 django-cors-headers==3.0.2
 django-filter==2.0.0
 django-jenkins==0.110.0
