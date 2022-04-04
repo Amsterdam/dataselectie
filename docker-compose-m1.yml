@@ -1,0 +1,46 @@
+version: '3.0'
+services:
+  elasticsearch:
+    # Due to a bug in QEMU, this elastic version and platform is required on
+    # Apple M1 processors.
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.8.23
+    platform: arm64
+    command: elasticsearch -Ehttp.host=0.0.0.0 -Etransport.host=127.0.0.1
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+        - "~/.ssh/datapunt.key:/root/.ssh/datapunt.key"
+
+  database:
+    image: amsterdam/postgres11
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_USER: dataselectie
+      POSTGRES_DB: dataselectie
+      POSTGRES_PASSWORD: insecure
+    volumes:
+        - "~/.ssh/datapunt.key:/root/.ssh/datapunt.key"
+
+  dataselectie:
+    build: ./web
+    links:
+      - elasticsearch
+      - database
+    ports:
+      - "8000:8000"
+    environment:
+      UWSGI_HTTP: ":8000"
+      UWSGI_MODULE: "dataselectie.wsgi:application"
+      UWSGI_PROCESSES: 4
+      UWSGI_MASTER: 1
+      UWSGI_STATIC_MAP: "/static=/static"
+      UWSGI_VACUUM: 1
+      UWSGI_HARAKIRI: 15
+      UWSGI_DIE_ON_TERM: 1
+      DATABASE_HOST_OVERRIDE: "database"
+      DATABASE_PORT_OVERRIDE: 5432
+      ELASTIC_HOST_OVERRIDE: elasticsearch
+    volumes:
+      - ./web/dataselectie:/app
