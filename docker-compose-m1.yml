@@ -42,3 +42,5 @@ services:
       DATABASE_HOST_OVERRIDE: "database"
       DATABASE_PORT_OVERRIDE: 5432
       ELASTIC_HOST_OVERRIDE: elasticsearch
+    volumes:
+      - ./web/dataselectie:/app
