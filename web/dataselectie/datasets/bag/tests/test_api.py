@@ -147,7 +147,7 @@ class DataselectieApiTest(ESTestCase):
         """
         Test the elastic while querying on field `buurtcombinatie_code`
         """
-        q = dict(page=1, buurtcombinatie_code='A01')
+        q = dict(page=1, buurtcombinatie_code='01')
         response = self.client.get('/dataselectie/bag/?{}'.format(urlencode(q)))
         self.assertEqual(response.status_code, 200)
 
