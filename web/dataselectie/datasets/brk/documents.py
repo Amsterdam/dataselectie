@@ -91,6 +91,7 @@ class Eigendom(es.Document):
     sjt_voorvoegsels = es.Keyword()
     sjt_geslachtsnaam = es.Keyword()
     sjt_naam = es.Keyword()
+    sjt_bsn = es.Keyword()
     sjt_geslacht_oms = es.Keyword()
     sjt_geboortedatum = es.Date()
     sjt_geboorteplaats = es.Keyword()
@@ -323,12 +324,13 @@ def doc_from_eigendom(eigendom: brk_models.Eigendom) -> Eigendom:
     kst = eigendom.kadastraal_subject
     if kst:
         doc.sjt_id = kst.id
-        doc.sjt_type =  brk_models.Eigenaar.SUBJECT_TYPE_CHOICES[kst.type][1]
+        doc.sjt_type = brk_models.Eigenaar.SUBJECT_TYPE_CHOICES[kst.type][1]
         doc.sjt_voornamen = kst.voornamen
         doc.sjt_voorvoegsels = kst.voorvoegsels
         if kst.is_natuurlijk_persoon():
             doc.sjt_geslachtsnaam = kst.naam
             doc.sjt_naam = kst.volledige_naam()
+            doc.sjt_bsn = kst.bsn
         doc.sjt_geslacht_omschrijving = get_omschrijving(brk_models.Geslacht, kst.geslacht_id)
         doc.sjt_geboortedatum = get_date(kst.geboortedatum)
         doc.sjt_geboorteplaats = kst.geboorteplaats
