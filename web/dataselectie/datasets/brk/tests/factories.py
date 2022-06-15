@@ -203,6 +203,7 @@ CREATE TABLE public.brk_eigenaar (
     voornamen character varying(200),
     voorvoegsels character varying(10),
     naam character varying(200),
+    bsn character varying(90),
     geboortedatum character varying(50),
     geboorteplaats character varying(80),
     overlijdensdatum character varying(50),
