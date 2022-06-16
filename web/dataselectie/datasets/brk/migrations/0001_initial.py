@@ -67,6 +67,7 @@ class Migration(migrations.Migration):
                 ('voornamen', models.CharField(max_length=200, null=True)),
                 ('voorvoegsels', models.CharField(max_length=10, null=True)),
                 ('naam', models.CharField(max_length=200, null=True)),
+                ('bsn', models.CharField(max_length=90, null=True)),
                 ('geboortedatum', models.CharField(max_length=50, null=True)),
                 ('geboorteplaats', models.CharField(max_length=80, null=True)),
                 ('overlijdensdatum', models.CharField(max_length=50, null=True)),
