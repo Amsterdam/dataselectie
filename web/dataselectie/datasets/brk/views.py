@@ -355,6 +355,7 @@ class BrkCSV(BrkBase, CSVExportView):
         ('zakelijk_recht_aandeel', 'Aandeel zakelijk recht'),
         ('sjt_type', 'Type subject'),
         ('sjt_voornamen', 'Voornamen'),
+        ('sjt_bsn', 'BSN'),
         ('sjt_voorvoegsels', 'Voorvoegsels'),
         ('sjt_geslachtsnaam', 'Geslachtsnaam'),
         ('sjt_geboortedatum', 'Geboortedatum'),
