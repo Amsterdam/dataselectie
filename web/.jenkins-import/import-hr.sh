@@ -21,6 +21,8 @@ dc build
 rm -rf ${DIR}/backups
 mkdir -p ${DIR}/backups
 
+# Retry once when docker-compose pull fails due to network errors
+dc pull database elasticsearch || dc pull database elasticsearch
 dc up -d database elasticsearch
 dc run --rm importer bash /app/docker-wait.sh
 
