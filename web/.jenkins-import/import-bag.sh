@@ -32,9 +32,9 @@ dc run --rm importer python manage.py import --bagdbindexes
 dc run --rm importer python manage.py import --bagdbconstraints
 
 dc run --rm importer python manage.py migrate contenttypes
-dc run --rm importer python manage.py elastic_indices --recreate bag
 
-# create dataselectie BAG indexes
+# Create dataselectie BAG indexes
+dc run --rm importer python manage.py elastic_indices --recreate bag
 dc run --rm importer bash docker-index-bag.sh
 
 dc run --rm elasticsearch chmod -R 777 /tmp/backups

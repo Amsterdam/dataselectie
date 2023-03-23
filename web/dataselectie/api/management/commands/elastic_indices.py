@@ -71,15 +71,12 @@ class Command(BaseCommand):
 
         set_partial_config(options)
 
-        for ds in sets:
-            if options['recreate_indexes']:
-                if ds in self.recreate_indexes:
-                    for job_class in self.recreate_indexes[ds]:
-                        batch.execute(job_class())
-                # we do not run the other tasks
-                continue  # to next dataset please..
-
-            if options['build']:
+        if options['recreate_indexes']:
+            for ds in sets:
+                for job_class in self.recreate_indexes[ds]:
+                    batch.execute(job_class())
+        if options['build']:
+            for ds in sets:
                 for job_class in self.datasetcommands[ds]:
                     batch.execute(job_class(), )
 

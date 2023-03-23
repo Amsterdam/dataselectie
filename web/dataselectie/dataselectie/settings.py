@@ -19,6 +19,7 @@ from dataselectie._settings_databases import *  # noqa F403
 
 from dataselectie.utils import get_variable
 from dataselectie.utils import get_db_settings
+from pathlib import Path
 
 
 DATAPUNT_API_URL = os.getenv(
@@ -78,6 +79,9 @@ DATABASE_OPTIONS = {
 DATABASES = {
     'default': DATABASE_OPTIONS[get_database_key()]
 }
+
+if os.getenv("AZURE", False):
+    DATABASES["default"]["PASSWORD"] = Path(os.environ["DATABASE_PW_LOCATION"]).open().read()
 
 ELASTIC_SEARCH_HOSTS = ["{}:{}".format(
     get_variable('ELASTIC_HOST_OVERRIDE', 'elasticsearch', 'localhost'),
