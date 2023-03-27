@@ -29,6 +29,7 @@ dataselection_sql_commands = [
 
     #   Linkup-table:
     #       all geometries from Registered properties grouped into their encompassing bag_buurt
+    # NOTE: Specifying multiple entries in FROM clause gives the Cartesian product of the source tables.
     """CREATE TABLE brk_eigendombuurt AS (
             SELECT row_number() over (), kadastraal_object_id, buurt_id FROM (
                 SELECT kot.id as kadastraal_object_id, buurt.id as buurt_id
