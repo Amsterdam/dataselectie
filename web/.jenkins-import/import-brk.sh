@@ -32,6 +32,12 @@ source ${DIR}/get_bag_tables.sh
 dc run --rm importer python manage.py import --bagdbindexes
 dc run --rm importer python manage.py import --bagdbconstraints
 
+# This is added because (for unknown reasons), Jenkins is configured
+# to restore the postgres dump from this job into the dataselectie db
+# in the Postgres cluster (and not from import-hr.sh). On Azure, we
+# run indexing jobs that consume from this cluster and require the presence of the hr table.
+dc exec -T database update-table.sh handelsregister hr_dataselectie public dataselectie
+
 dc run --rm importer python manage.py migrate contenttypes
 
 # create dataselectie BRK tables and views
