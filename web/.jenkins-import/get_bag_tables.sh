@@ -33,7 +33,7 @@ declare  -a bag_tables=(
 	"brk_erfpacht"
 	"brk_gemeente"
 	"brk_geslacht"
-	"brk_kadastercodeomschrijving"
+	#"brk_kadastercodeomschrijving" does not exist
 	"brk_kadastraalobject"
 	"brk_kadastraalobjectverblijfsobjectrelatie"
 	"brk_kadastralegemeente"
@@ -42,9 +42,6 @@ declare  -a bag_tables=(
 	"brk_rechtsvorm"
 	"brk_zakelijkrecht"
 	"brk_zakelijkrechtverblijfsobjectrelatie"
-	"brk_eigendom"
-	"brk_eigenaar"
-	"brk_eigenaarcategorie"
 )
 
 

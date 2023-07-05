@@ -11,11 +11,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # SECURITY WARNING: keep the secret key used in production secret!
-insecure_key = 'insecure'
-SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', insecure_key)
-
-DEBUG = SECRET_KEY == insecure_key
-LOCAL = SECRET_KEY == insecure_key
+SECRET_KEY = os.getenv('DATASELECTIE_SECRET_KEY', "insecure")
+DEBUG = os.getenv("DEBUG", False)
 
 ALLOWED_HOSTS = ['*']
 
@@ -37,7 +34,7 @@ MIDDLEWARE = [
     'authorization_django.authorization_middleware',
 ]
 
-if LOCAL:
+if DEBUG:
     INSTALLED_APPS += ('corsheaders',)
     MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 
