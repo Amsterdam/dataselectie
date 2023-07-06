@@ -102,3 +102,4 @@ dataselectie.iml
 
 # Project specific
 .DS_Store
+.vscode
