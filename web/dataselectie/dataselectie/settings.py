@@ -88,7 +88,7 @@ if DATABASE_SCHEMA is not None:
     # public is required for using the PostGis extension
     # TODO: move Postgis objects to a separate schema
     DATABASES["default"]["OPTIONS"] = {
-        "options": f"-c search_path={DATABASE_SCHEMA},public"
+        "options": f"-c search_path={DATABASE_SCHEMA}"
     }
 
 ELASTIC_SEARCH_HOSTS = [
