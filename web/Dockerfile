@@ -13,18 +13,19 @@ RUN apt update && apt install --no-install-recommends -y \
 COPY requirements* ./
 ARG PIP_REQUIREMENTS=requirements.txt
 
-RUN python -m pip install --upgrade pip
+RUN python -m pip install --upgrade pip setuptools
 RUN python -m pip install --no-cache-dir -r $PIP_REQUIREMENTS
 
 # Start runtime image,
 FROM python:3.7-slim-bullseye
+RUN python -m pip install --upgrade pip setuptools 
 RUN apt update && apt install --no-install-recommends -y \
     curl \
     libgdal28 \
     libgeos-c1v5 \
     libpq5 \
     media-types \
-    netcat-openbsd
+    netcat-openbsd 
 
 # Copy python build artifacts from builder image
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
