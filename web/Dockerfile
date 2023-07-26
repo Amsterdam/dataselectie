@@ -18,6 +18,7 @@ RUN python -m pip install --no-cache-dir -r $PIP_REQUIREMENTS
 
 # Start runtime image,
 FROM python:3.7-slim-bullseye
+RUN useradd -U -r datapunt
 RUN python -m pip install --upgrade pip setuptools 
 RUN apt update && apt install --no-install-recommends -y \
     curl \
