@@ -13,7 +13,7 @@ RUN apt update && apt install --no-install-recommends -y \
 COPY requirements* ./
 ARG PIP_REQUIREMENTS=requirements.txt
 
-RUN python -m pip install --upgrade pip setuptools
+RUN python -m pip install --upgrade pip setuptools uwsgi
 RUN python -m pip install --no-cache-dir -r $PIP_REQUIREMENTS
 
 # Start runtime image,
@@ -35,6 +35,7 @@ COPY --from=builder /usr/local/lib/python3.7/site-packages/ /usr/local/lib/pytho
 WORKDIR /app/
 
 EXPOSE 8000
+
 USER datapunt
 
 COPY dataselectie /app/
