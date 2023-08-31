@@ -13,7 +13,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 USER datapunt
 
 COPY dataselectie /app/
-COPY get_imds_db_token.sh .
 
 COPY .jenkins-import /.jenkins-import/
 
