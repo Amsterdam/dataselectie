@@ -17,3 +17,4 @@ COPY dataselectie /app/
 COPY .jenkins-import /.jenkins-import/
 
 CMD /app/docker-entrypoint.sh
+
