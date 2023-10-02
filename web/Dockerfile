@@ -4,6 +4,7 @@ MAINTAINER datapunt@amsterdam.nl
 ENV PYTHONUNBUFFERED 1
 
 RUN apt update && apt install --no-install-recommends -y \
+    libpcre3 libpcre3-dev \
     build-essential \
     libgeos-dev \
     libpq-dev \
@@ -21,6 +22,7 @@ FROM python:3.7-slim-bullseye
 RUN useradd -U -r datapunt
 RUN python -m pip install --upgrade pip setuptools 
 RUN apt update && apt install --no-install-recommends -y \
+    libpcre3 libpcre3-dev \
     curl \
     libgdal28 \
     libgeos-c1v5 \
