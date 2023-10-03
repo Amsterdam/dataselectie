@@ -1,33 +1,31 @@
-FROM python:3.7-slim-bullseye AS builder
+FROM python:3.7-buster as builder
 MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
 
 RUN apt update && apt install --no-install-recommends -y \
-    libpcre3 libpcre3-dev \
+    curl \
+    gdal-bin \
+    libgeos-c1v5 \
+    libpq5 \
+    netcat-openbsd \
     build-essential \
     libgeos-dev \
     libpq-dev \
     python3-dev \
     libffi-dev
 
-COPY requirements* ./
-ARG PIP_REQUIREMENTS=requirements.txt
+WORKDIR /app/
 
-RUN python -m pip install --upgrade pip setuptools uwsgi
-RUN python -m pip install --no-cache-dir -r $PIP_REQUIREMENTS
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
 
-# Start runtime image,
-FROM python:3.7-slim-bullseye
-RUN useradd -U -r datapunt
-RUN python -m pip install --upgrade pip setuptools 
+# Start runtime image
+FROM python:3.7-buster
 RUN apt update && apt install --no-install-recommends -y \
-    libpcre3 libpcre3-dev \
-    curl \
-    libgdal28 \
+    gdal-bin \
     libgeos-c1v5 \
     libpq5 \
-    media-types \
     netcat-openbsd 
 
 # Copy python build artifacts from builder image
