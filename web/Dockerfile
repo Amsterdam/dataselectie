@@ -32,7 +32,10 @@ RUN apt update && apt install --no-install-recommends -y \
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY --from=builder /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
 
-WORKDIR /app/
+RUN adduser --system datapunt
+WORKDIR /app
+
+RUN chown datapunt -R /app
 
 EXPOSE 8000
 
