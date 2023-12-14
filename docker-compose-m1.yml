@@ -13,7 +13,7 @@ services:
         - "~/.ssh/datapunt.key:/root/.ssh/datapunt.key"
 
   database:
-    image: amsterdam/postgres11
+    image: amsterdam/postgres12
     ports:
       - "5435:5432"
     environment:
