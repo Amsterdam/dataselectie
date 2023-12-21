@@ -25,9 +25,8 @@ def openapi(request):
 urlpatterns = [
     # url(r'^admin/', admin.site.urls),
     url(r'^dataselectie/bag/', include('datasets.bag.urls')),
-    # Issue AB 100476, disable HR and BRK for a while.
-    # url(r'^dataselectie/brk/', include('datasets.brk.urls')),
-    # url(r'^dataselectie/hr/', include('datasets.hr.urls')),
+    url(r'^dataselectie/brk/', include('datasets.brk.urls')),
+    url(r'^dataselectie/hr/', include('datasets.hr.urls')),
     url(r'^status/', include('health.urls')),
     url(r'^dataselectie/api-docs/openapi.yml', openapi)
 ]
