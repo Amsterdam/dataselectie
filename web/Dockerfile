@@ -21,7 +21,7 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start runtime image
-FROM python:3.7-buster
+FROM python:3.12-bookworm
 RUN apt update && apt install --no-install-recommends -y \
     gdal-bin \
     libgeos-c1v5 \
