@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bullseye as builder
+FROM python:3.9-bullseye as builder
 MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
@@ -21,7 +21,7 @@ COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Start runtime image
-FROM python:3.11-slim-bullseye
+FROM python:3.9-bullseye
 RUN apt update && apt install --no-install-recommends -y \
     gdal-bin \
     libgeos-c1v5 \
@@ -30,7 +30,7 @@ RUN apt update && apt install --no-install-recommends -y \
 
 # Copy python build artifacts from builder image
 COPY --from=builder /usr/local/bin/ /usr/local/bin/
-COPY --from=builder /usr/local/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=builder /usr/local/lib/python3.9/site-packages/ /usr/local/lib/python3.9/site-packages/
 
 RUN adduser --system datapunt
 WORKDIR /app
