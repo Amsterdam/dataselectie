@@ -1,4 +1,4 @@
-FROM python:3.7-buster as builder
+FROM python:3.12-bookworm as builder
 MAINTAINER datapunt@amsterdam.nl
 
 ENV PYTHONUNBUFFERED 1
