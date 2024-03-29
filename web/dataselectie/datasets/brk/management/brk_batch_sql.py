@@ -9,7 +9,7 @@ dataselection_sql_commands = [
 
     """CREATE TABLE test_table_foo (
         col1 INTEGER PRIMARY KEY,
-        col2 INTEGER,
+        col2 INTEGER
     );""",
     "CREATE INDEX ON brk_eigendombuurt (col1, col2)",
 
