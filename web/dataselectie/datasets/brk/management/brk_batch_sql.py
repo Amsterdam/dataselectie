@@ -11,7 +11,7 @@ dataselection_sql_commands = [
         col1 INTEGER PRIMARY KEY,
         col2 INTEGER
     );""",
-    "CREATE INDEX ON brk_eigendombuurt (col1, col2)",
+    "CREATE INDEX ON test_table_foo (col1, col2)",
 
 ]
 
