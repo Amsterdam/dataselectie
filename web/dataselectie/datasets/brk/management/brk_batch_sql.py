@@ -103,9 +103,9 @@ dataselection_sql_commands = [
             ) subquery
         )""",
     # Add foreign keys because they are for 'through' ManyMany relation in models
-    """ALTER TABLE public.brk_eigendomstadsdeel 
-          ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
-          ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id)
+    """ALTER TABLE brk_eigendomstadsdeel 
+          ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES brk_kadastraalobject(id),
+          ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES bag_stadsdeel(id)
     """,
     "CREATE INDEX ON brk_eigendomstadsdeel (kadastraal_object_id, stadsdeel_id)",
 
