@@ -10,11 +10,11 @@ bagimport_sql_commands = [
     # "CREATE INDEX ON bag_buurtcombinatie USING GIST (geometrie)",
     # "CREATE INDEX ON bag_gebiedsgerichtwerken USING GIST (geometrie)",
     # "CREATE INDEX ON bag_stadsdeel USING GIST (geometrie)",
-    "ALTER TABLE bag_buurt OWNER TO dataselectie",
-    "ALTER TABLE bag_buurtcombinatie OWNER TO dataselectie",
-    "ALTER TABLE bag_gebiedsgerichtwerken OWNER TO dataselectie",
-    "ALTER TABLE bag_stadsdeel OWNER TO dataselectie",
-    "ALTER TABLE brk_eigenaarcategorie OWNER TO dataselectie",
+    # "ALTER TABLE bag_buurt OWNER TO dataselectie",
+    # "ALTER TABLE bag_buurtcombinatie OWNER TO dataselectie",
+    # "ALTER TABLE bag_gebiedsgerichtwerken OWNER TO dataselectie",
+    # "ALTER TABLE bag_stadsdeel OWNER TO dataselectie",
+    # "ALTER TABLE brk_eigenaarcategorie OWNER TO dataselectie",
 ]
 
 dataselection_sql_commands = [
@@ -121,20 +121,20 @@ dataselection_sql_commands = [
         UNION
         SELECT id AS eigendom_id, 3::INTEGER as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
-    # "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
-    # "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_adres_id_idx ON brk_adres(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_eigenaar_id_idx ON brk_eigenaar(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_eigendom_id_idx ON brk_eigendom(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_object_id_idx ON brk_eigendom(kadastraal_object_id)",
-    # "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_subject_id_idx ON brk_eigendom(kadastraal_subject_id)",
-    # "CREATE INDEX IF NOT EXISTS brk_eigendomcategorie_eigendom_id_eigendom_cat_idx ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
-    # "CREATE INDEX IF NOT EXISTS brk_kadastraalobject_id_idx ON brk_kadastraalobject(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrel_id_idx  ON brk_kadastraalobjectverblijfsobjectrelatie(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrelatie_kadastraal_object_id_idx ON brk_kadastraalobjectverblijfsobjectrelatie(kadastraal_object_id)",
-    # "CREATE INDEX IF NOT EXISTS brk_kadastralegemeente_id_idx ON brk_kadastralegemeente(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_kadastralesectie_id_idx ON brk_kadastralesectie(id)",
-    # "CREATE INDEX IF NOT EXISTS brk_zakelijkrecht_id_idx ON brk_zakelijkrecht(id)",
+    "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
+    "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
+    "CREATE INDEX IF NOT EXISTS brk_adres_id_idx ON brk_adres(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigenaar_id_idx ON brk_eigenaar(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_id_idx ON brk_eigendom(id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_object_id_idx ON brk_eigendom(kadastraal_object_id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_subject_id_idx ON brk_eigendom(kadastraal_subject_id)",
+    "CREATE INDEX IF NOT EXISTS brk_eigendomcategorie_eigendom_id_eigendom_cat_idx ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobject_id_idx ON brk_kadastraalobject(id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrel_id_idx  ON brk_kadastraalobjectverblijfsobjectrelatie(id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrelatie_kadastraal_object_id_idx ON brk_kadastraalobjectverblijfsobjectrelatie(kadastraal_object_id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastralegemeente_id_idx ON brk_kadastralegemeente(id)",
+    "CREATE INDEX IF NOT EXISTS brk_kadastralesectie_id_idx ON brk_kadastralesectie(id)",
+    "CREATE INDEX IF NOT EXISTS brk_zakelijkrecht_id_idx ON brk_zakelijkrecht(id)",
 ]
 
 mapselection_sql_commands = [
@@ -168,9 +168,9 @@ mapselection_sql_commands = [
         where poly.poly_geom is not null and point.point_geom is not NULL
         and st_within(point.point_geom, poly.poly_geom))""",
     "SELECT UpdateGeometrySRID('geo_brk_kot_point_in_poly','poly_geom',4326)",
-    # "CREATE INDEX ON geo_brk_kot_point_in_poly USING GIST (poly_geom)",
-    # "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
-    # "CREATE INDEX ON geo_brk_kot_point_in_poly (point_kot_id)",
+    "CREATE INDEX ON geo_brk_kot_point_in_poly USING GIST (poly_geom)",
+    "CREATE INDEX ON geo_brk_kot_point_in_poly (poly_kot_id, point_kot_id)",
+    "CREATE INDEX ON geo_brk_kot_point_in_poly (point_kot_id)",
 
     #   Base table for cartographic layers,
     #       categorized registry-objects - only outright ownership
@@ -187,9 +187,9 @@ mapselection_sql_commands = [
     WHERE aard_zakelijk_recht_akr = 'VE' and be.id = cat.eigendom_id
     GROUP BY 1, 2, 3) eigendom, brk_kadastraalobject kot
     WHERE kot.id = eigendom.kadastraal_object_id)""",
-    # "CREATE INDEX ON geo_brk_eigendommen (kadastraal_object_id)",
-    # "CREATE INDEX eigendommen_poly ON geo_brk_eigendommen USING GIST (poly_geom)",
-    # "CREATE INDEX eigendommen_point ON geo_brk_eigendommen USING GIST (point_geom)",
+    "CREATE INDEX ON geo_brk_eigendommen (kadastraal_object_id)",
+    "CREATE INDEX eigendommen_poly ON geo_brk_eigendommen USING GIST (poly_geom)",
+    "CREATE INDEX eigendommen_point ON geo_brk_eigendommen USING GIST (point_geom)",
 
     #   Base table for cartographic layers
     #       Landplots without outright ownership - encompassing registry-objects with outright ownership
@@ -208,9 +208,9 @@ mapselection_sql_commands = [
             (select * from geo_brk_eigendommen eigendom where eigendom.cat_id = possible_cats.cat_id 
             and eigendom.kadastraal_object_id = niet_eigendom.kadastraal_object_id)
         )""",
-    # "CREATE INDEX ON geo_brk_niet_eigendom_poly (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly (kadastraal_object_id)",
     "SELECT UpdateGeometrySRID('geo_brk_niet_eigendom_poly','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_niet_eigendom_poly USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly USING GIST (geometrie)",
 
     #   Based on outright ownership categorized base table:
     #       Table for cartographic layers, grouped polygons (as unnested multipolygons) per categorie
@@ -223,7 +223,7 @@ mapselection_sql_commands = [
         WHERE poly_geom is not null
         )""",
     "SELECT UpdateGeometrySRID('geo_brk_eigendom_poly','geometrie',4326)",
-    # "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (geometrie)",
+    "CREATE INDEX eigendom_poly ON geo_brk_eigendom_poly USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Aggregated registry-objects per land plots
@@ -239,9 +239,9 @@ mapselection_sql_commands = [
         group by 1, 2)""",
     "SELECT UpdateGeometrySRID('geo_brk_eigendom_point','plot',4326)",
     "SELECT UpdateGeometrySRID('geo_brk_eigendom_point','geometrie',4326)",
-    # "CREATE INDEX eigendom_point ON geo_brk_eigendom_point USING GIST (geometrie)",
-    # "CREATE INDEX eigendom_plot ON geo_brk_eigendom_point USING GIST (plot)",
-    # "CREATE INDEX ON geo_brk_eigendom_point (kadastraal_object_id)",
+    "CREATE INDEX eigendom_point ON geo_brk_eigendom_point USING GIST (geometrie)",
+    "CREATE INDEX eigendom_plot ON geo_brk_eigendom_point USING GIST (plot)",
+    "CREATE INDEX ON geo_brk_eigendom_point (kadastraal_object_id)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots in full ownership, aggregated as unnested multi-polygons
@@ -255,7 +255,7 @@ mapselection_sql_commands = [
                         GROUP BY eigendom.cat_id
                     ) inner_query)""",
     "SELECT UpdateGeometrySRID('geo_brk_eigendom_poly_all','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_eigendom_poly_all USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_all USING GIST (geometrie)",
 
     #   Aggregated table for cartographic layers
     #       Land-plots not in ownership, but with property, aggregated as unnested multi-polygons
@@ -269,7 +269,7 @@ mapselection_sql_commands = [
                         GROUP BY eigendom.cat_id 
                     ) inner_query)""",
     "SELECT UpdateGeometrySRID('geo_brk_niet_eigendom_poly_all','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_all USING GIST (geometrie)",
 
     #   Base table for geoselection api,
     #       categorized registry-objects
@@ -286,9 +286,9 @@ mapselection_sql_commands = [
     WHERE be.id = cat.eigendom_id
     GROUP BY 1, 2, 3) eigendom, brk_kadastraalobject kot
     WHERE kot.id = eigendom.kadastraal_object_id)""",
-    # "CREATE INDEX ON geo_brk_eigendomselectie (kadastraal_object_id)",
-    # "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (poly_geom)",
-    # "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (point_geom)",
+    "CREATE INDEX ON geo_brk_eigendomselectie (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (poly_geom)",
+    "CREATE INDEX ON geo_brk_eigendomselectie USING GIST (point_geom)",
 
     #   Aggregated table for geoselection api
     #       Aggregated registry-objects per land plots
@@ -309,9 +309,9 @@ mapselection_sql_commands = [
     "SELECT setval('detail_point_index_seq', MAX(id)) FROM geo_brk_detail_eigendom_point_index",
     "SELECT UpdateGeometrySRID('geo_brk_detail_eigendom_point_index','plot',4326)",
     "SELECT UpdateGeometrySRID('geo_brk_detail_eigendom_point_index','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (geometrie)",
-    # "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (plot)",
-    # "CREATE INDEX ON geo_brk_detail_eigendom_point_index (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_detail_eigendom_point_index USING GIST (plot)",
+    "CREATE INDEX ON geo_brk_detail_eigendom_point_index (kadastraal_object_id)",
     """INSERT INTO geo_brk_detail_eigendom_point_index (kadastraal_object_id, cat_id, eigendom_cat, plot, geometrie, aantal) Select
         kpp.poly_kot_id as kadastraal_object_id,
         99::INTEGER as cat_id,
@@ -365,9 +365,9 @@ mapselection_sql_commands = [
     "ALTER TABLE geo_brk_detail_niet_eigendom_poly_index ALTER COLUMN id SET NOT NULL, ALTER COLUMN id SET DEFAULT nextval('niet_eigendom_poly_index_seq')",
     "ALTER SEQUENCE niet_eigendom_poly_index_seq OWNED BY geo_brk_detail_niet_eigendom_poly_index.id",
     "SELECT setval('niet_eigendom_poly_index_seq', MAX(id)) FROM geo_brk_detail_niet_eigendom_poly_index",
-    # "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id)",
     "SELECT UpdateGeometrySRID('geo_brk_detail_niet_eigendom_poly_index','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_detail_niet_eigendom_poly_index USING GIST (geometrie)",
     """INSERT INTO geo_brk_detail_niet_eigendom_poly_index (kadastraal_object_id, cat_id, eigendom_cat, geometrie) Select
         kadastraal_object_id,
         cat_id,
@@ -398,9 +398,9 @@ mapselection_sql_commands = [
     "ALTER TABLE geo_brk_detail_eigendom_poly_index ALTER COLUMN id SET NOT NULL, ALTER COLUMN id SET DEFAULT nextval('eigendom_poly_index_seq')",
     "ALTER SEQUENCE eigendom_poly_index_seq OWNED BY geo_brk_detail_eigendom_poly_index.id",
     "SELECT setval('eigendom_poly_index_seq', MAX(id)) FROM geo_brk_detail_eigendom_poly_index",
-    # "CREATE INDEX ON geo_brk_detail_eigendom_poly_index (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_detail_eigendom_poly_index (kadastraal_object_id)",
     "SELECT UpdateGeometrySRID('geo_brk_detail_eigendom_poly_index','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_detail_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_detail_eigendom_poly_index USING GIST (geometrie)",
     """INSERT INTO geo_brk_detail_eigendom_poly_index (kadastraal_object_id, eigendom_cat, geometrie, cat_id) Select
         kadastraal_object_id,
         eigendom_cat,
@@ -529,11 +529,11 @@ mapselection_sql_commands = [
                     ) inner_query""",
 
     "SELECT UpdateGeometrySRID('geo_brk_niet_eigendom_poly_index','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_niet_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_index USING GIST (geometrie)",
     "SELECT UpdateGeometrySRID('geo_brk_eigendom_poly_index','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_eigendom_poly_index USING GIST (geometrie)",
-    # "CREATE INDEX ON geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
-    # "CREATE INDEX ON geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_index USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_niet_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
+    "CREATE INDEX ON geo_brk_eigendom_poly_index (cat_id, eigendom_cat, gebied, gebied_id)",
 
     # Simplify geometries (to the nearest ~ 5, 10, 20 and 50 meters) for faster serving:
     "UPDATE geo_brk_eigendom_poly_index SET geometrie = ST_SIMPLIFY(geometrie, 0.0000005) where gebied = 'buurt'",
@@ -574,9 +574,9 @@ CREATE TABLE geo_brk_rond_erfpacht_poly AS
             WHERE ep2.kadastraal_object_id IS NULL
             ) subquery
     """,
-    # "CREATE INDEX ON geo_brk_rond_erfpacht_poly (kadastraal_object_id)",
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly (kadastraal_object_id)",
     "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_rond_erfpacht_poly USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly USING GIST (geometrie)",
 
     # Cartographic table for erfpacht
     # Select G-percelen in erfpacht with category (1 Amsterdam, 2 Overig)
@@ -592,7 +592,7 @@ CREATE TABLE geo_brk_erfpacht_poly AS
     WHERE kot.poly_geom is not null
     """,
     "SELECT UpdateGeometrySRID('geo_brk_erfpacht_poly','geometrie',4326)",
-    # "CREATE INDEX erfpacht_poly ON geo_brk_erfpacht_poly USING GIST (geometrie)",
+    "CREATE INDEX erfpacht_poly ON geo_brk_erfpacht_poly USING GIST (geometrie)",
 
     # Cartographic table for erfpacht
     # Select G-percelen that contain A-percelen that have erfpacht.
@@ -613,9 +613,9 @@ CREATE TABLE geo_brk_erfpacht_point AS
     """,
     "SELECT UpdateGeometrySRID('geo_brk_erfpacht_point','plot',4326)",
     "SELECT UpdateGeometrySRID('geo_brk_erfpacht_point','geometrie',4326)",
-    # "CREATE INDEX erfpacht_point ON geo_brk_erfpacht_point USING GIST (geometrie)",
-    # "CREATE INDEX erfpacht_plot ON geo_brk_erfpacht_point USING GIST (plot)",
-    # "CREATE INDEX ON geo_brk_erfpacht_point (kadastraal_object_id)",
+    "CREATE INDEX erfpacht_point ON geo_brk_erfpacht_point USING GIST (geometrie)",
+    "CREATE INDEX erfpacht_plot ON geo_brk_erfpacht_point USING GIST (plot)",
+    "CREATE INDEX ON geo_brk_erfpacht_point (kadastraal_object_id)",
 
     # Aggregated cartographic table for erfpacht
     # Erfpacht land-plots, aggregated as unnested multi-polygons
@@ -632,7 +632,7 @@ CREATE TABLE geo_brk_erfpacht_poly_all AS
          ) inner_query
     """,
     "SELECT UpdateGeometrySRID('geo_brk_erfpacht_poly_all','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_erfpacht_poly_all USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_erfpacht_poly_all USING GIST (geometrie)",
 
     # Aggregated cartographic table for erfpacht
     # Land-plots not in erfpacht, byt that contain erfpacht object, aggregated as unnested multi-polygons
@@ -649,5 +649,5 @@ CREATE TABLE geo_brk_rond_erfpacht_poly_all AS
           ) inner_query
     """,
     "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly_all','geometrie',4326)",
-    # "CREATE INDEX ON geo_brk_rond_erfpacht_poly_all USING GIST (geometrie)",
+    "CREATE INDEX ON geo_brk_rond_erfpacht_poly_all USING GIST (geometrie)",
 ]
