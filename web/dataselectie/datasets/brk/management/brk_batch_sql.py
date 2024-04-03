@@ -121,6 +121,13 @@ dataselection_sql_commands = [
         UNION
         SELECT id AS eigendom_id, 3::INTEGER as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
+
+    "GRANT SELECT ON brk_eigendomstadsdeel TO dataselectie_read",
+    "GRANT SELECT ON brk_eigendomggw TO dataselectie_read",
+    "GRANT SELECT ON brk_eigendomwijk TO dataselectie_read",
+    "GRANT SELECT ON brk_eigendombuurt TO dataselectie_read",
+    "GRANT SELECT ON brk_eigendomcategorie TO dataselectie_read",
+
     "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
     "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
     "CREATE INDEX IF NOT EXISTS brk_adres_id_idx ON brk_adres(id)",
@@ -650,4 +657,23 @@ CREATE TABLE geo_brk_rond_erfpacht_poly_all AS
     """,
     "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly_all','geometrie',4326)",
     "CREATE INDEX ON geo_brk_rond_erfpacht_poly_all USING GIST (geometrie)",
+
+    "GRANT SELECT ON geo_brk_detail_eigendom_poly_index TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_detail_niet_eigendom_poly_index TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_detail_eigendom_point_index TO dataselectie_read",
+
+    "GRANT SELECT ON geo_brk_eigendomselectie TO dataselectie_read",
+
+    "GRANT SELECT ON geo_brk_eigendom_poly_index TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_niet_eigendom_poly_index TO dataselectie_read",
+
+    "GRANT SELECT ON geo_brk_eigendom_poly_all TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_niet_eigendom_poly_all TO dataselectie_read",
+
+    "GRANT SELECT ON geo_brk_eigendom_poly TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_niet_eigendom_poly TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_eigendom_point TO dataselectie_read",
+
+    "GRANT SELECT ON geo_brk_eigendommen TO dataselectie_read",
+    "GRANT SELECT ON geo_brk_kot_point_in_poly TO dataselectie_read",
 ]
