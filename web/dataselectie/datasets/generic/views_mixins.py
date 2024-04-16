@@ -319,7 +319,8 @@ class ElasticSearchMixin(object):
         query = self.add_elastic_filters(q)
         # Performing the search
         response = self.elastic.search(
-            index=settings.ELASTIC_INDICES[self.index], body=query)
+            index=settings.ELASTIC_INDICES[self.index], body=query, 
+            timeout=settings.ELASTIC_SEARCH_TIMEOUT_SECONDS)
         elastic_data = {
             'aggs_list': self.process_aggs(response.get('aggregations', {})),
             'object_list': [item['_source'] for item in
