@@ -104,6 +104,8 @@ ELASTIC_INDICES = {
     "DS_BRK_INDEX": "ds_brk_index",
 }
 
+ELASTIC_INDEXING_TIMEOUT_SECONDS = int(os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', 60))
+
 # MAX_SEARCH_ITEMS is limited by the ElasticSearch index.max_result_window index setting which defaults to 10_000
 MAX_SEARCH_ITEMS = 10000
 MIN_BAG_NR = 1000

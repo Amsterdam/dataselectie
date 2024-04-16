@@ -210,6 +210,7 @@ class ImportIndexTask(object):
                 self.client,
                 (self.convert(obj).to_dict(include_meta=True) for obj in qs),
                 raise_on_error=True,
+                request_timeout=settings.ELASTIC_INDEXING_TIMEOUT_SECONDS
             )
 
         if settings.TESTING and self.index:
