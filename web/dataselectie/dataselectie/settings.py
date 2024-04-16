@@ -105,6 +105,7 @@ ELASTIC_INDICES = {
 }
 
 ELASTIC_INDEXING_TIMEOUT_SECONDS = int(os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', 60))
+ELASTIC_SEARCH_TIMEOUT_SECONDS = os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', "30s")
 
 # MAX_SEARCH_ITEMS is limited by the ElasticSearch index.max_result_window index setting which defaults to 10_000
 MAX_SEARCH_ITEMS = 10000
