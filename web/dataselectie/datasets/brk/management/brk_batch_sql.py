@@ -1,21 +1,6 @@
 # https://gis.stackexchange.com/questions/98146/calculating-percent-area-of-intersection-in-where-clause
 
-bagimport_sql_commands = [
-    #
-    #  Indexes on imported tables
-    #
-    "CREATE INDEX ON brk_kadastraalobject USING GIST (point_geom)",
-    "CREATE INDEX ON brk_kadastraalobject USING GIST (poly_geom)",
-    "CREATE INDEX ON bag_buurt USING GIST (geometrie)",
-    "CREATE INDEX ON bag_buurtcombinatie USING GIST (geometrie)",
-    "CREATE INDEX ON bag_gebiedsgerichtwerken USING GIST (geometrie)",
-    "CREATE INDEX ON bag_stadsdeel USING GIST (geometrie)",
-    "ALTER TABLE bag_buurt OWNER TO dataselectie",
-    "ALTER TABLE bag_buurtcombinatie OWNER TO dataselectie",
-    "ALTER TABLE bag_gebiedsgerichtwerken OWNER TO dataselectie",
-    "ALTER TABLE bag_stadsdeel OWNER TO dataselectie",
-    "ALTER TABLE brk_eigenaarcategorie OWNER TO dataselectie",
-]
+bagimport_sql_commands = []
 
 dataselection_sql_commands = [
     #
@@ -103,10 +88,10 @@ dataselection_sql_commands = [
             ) subquery
         )""",
     # Add foreign keys because they are for 'through' ManyMany relation in models
-    """ALTER TABLE public.brk_eigendomstadsdeel 
-          ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES public.brk_kadastraalobject(id),
-          ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES public.bag_stadsdeel(id)
-    """,
+    # """ALTER TABLE brk_eigendomstadsdeel 
+    #       ADD CONSTRAINT kadastraal_object_id_fk FOREIGN KEY (kadastraal_object_id) REFERENCES bag_v11_legacy.brk_kadastraalobject(id),
+    #       ADD CONSTRAINT stadsdeel_id_fk FOREIGN KEY (stadsdeel_id) REFERENCES bag_v11_legacy.bag_stadsdeel(id)
+    # """,
     "CREATE INDEX ON brk_eigendomstadsdeel (kadastraal_object_id, stadsdeel_id)",
 
     #   Normalisation-table:
@@ -121,27 +106,7 @@ dataselection_sql_commands = [
         UNION
         SELECT id AS eigendom_id, 3::INTEGER as eigendom_cat FROM brk_eigendom WHERE appartementeigenaar = true::boolean
     )""",
-
-    "GRANT SELECT ON brk_eigendomstadsdeel TO dataselectie_read",
-    "GRANT SELECT ON brk_eigendomggw TO dataselectie_read",
-    "GRANT SELECT ON brk_eigendomwijk TO dataselectie_read",
-    "GRANT SELECT ON brk_eigendombuurt TO dataselectie_read",
-    "GRANT SELECT ON brk_eigendomcategorie TO dataselectie_read",
-
-    "CREATE INDEX IF NOT EXISTS bag_nummeraanduiding_verblijfsobject_id_idx ON bag_nummeraanduiding(verblijfsobject_id)",
-    "CREATE INDEX IF NOT EXISTS bag_verblijfsobject_id_idx ON bag_verblijfsobject(id)",
-    "CREATE INDEX IF NOT EXISTS brk_adres_id_idx ON brk_adres(id)",
-    "CREATE INDEX IF NOT EXISTS brk_eigenaar_id_idx ON brk_eigenaar(id)",
-    "CREATE INDEX IF NOT EXISTS brk_eigendom_id_idx ON brk_eigendom(id)",
-    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_object_id_idx ON brk_eigendom(kadastraal_object_id)",
-    "CREATE INDEX IF NOT EXISTS brk_eigendom_kadastraal_subject_id_idx ON brk_eigendom(kadastraal_subject_id)",
     "CREATE INDEX IF NOT EXISTS brk_eigendomcategorie_eigendom_id_eigendom_cat_idx ON brk_eigendomcategorie (eigendom_id, eigendom_cat)",
-    "CREATE INDEX IF NOT EXISTS brk_kadastraalobject_id_idx ON brk_kadastraalobject(id)",
-    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrel_id_idx  ON brk_kadastraalobjectverblijfsobjectrelatie(id)",
-    "CREATE INDEX IF NOT EXISTS brk_kadastraalobjectverblijfsobjectrelatie_kadastraal_object_id_idx ON brk_kadastraalobjectverblijfsobjectrelatie(kadastraal_object_id)",
-    "CREATE INDEX IF NOT EXISTS brk_kadastralegemeente_id_idx ON brk_kadastralegemeente(id)",
-    "CREATE INDEX IF NOT EXISTS brk_kadastralesectie_id_idx ON brk_kadastralesectie(id)",
-    "CREATE INDEX IF NOT EXISTS brk_zakelijkrecht_id_idx ON brk_zakelijkrecht(id)",
 ]
 
 mapselection_sql_commands = [
@@ -657,23 +622,4 @@ CREATE TABLE geo_brk_rond_erfpacht_poly_all AS
     """,
     "SELECT UpdateGeometrySRID('geo_brk_rond_erfpacht_poly_all','geometrie',4326)",
     "CREATE INDEX ON geo_brk_rond_erfpacht_poly_all USING GIST (geometrie)",
-
-    "GRANT SELECT ON geo_brk_detail_eigendom_poly_index TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_detail_niet_eigendom_poly_index TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_detail_eigendom_point_index TO dataselectie_read",
-
-    "GRANT SELECT ON geo_brk_eigendomselectie TO dataselectie_read",
-
-    "GRANT SELECT ON geo_brk_eigendom_poly_index TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_niet_eigendom_poly_index TO dataselectie_read",
-
-    "GRANT SELECT ON geo_brk_eigendom_poly_all TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_niet_eigendom_poly_all TO dataselectie_read",
-
-    "GRANT SELECT ON geo_brk_eigendom_poly TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_niet_eigendom_poly TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_eigendom_point TO dataselectie_read",
-
-    "GRANT SELECT ON geo_brk_eigendommen TO dataselectie_read",
-    "GRANT SELECT ON geo_brk_kot_point_in_poly TO dataselectie_read",
 ]
