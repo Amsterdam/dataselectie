@@ -9,7 +9,7 @@ from django.db.models import BigIntegerField
 
 import elasticsearch
 from elasticsearch import helpers
-from elasticsearch.exceptions import NotFoundError
+from elasticsearch.exceptions import NotFoundError, RequestError
 import elasticsearch_dsl as es
 from elasticsearch_dsl.connections import connections
 
@@ -71,7 +71,15 @@ class CreateDocTypeTask(object):
 
         for dt in self.doc_types:
             idx.document(dt)
-        idx.create()
+
+        try:
+            idx.create()
+        except RequestError as e:
+            if 'resource_already_exists_exception' in str(e.info['error']):
+                pass
+            else:
+                raise
+
         idx.refresh()
 
 
