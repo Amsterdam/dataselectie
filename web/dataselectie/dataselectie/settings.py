@@ -99,9 +99,9 @@ ELASTIC_SEARCH_HOSTS = [
 ]
 
 ELASTIC_INDICES = {
-    "DS_BAG_INDEX": "ds_bag_index",
-    "DS_HR_INDEX": "ds_hr_index",
-    "DS_BRK_INDEX": "ds_brk_index",
+    "DS_BAG_INDEX": os.getenv("DS_BAG_INDEX", "ds_bag_index"),
+    "DS_HR_INDEX": os.getenv("DS_HR_INDEX", "ds_hr_index"),
+    "DS_BRK_INDEX": os.getenv("DS_BRK_INDEX", "ds_brk_index"),
 }
 
 ELASTIC_INDEXING_TIMEOUT_SECONDS = int(os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', 60))
