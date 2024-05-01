@@ -2,6 +2,7 @@ from datetime import date
 import json
 import logging
 import re
+from typing import Union
 
 
 from django.conf import settings
@@ -188,7 +189,7 @@ def get_woonplaats(nummeraanduiding: bag_models.Nummeraanduiding) -> str:
     return lookup_tables[class_name].get(woonplaats_id)
 
 
-def get_date(val: str) -> date|None:
+def get_date(val: str) -> Union[date,None]:
     result = None
     try:
         result = parse_date(val)
