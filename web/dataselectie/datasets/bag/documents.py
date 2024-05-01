@@ -124,7 +124,7 @@ def update_doc_with_adresseerbaar_object(doc: Nummeraanduiding, item: models.Num
         doc.gsg_naam = gsg.naam
 
     buurt = adresseerbaar_object.buurt
-    if buurt:
+    if buurt and buurt.buurtcombinatie:
         batch.statistics.add('BAG Inclusief buurt', total=False)
         doc.buurt_code = str(buurt.code)
         doc.buurtcombinatie_code = str(buurt.buurtcombinatie.code)
