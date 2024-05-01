@@ -1,3 +1,4 @@
+from datetime import date
 import json
 import logging
 import re
@@ -187,14 +188,12 @@ def get_woonplaats(nummeraanduiding: bag_models.Nummeraanduiding) -> str:
     return lookup_tables[class_name].get(woonplaats_id)
 
 
-def get_date(val):
-    if val is None or val == '':
-        result = None
-    else:
-        try:
-            result = parse_date(val)
-        except ValueError:
-            result = None
+def get_date(val: str) -> date|None:
+    result = None
+    try:
+        result = parse_date(val)
+    except (ValueError, TypeError):
+        pass
     return result
 
 
