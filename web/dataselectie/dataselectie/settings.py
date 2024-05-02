@@ -21,6 +21,9 @@ from dataselectie.utils import get_variable
 from dataselectie.utils import get_db_settings
 from pathlib import Path
 
+def str2bool(v):
+    return v.lower() in ("yes", "true", "t", "1")
+
 
 DATAPUNT_API_URL = os.getenv("DATAPUNT_API_URL", "https://api.data.amsterdam.nl/")
 
@@ -106,6 +109,7 @@ ELASTIC_INDICES = {
 
 ELASTIC_INDEXING_TIMEOUT_SECONDS = int(os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', 60))
 ELASTIC_SEARCH_TIMEOUT_SECONDS = os.getenv('ELASTIC_INDEXING_TIMEOUT_SECONDS', "30s")
+ELASTIC_SWAP_LAT_LON_COORDS = str2bool(os.getenv('ELASTIC_SWAP_LAT_LON_COORDS ', 'true'))
 
 # MAX_SEARCH_ITEMS is limited by the ElasticSearch index.max_result_window index setting which defaults to 10_000
 MAX_SEARCH_ITEMS = 10000

@@ -101,10 +101,14 @@ def update_doc_with_adresseerbaar_object(doc: Nummeraanduiding, item: models.Num
     """
     adresseerbaar_object = item.adresseerbaar_object
 
+    # Seems lat/lon needs to be swapped, could be because of a new
+    # GDAL version.
     try:
-        doc.centroid = (
+        swap = settings.ELASTIC_SWAP_LAT_LON_COORDS 
+        centroid = (
             adresseerbaar_object
             .geometrie.centroid.transform('wgs84', clone=True).coords)
+        doc.centroid = centroid[::-1] if swap else centroid
     except AttributeError:
         batch.statistics.add('BAG Missing geometrie', total=False)
         log.error('Missing geometrie %s' % adresseerbaar_object)
