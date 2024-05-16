@@ -522,7 +522,7 @@ class CSVExportView(TableSearchView):
     def item_data_update(self, item, _request):
         """
         Allow for subclasses to add custom fields to the item before it is
-        strigified for export
+        stringified for export
         """
         return item
 
