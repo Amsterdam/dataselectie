@@ -198,8 +198,12 @@ def get_date(val: str) -> Union[date,None]:
     return result
 
 
-def doc_from_eigendom(eigendom: brk_models.Eigendom) -> Eigendom:
-    kot = eigendom.kadastraal_object
+def doc_from_eigendom(eigendom: brk_models.Eigendom) -> Union[Eigendom,None]:
+    try:
+        kot = eigendom.kadastraal_object
+    except brk_models.KadastraalObject.DoesNotExist:
+        log.error(f"KadastraalObject for eigendom: {eigendom.id}")
+        return None
     # eigendommen = kot.eigendommen.all()
 
     doc = Eigendom(_id=eigendom.id)

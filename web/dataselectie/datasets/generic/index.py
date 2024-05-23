@@ -216,7 +216,7 @@ class ImportIndexTask(object):
 
             helpers.bulk(
                 self.client,
-                (self.convert(obj).to_dict(include_meta=True) for obj in qs),
+                (self.convert(obj).to_dict(include_meta=True) for obj in qs if obj),
                 raise_on_error=True,
                 request_timeout=settings.ELASTIC_INDEXING_TIMEOUT_SECONDS
             )
