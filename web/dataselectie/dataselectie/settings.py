@@ -169,7 +169,7 @@ DATAPUNT_AUTHZ = {
     "JWKS_URL": os.getenv("KEYCLOAK_JWKS_URL"),
     "MIN_SCOPE": authorization_levels.SCOPE_HR_R,
     "FORCED_ANONYMOUS_ROUTES": (
-        "/status/",
+        "/dataselectie/status/",
         "/dataselectie/bag/",
         "/dataselectie/api-docs",
     ),
