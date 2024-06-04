@@ -31,3 +31,4 @@ urllib3==1.26.18
 azure-identity==1.14.0
 uwsgi==2.0.22
 uwsgi-readiness-check==0.2.0
+uwsgitop==0.12
