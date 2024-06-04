@@ -126,7 +126,7 @@ if TESTING:
 # The size of the preview to fetch from elastic
 SEARCH_PREVIEW_SIZE = 100
 AGGS_VALUE_SIZE = 1400
-DOWNLOAD_BATCH = 900
+DOWNLOAD_BATCH = 5000
 
 # Batch processing
 BATCH_SETTINGS = {
@@ -169,7 +169,7 @@ DATAPUNT_AUTHZ = {
     "JWKS_URL": os.getenv("KEYCLOAK_JWKS_URL"),
     "MIN_SCOPE": authorization_levels.SCOPE_HR_R,
     "FORCED_ANONYMOUS_ROUTES": (
-        "/status/",
+        "/dataselectie/status/",
         "/dataselectie/bag/",
         "/dataselectie/api-docs",
     ),
