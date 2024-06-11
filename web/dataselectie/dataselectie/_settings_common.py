@@ -161,7 +161,11 @@ LOGGING = {
             'level': 'ERROR',
             'propagate': False,
         },
-
+        "authorization_django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
 

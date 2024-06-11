@@ -196,3 +196,41 @@ if SENTRY_DSN:
     sentry_sdk.init(
         dsn=SENTRY_DSN, environment="dataselectie", integrations=[DjangoIntegration()]
     )
+
+
+import logging
+from azure.monitor.opentelemetry import configure_azure_monitor
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.instrumentation.django import DjangoInstrumentor
+
+# Configure OpenTelemetry to use Azure Monitor with the specified connection string
+APPLICATIONINSIGHTS_CONNECTION_STRING = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+if APPLICATIONINSIGHTS_CONNECTION_STRING is not None:
+    configure_azure_monitor(
+        logger_name="root",
+        instrumentation_options={
+            "azure_sdk": {"enabled": False},
+            "django": {"enabled": False},
+            "fastapi": {"enabled": False},
+            "flask": {"enabled": False},  # Configure flask manually
+            "psycopg2": {"enabled": False},  # Configure psycopg2 manually
+            "requests": {"enabled": True},
+            "urllib": {"enabled": True},
+            "urllib3": {"enabled": True},
+        },
+        resource=Resource.create({SERVICE_NAME: "Dataselectie"}),
+    )
+    logger = logging.getLogger("root")
+    logger.info("OpenTelemetry has been enabled")
+
+
+    def response_hook(span, request, response):
+        if span and span.is_recording():
+            email = request.get_token_subject
+            if getattr(request, "get_token_claims", None) and "email" in request.get_token_claims:
+                email = request.get_token_claims["email"]
+                span.set_attribute("user.AuthenticatedId", email)
+
+    # Instrument Django app
+    DjangoInstrumentor().instrument(response_hook=response_hook)
+    print("django instrumentor enabled")
